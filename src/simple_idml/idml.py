@@ -151,18 +151,22 @@ class IDMLPackage(zipfile.ZipFile):
     def _add_tags_from_idml(self, idml_package):
         pass
 
-    def _add_spread_elements_from_idml(self, idml_package, from_xpath, at_xpath):
+    def _add_spread_elements_from_idml(self, idml_package, at, only):
         """ Append idml_package spread elements into self."""
 
         # There should be only one spread in the idml_package.
-        spread_to_insert = idml_package.open(idml_package.spreads[0], mode="r")
-        # TODO: use etree.
-        spread_to_insert_dom = parseString(spread_to_insert.read())
-        nodes = [node for node in spread_to_insert_dom.getElementsByTagName("Spread")[0].childNodes
-                 if node.nodeName not in ("Page", "FlattenerPreference")]
-        spread_to_insert.close()
+        spread_src = idml_package.open(idml_package.spreads[0], mode="r")
+        spread_src_doc = XMLDocument(spread_src)
 
-        spread_dest = self.get_spread_by_xpath(at_xpath)
+        spread_dest = self.open(self.get_spread_by_xpath(at), mode="r")
+        spread_dest_doc = XMLDocument(spread_dest)
+
+        # TODO: use etree.
+        #spread_to_insert_dom = parseString(spread_to_insert.read())
+        #nodes = [node for node in spread_to_insert_dom.getElementsByTagName("Spread")[0].childNodes
+        #         if node.nodeName not in ("Page", "FlattenerPreference")]
+        #spread_src.close()
+
        # spread_dest_dom = parseString(spread_dest.read())
        # spread_dest_node = spread_dest_dom.getElementsByTagName("Spread")[0]
        # map(lambda n: spread_dest_dom.appendChild(n), nodes)
@@ -177,10 +181,21 @@ class IDMLPackage(zipfile.ZipFile):
         self.XMLStructure.dom.xpath(at)[0].append(only)
 
     def get_spread_by_xpath(self, xpath):
-        """ Search for the spread having an element referencing the XMLElement pointed by xpath."""
-        pass
-        #self.XMLStructure.getElementsByXpath(xpath)
-    # If faut aussi un get_spread_node_by_xpath() pour avoir la position de reference.
+        """ Search for the spread file having the element identified by the XMLContent attribute
+        of the XMLElement pointed by xpath value."""
+
+        #TODO: caching.
+        result = None
+        reference = self.XMLStructure.dom.xpath(xpath)[0].get("XMLContent")
+        for filename in self.spreads:
+            spread = self.open(filename, mode="r")
+            spread_doc = XMLDocument(spread)
+            if spread_doc.dom.xpath("//*[@Self='%s']"%reference):
+                result = filename
+            spread.close()
+            if result:
+                break
+        return result
 
     def get_story_filename_by_xml_value(self, xml_value):
         return u"Stories/Story_%s.xml" % xml_value
