@@ -109,7 +109,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
                         "Spreads/Spread_FOOub6.xml")
 
 
-    def Xtest_insert_idml(self):
+    def test_insert_idml(self):
         from simple_idml.idml import IDMLPackage
 
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"), 
@@ -195,6 +195,8 @@ class SimpleIDMLTestCase(unittest.TestCase):
   <advertise XMLContent="mainudf" Self="maindi2i6"/>
 </Root>
 """)
+
+        # TODO Test Spread_mainub6.xml content.
                                    
 
 class XMLDocumentTestCase(unittest.TestCase):

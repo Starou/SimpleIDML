@@ -135,25 +135,34 @@ class IDMLPackage(zipfile.ZipFile):
     def _add_tags_from_idml(self, idml_package):
         pass
 
-    def _add_spread_elements_from_idml(self, idml_package, at, only):
-        """ Append idml_package spread elements into self."""
+    @use_working_copy
+    def _add_spread_elements_from_idml(self, idml_package, at, only, working_copy_path=None):
+        """ Append idml_package spread elements into self.spread[0] <Spread> node. """
 
         # There should be only one spread in the idml_package.
         spread_src = idml_package.open(idml_package.spreads[0], mode="r")
         spread_src_doc = XMLDocument(spread_src)
 
-        spread_dest = self.open(self.get_spread_by_xpath(at), mode="r")
+        # We work in the working_copy.
+        spread_dest_filename = self.get_spread_by_xpath(at)
+        spread_dest_abs_filename = os.path.join(working_copy_path, spread_dest_filename)
+        spread_dest = open(spread_dest_abs_filename, mode="r")
         spread_dest_doc = XMLDocument(spread_dest)
+        spread_dest_elt = spread_dest_doc.dom.xpath("./Spread")[0]
 
-        # TODO: use etree.
-        #spread_to_insert_dom = parseString(spread_to_insert.read())
-        #nodes = [node for node in spread_to_insert_dom.getElementsByTagName("Spread")[0].childNodes
-        #         if node.nodeName not in ("Page", "FlattenerPreference")]
-        #spread_src.close()
+        for child in spread_src_doc.dom.xpath("./Spread")[0].iterchildren():
+            if child.tag in ["Page", "FlattenerPreference"]:
+                continue
+            child_copy = copy.deepcopy(child)
+            spread_dest_elt.append(child_copy)
 
-       # spread_dest_dom = parseString(spread_dest.read())
-       # spread_dest_node = spread_dest_dom.getElementsByTagName("Spread")[0]
-       # map(lambda n: spread_dest_dom.appendChild(n), nodes)
+        new_xml = etree.tostring(spread_dest_doc.dom, pretty_print=True)
+        spread_dest.close()
+        spread_dest = open(spread_dest_abs_filename, mode="w+")
+        spread_dest.write(new_xml)
+        spread_dest.close()
+
+        return self
 
     def _add_stories_from_idml(self, idml_package, at, only):
         # BackingStory.xml ??
