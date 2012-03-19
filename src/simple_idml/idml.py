@@ -122,9 +122,10 @@ class IDMLPackage(zipfile.ZipFile):
         self._add_graphic_from_idml(idml_package)
         self._add_tags_from_idml(idml_package)
         
-        self._add_spread_elements_from_idml(idml_package, at, only)
-        self._add_stories_from_idml(idml_package, at, only)
-        self._add_XMLElements_from_idml(idml_package, at, only)
+        p = self._add_spread_elements_from_idml(idml_package, at, only)
+        p = p._add_stories_from_idml(idml_package, at, only)
+        p._add_XMLElements_from_idml(idml_package, at, only)
+        return p
 
     def _add_fonts_from_idml(self, idml_package):
         pass
@@ -164,10 +165,16 @@ class IDMLPackage(zipfile.ZipFile):
 
         return self
 
-    def _add_stories_from_idml(self, idml_package, at, only):
+    @use_working_copy
+    def _add_stories_from_idml(self, idml_package, at, only, working_copy_path=None):
+        # Stories files are added.
+        for filename in idml_package.stories:
+            story_cp = open(os.path.join(working_copy_path, filename), mode="w+")
+            story_cp.write(idml_package.open(filename, mode="r").read())
+            story_cp.close()
+        return self
         # BackingStory.xml ??
         # Designmap.xml
-        pass
 
     def _add_XMLElements_from_idml(self, idml_package, at, only):
         only = copy.deepcopy(idml_package.XMLStructure.dom.xpath(only)[0])

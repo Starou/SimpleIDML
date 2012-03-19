@@ -107,8 +107,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
         self.assertEqual(designmap.xpath(".//idPkg:Spread", 
                                   namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0].get("src"),
                         "Spreads/Spread_FOOub6.xml")
-
-
+                                   
     def test_insert_idml(self):
         from simple_idml.idml import IDMLPackage
 
@@ -120,54 +119,13 @@ class SimpleIDMLTestCase(unittest.TestCase):
         main_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages.idml"))
         article_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo.idml"))
 
-        main_idml_file.insert_idml(article_idml_file, 
-                                   at="/Root/article[3]",
-                                   only="/Root/module[1]")
-
-        # The XML Structure has integrated the new file.
-        self.assertEqual(etree.tostring(main_idml_file.XMLStructure.dom, pretty_print=True),
-"""<Root Self="di2">
-  <article XMLContent="u102" Self="di2i3">
-    <Story XMLContent="ue4" Self="di2i3i1">
-      <title Self="di2i3i1i1"/>
-      <subtitle Self="di2i3i1i2"/>
-    </Story>
-    <content XMLContent="u11b" Self="di2i3i2"/>
-    <illustration XMLContent="u135" Self="di2i3i3"/>
-    <description XMLContent="u139" Self="di2i3i4"/>
-  </article>
-  <article XMLContent="udb" Self="di2i4"/>
-  <article XMLContent="udd" Self="di2i5">
-    <module XMLContent="u102" Self="di2i3">
-      <main_picture XMLContent="ue5" Self="di2i3i1"/>
-      <headline XMLContent="ue8" Self="di2i3i2"/>
-      <Story XMLContent="u11a" Self="di2i3i3">
-        <article Self="di2i3i3i1"/>
-        <informations Self="di2i3i3i2"/>
-      </Story>
-    </module>
-  </article>
-  <advertise XMLContent="udf" Self="di2i6"/>
-</Root>
-""")
-                                   
-    def test_prefix_then_insert_idml(self):
-        from simple_idml.idml import IDMLPackage
-
-        shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"), 
-                     os.path.join(OUTPUT_DIR, "4-pages.idml"))
-        shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo.idml"), 
-                     os.path.join(OUTPUT_DIR, "article-1photo.idml"))
-
-        main_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages.idml"))
-        article_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo.idml"))
-
+        # Always start by prefixing packages to avoid collision.
         main_idml_file = main_idml_file.prefix("main")
         article_idml_file = article_idml_file.prefix("article1")
 
-        main_idml_file.insert_idml(article_idml_file, 
-                                   at="/Root/article[3]",
-                                   only="/Root/module[1]")
+        main_idml_file = main_idml_file.insert_idml(article_idml_file, 
+                                                    at="/Root/article[3]",
+                                                    only="/Root/module[1]")
 
         # The XML Structure has integrated the new file.
         self.assertEqual(etree.tostring(main_idml_file.XMLStructure.dom, pretty_print=True),
