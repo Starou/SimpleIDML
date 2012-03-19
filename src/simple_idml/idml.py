@@ -8,6 +8,8 @@ import copy
 from lxml import etree
 from xml.dom.minidom import parseString
 
+from simple_idml.decorators import use_working_copy
+
 xmltag_prefix = "XMLTag/"
 rx_contentfile = re.compile(r"^(Story_|Spread_)(.+\.xml)$")
 rx_contentfile2 = re.compile(r"^(Stories/Story_|Spreads/Spread_)(.+\.xml)$")
@@ -79,18 +81,15 @@ class IDMLPackage(zipfile.ZipFile):
             self._stories = stories
         return self._stories
             
-    def prefix(self, prefix):
+    @use_working_copy
+    def prefix(self, prefix, working_copy_path=None):
         """Change references and filename by inserting `prefix_` everywhere. 
         
         files in ZipFile cannot be renamed or moved so we make a copy of it.
         """
 
-        # TODO use mktmp.
-        tmp_filename = "%s_TMP" % self.filename
-        self.extractall(tmp_filename)
-
         # Change the references inside the file.
-        for root, dirs, filenames in os.walk(tmp_filename):
+        for root, dirs, filenames in os.walk(working_copy_path):
             for filename in filenames:
                 if os.path.splitext(filename)[1] != ".xml":
                     continue
@@ -112,26 +111,11 @@ class IDMLPackage(zipfile.ZipFile):
                 new_basename = prefix_content_filename(os.path.basename(filename),
                                                        prefix, rx_contentfile)
                 # mv file in the new archive with the prefix.
-                old_name = os.path.join(tmp_filename, filename)
+                old_name = os.path.join(working_copy_path, filename)
                 new_name = os.path.join(os.path.dirname(old_name), new_basename)
                 os.rename(old_name, new_name)
 
-        # Create a new archive from the extracted one.
-        tmp_package = IDMLPackage("%s.idml" % tmp_filename, mode="w")
-        for root, dirs, filenames in os.walk(tmp_filename):
-            for filename in filenames:
-                filename = os.path.join(root, filename)
-                arcname = filename.replace(tmp_filename, "")
-                tmp_package.write(filename, arcname)
-        tmp_package.close()
-
-        # swap files.
-        new_filename = self.filename
-        os.unlink(self.filename)
-        os.rename(tmp_package.filename, new_filename)
-        shutil.rmtree(tmp_filename)
-
-        return IDMLPackage(new_filename)
+        return self
 
     def insert_idml(self, idml_package, at, only):
         self._add_fonts_from_idml(idml_package)
@@ -255,3 +239,5 @@ def XMLElementToElement(XMLElement):
 def prefix_content_filename(filename, prefix, rx):
     start, end = rx.match(filename).groups()
     return "%s%s%s" % (start, prefix, end)
+
+
