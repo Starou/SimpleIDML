@@ -16,7 +16,10 @@ class SimpleIDMLTestCase(unittest.TestCase):
     def setUp(self):
         super(SimpleIDMLTestCase, self).setUp()
         for f in glob.glob(os.path.join(OUTPUT_DIR, "*")):
-            os.unlink(f)
+            if os.path.isdir(f):
+                shutil.rmtree(f)
+            else:
+                os.unlink(f)
 
     def test_idml_package(self):
         from simple_idml.idml import IDMLPackage
@@ -142,6 +145,23 @@ class SimpleIDMLTestCase(unittest.TestCase):
 </Root>
 """)
                                    
+    def test_prefix_then_insert_idml(self):
+        from simple_idml.idml import IDMLPackage
+
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"), 
+                     os.path.join(OUTPUT_DIR, "4-pages.idml"))
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo.idml"), 
+                     os.path.join(OUTPUT_DIR, "article-1photo.idml"))
+
+        main_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages.idml"))
+        article_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo.idml"))
+
+        main_idml_file = main_idml_file.prefix("main")
+        article_idml_file = article_idml_file.prefix("article1")
+
+        main_idml_file.insert_idml(article_idml_file, 
+                                   at="/Root/article[3]",
+                                   only="/Root/module[1]")
 
 class XMLDocumentTestCase(unittest.TestCase):
     def test_get_element_by_id(self):
