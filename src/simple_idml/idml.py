@@ -82,11 +82,12 @@ class IDMLPackage(zipfile.ZipFile):
     def prefix(self, prefix):
         """Change references and filename by inserting `prefix_` everywhere. 
         
-        ZipFile object being Read-only we make a copy of it.
+        files in ZipFile cannot be renamed or moved so we make a copy of it.
         """
 
+        # TODO use mktmp.
         tmp_filename = "%s_TMP" % self.filename
-        self.extractall(tmp_filename)#, base_namelist)
+        self.extractall(tmp_filename)
 
         # Change the references inside the file.
         for root, dirs, filenames in os.walk(tmp_filename):
@@ -154,7 +155,7 @@ class IDMLPackage(zipfile.ZipFile):
         """ Append idml_package spread elements into self."""
 
         # There should be only one spread in the idml_package.
-        spread_to_insert = self.open(idml_package.spreads[0], mode="r")
+        spread_to_insert = idml_package.open(idml_package.spreads[0], mode="r")
         # TODO: use etree.
         spread_to_insert_dom = parseString(spread_to_insert.read())
         nodes = [node for node in spread_to_insert_dom.getElementsByTagName("Spread")[0].childNodes
@@ -200,11 +201,15 @@ class XMLDocument(object):
         return self.dom.find("*/XMLElement[@Self='%s']" % id)
 
     def prefix_references(self, prefix):
-        """ """
+        """Update references inside various XML files found in an IDML package after a call to prefix()."""
+
         # <XMLElement Self="di2i3" MarkupTag="XMLTag/article" XMLContent="u102"/>
-        for elt in self.dom.iterfind(".//XMLElement"):
-            for attr in ("Self", "XMLContent"):
+        # <[Spread|Page|...] Self="ub6" FlattenerOverride="Default" 
+        # <[TextFrame|...] Self="uca" ParentStory="u102" ...>
+        for elt in self.dom.iter():
+            for attr in ("Self", "XMLContent", "ParentStory"):
                 if elt.get(attr):
+                    #TODO prefix_element_attr(attr, prefix)
                     elt.set(attr, "%s%s" % (prefix, elt.get(attr)))
 
         # <idPkg:Spread src="Spreads/Spread_ub6.xml"/>

@@ -68,6 +68,12 @@ class SimpleIDMLTestCase(unittest.TestCase):
         self.assertEqual(idml_file.spreads, ['Spreads/Spread_FOOub6.xml',
                                              'Spreads/Spread_FOOubc.xml',
                                              'Spreads/Spread_FOOuc3.xml'])
+        spread = etree.fromstring(idml_file.open("Spreads/Spread_FOOub6.xml").read())
+        self.assertEqual(spread.xpath(".//Spread[1]")[0].get("Self"), "FOOub6")
+        self.assertEqual(spread.xpath(".//Spread[1]/Page[1]")[0].get("Self"), "FOOubb")
+        self.assertEqual(spread.xpath(".//Spread[1]/TextFrame[1]")[0].get("Self"), "FOOud8")
+        self.assertEqual(spread.xpath(".//Spread[1]/TextFrame[1]")[0].get("ParentStory"), "FOOu102")
+
         # Stories.
         self.assertEqual(idml_file.stories, ['Stories/Story_FOOu102.xml',
                                              'Stories/Story_FOOu11b.xml',
@@ -162,6 +168,34 @@ class SimpleIDMLTestCase(unittest.TestCase):
         main_idml_file.insert_idml(article_idml_file, 
                                    at="/Root/article[3]",
                                    only="/Root/module[1]")
+
+        # The XML Structure has integrated the new file.
+        self.assertEqual(etree.tostring(main_idml_file.XMLStructure.dom, pretty_print=True),
+"""<Root Self="maindi2">
+  <article XMLContent="mainu102" Self="maindi2i3">
+    <Story XMLContent="mainue4" Self="maindi2i3i1">
+      <title Self="maindi2i3i1i1"/>
+      <subtitle Self="maindi2i3i1i2"/>
+    </Story>
+    <content XMLContent="mainu11b" Self="maindi2i3i2"/>
+    <illustration XMLContent="mainu135" Self="maindi2i3i3"/>
+    <description XMLContent="mainu139" Self="maindi2i3i4"/>
+  </article>
+  <article XMLContent="mainudb" Self="maindi2i4"/>
+  <article XMLContent="mainudd" Self="maindi2i5">
+    <module XMLContent="article1u102" Self="article1di2i3">
+      <main_picture XMLContent="article1ue5" Self="article1di2i3i1"/>
+      <headline XMLContent="article1ue8" Self="article1di2i3i2"/>
+      <Story XMLContent="article1u11a" Self="article1di2i3i3">
+        <article Self="article1di2i3i3i1"/>
+        <informations Self="article1di2i3i3i2"/>
+      </Story>
+    </module>
+  </article>
+  <advertise XMLContent="mainudf" Self="maindi2i6"/>
+</Root>
+""")
+                                   
 
 class XMLDocumentTestCase(unittest.TestCase):
     def test_get_element_by_id(self):
