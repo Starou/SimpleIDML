@@ -155,6 +155,15 @@ class SimpleIDMLTestCase(unittest.TestCase):
 """)
 
         # TODO Test Spread_mainub6.xml content.
+
+        # Stories.
+        self.assertEqual(main_idml_file.stories, ['Stories/Story_article1u102.xml',
+                                                  'Stories/Story_article1u11a.xml', 
+                                                  'Stories/Story_article1ue8.xml', 
+                                                  'Stories/Story_mainu102.xml',
+                                                  'Stories/Story_mainu11b.xml',
+                                                  'Stories/Story_mainu139.xml',
+                                                  'Stories/Story_mainue4.xml'])
                                    
 
 class XMLDocumentTestCase(unittest.TestCase):
