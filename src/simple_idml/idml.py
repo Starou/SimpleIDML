@@ -17,11 +17,34 @@ rx_contentfile2 = re.compile(r"^(Stories/Story_|Spreads/Spread_)(.+\.xml)$")
 
 rx_story_id = re.compile(r"Stories/Story_([\w]+)\.xml")
 
+excluded_tags_for_prefix = [
+    "Document",
+    "Language",
+    "NumberingList",
+    "NamedGrid",
+    "TextVariable",
+    "Layer",
+    "Section",
+    "DocumentUser",
+    "CrossReferenceFormat",
+    "BuildingBlock",
+    "IndexingSortOption",
+    "ABullet",
+    "Assignment",
+    "XMLTag",
+    "Page", # or update designmap.xml: <Section Self="uc9" Length="4" Name="" ... PageStart="ubb" SectionPrefix=""> ?
+    "MasterSpread",
+]
+
+doctypes = {
+    'designmap.xml': u'<?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="7.5(142)" ?>',
+}
+
 class IDMLPackage(zipfile.ZipFile):
     """An IDML file (a package) is a Zip-stored archive/UCF container. """
 
     def __init__(self, *args, **kwargs):
-        # TODO compression = ZIP_STORED.
+        kwargs["compression"] = zipfile.ZIP_STORED
         zipfile.ZipFile.__init__(self, *args, **kwargs)
         self._XMLStructure = None
         self._spreads = None
@@ -102,18 +125,24 @@ class IDMLPackage(zipfile.ZipFile):
 
         # Change the references inside the file.
         for root, dirs, filenames in os.walk(working_copy_path):
+            if os.path.basename(root) in ["META-INF",]:
+                continue
             for filename in filenames:
                 if os.path.splitext(filename)[1] != ".xml":
                     continue
-                filename = os.path.join(root, filename)
-                xml_file = open(filename, mode="r")
+                abs_filename = os.path.join(root, filename)
+                xml_file = open(abs_filename, mode="r")
                 doc = XMLDocument(xml_file)
                 doc.prefix_references(prefix)
-                new_xml = etree.tostring(doc.dom, pretty_print=True)
+                new_xml = etree.tostring(doc.dom, xml_declaration=True,
+                                         encoding="UTF-8",
+                                         standalone=True,
+                                         doctype=doctypes.get(filename, ""),
+                                         pretty_print=True)
                 xml_file.close()
 
                 # override.
-                new_file = open(filename, mode="w+")
+                new_file = open(abs_filename, mode="w+")
                 new_file.write(new_xml)
                 new_file.close()
 
@@ -170,7 +199,7 @@ class IDMLPackage(zipfile.ZipFile):
             child_copy = copy.deepcopy(child)
             spread_dest_elt.append(child_copy)
 
-        new_xml = etree.tostring(spread_dest_doc.dom, pretty_print=True)
+        new_xml = etree.tostring(spread_dest_doc.dom, xml_declaration=True, encoding="UTF-8", standalone=True, pretty_print=True)
         spread_dest.close()
         spread_dest = open(spread_dest_abs_filename, mode="w+")
         spread_dest.write(new_xml)
@@ -256,7 +285,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         # [4]: (A) is now referencing the Glue Story file.
         story_dest_elt.set("XMLContent", "glue")
-        new_xml = etree.tostring(story_dest_doc.dom, pretty_print=True)
+        new_xml = etree.tostring(story_dest_doc.dom, xml_declaration=True, encoding="UTF-8", standalone=True, pretty_print=True)
         story_dest.close()
         story_dest = open(story_dest_abs_filename, mode="w+")
         story_dest.write(new_xml)
@@ -265,7 +294,7 @@ class IDMLPackage(zipfile.ZipFile):
         # Save() Glue-Story file in the working_copy.
         glue_story_filename = os.path.join(working_copy_path, "Stories", "Story_glue.xml")
         glue_story = open(glue_story_filename, mode="w+")
-        glue_story.write(etree.tostring(glue_dom, pretty_print=True))
+        glue_story.write(etree.tostring(glue_dom, xml_declaration=True, encoding="UTF-8", standalone=True, pretty_print=True))
         glue_story.close()
 
         story_src.close()
@@ -285,7 +314,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         designmap.close()
         designmap = open(designmap_abs_filename, mode="w+")
-        designmap.write(etree.tostring(designmap_doc.dom, pretty_print=True))
+        designmap.write(etree.tostring(designmap_doc.dom, xml_declaration=True, encoding="UTF-8", standalone=True, pretty_print=True))
         designmap.close()
 
         return self
@@ -355,6 +384,8 @@ class XMLDocument(object):
         # <[Spread|Page|...] Self="ub6" FlattenerOverride="Default" 
         # <[TextFrame|...] Self="uca" ParentStory="u102" ...>
         for elt in self.dom.iter():
+            if elt.tag in excluded_tags_for_prefix:
+                continue
             for attr in ("Self", "XMLContent", "ParentStory"):
                 if elt.get(attr):
                     #TODO prefix_element_attr(attr, prefix)

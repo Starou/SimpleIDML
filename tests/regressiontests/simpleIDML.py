@@ -70,7 +70,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
                                              'Spreads/Spread_FOOuc3.xml'])
         spread = etree.fromstring(idml_file.open("Spreads/Spread_FOOub6.xml").read())
         self.assertEqual(spread.xpath(".//Spread[1]")[0].get("Self"), "FOOub6")
-        self.assertEqual(spread.xpath(".//Spread[1]/Page[1]")[0].get("Self"), "FOOubb")
+        self.assertEqual(spread.xpath(".//Spread[1]/Page[1]")[0].get("Self"), "ubb")
         self.assertEqual(spread.xpath(".//Spread[1]/TextFrame[1]")[0].get("Self"), "FOOud8")
         self.assertEqual(spread.xpath(".//Spread[1]/TextFrame[1]")[0].get("ParentStory"), "FOOu102")
 
@@ -138,8 +138,10 @@ class SimpleIDMLTestCase(unittest.TestCase):
                                                   'Stories/Story_mainue4.xml'])
 
         # Glue-story file content.
+        #print(main_idml_file.open("Stories/Story_glue.xml", mode="r").read())
         self.assertEqual(main_idml_file.open("Stories/Story_glue.xml", mode="r").read(),
-"""<idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
+"""<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
         <Story Self="glue" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
         <XMLElement Self="maindi2i5" MarkupTag="XMLTag/article" XMLContent="mainudd"><XMLElement Self="article1di2i3" MarkupTag="XMLTag/module" XMLContent="article1u102"/>
 				</XMLElement>
