@@ -127,7 +127,28 @@ class SimpleIDMLTestCase(unittest.TestCase):
                                                     at="/Root/article[3]",
                                                     only="/Root/module[1]")
 
+        # Stories.
+        self.assertEqual(main_idml_file.stories, ['Stories/Story_article1u102.xml',
+                                                  'Stories/Story_article1u11a.xml', 
+                                                  'Stories/Story_article1ue8.xml', 
+                                                  'Stories/Story_glue.xml',
+                                                  'Stories/Story_mainu102.xml',
+                                                  'Stories/Story_mainu11b.xml',
+                                                  'Stories/Story_mainu139.xml',
+                                                  'Stories/Story_mainue4.xml'])
+
+        # Glue-story file content.
+        self.assertEqual(main_idml_file.open("Stories/Story_glue.xml", mode="r").read(),
+"""<idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
+        <Story Self="glue" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+        <XMLElement Self="maindi2i5" MarkupTag="XMLTag/article" XMLContent="mainudd"><XMLElement Self="article1di2i3" MarkupTag="XMLTag/module" XMLContent="article1u102"/>
+				</XMLElement>
+					</Story>
+    </idPkg:Story>
+""")
+                                   
         # The XML Structure has integrated the new file.
+        #print(etree.tostring(main_idml_file.XMLStructure.dom, pretty_print=True))
         self.assertEqual(etree.tostring(main_idml_file.XMLStructure.dom, pretty_print=True),
 """<Root Self="maindi2">
   <article XMLContent="mainu102" Self="maindi2i3">
@@ -140,7 +161,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
     <description XMLContent="mainu139" Self="maindi2i3i4"/>
   </article>
   <article XMLContent="mainudb" Self="maindi2i4"/>
-  <article XMLContent="mainudd" Self="maindi2i5">
+  <article XMLContent="glue" Self="maindi2i5">
     <module XMLContent="article1u102" Self="article1di2i3">
       <main_picture XMLContent="article1ue5" Self="article1di2i3i1"/>
       <headline XMLContent="article1ue8" Self="article1di2i3i2"/>
@@ -154,17 +175,15 @@ class SimpleIDMLTestCase(unittest.TestCase):
 </Root>
 """)
 
+        # Designmap.xml.
+        designmap = etree.fromstring(main_idml_file.open("designmap.xml", mode="r").read())
+        self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
+                         "mainue4 mainu102 mainu11b mainu139 mainu9c glue article1u102 article1u11a article1ue8")
+        self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
+                             namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})), 8)
+
         # TODO Test Spread_mainub6.xml content.
 
-        # Stories.
-        self.assertEqual(main_idml_file.stories, ['Stories/Story_article1u102.xml',
-                                                  'Stories/Story_article1u11a.xml', 
-                                                  'Stories/Story_article1ue8.xml', 
-                                                  'Stories/Story_mainu102.xml',
-                                                  'Stories/Story_mainu11b.xml',
-                                                  'Stories/Story_mainu139.xml',
-                                                  'Stories/Story_mainue4.xml'])
-                                   
 
 class XMLDocumentTestCase(unittest.TestCase):
     def test_get_element_by_id(self):

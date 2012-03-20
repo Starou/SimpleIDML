@@ -10,9 +10,12 @@ from xml.dom.minidom import parseString
 
 from simple_idml.decorators import use_working_copy
 
+BACKINGSTORY = "XML/BackingStory.xml"
 xmltag_prefix = "XMLTag/"
 rx_contentfile = re.compile(r"^(Story_|Spread_)(.+\.xml)$")
 rx_contentfile2 = re.compile(r"^(Stories/Story_|Spreads/Spread_)(.+\.xml)$")
+
+rx_story_id = re.compile(r"Stories/Story_([\w]+)\.xml")
 
 class IDMLPackage(zipfile.ZipFile):
     """An IDML file (a package) is a Zip-stored archive/UCF container. """
@@ -23,6 +26,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._XMLStructure = None
         self._spreads = None
         self._stories = None
+        self._story_ids = None
 
     @property
     def XMLStructure(self):
@@ -33,7 +37,7 @@ class IDMLPackage(zipfile.ZipFile):
         """
 
         if self._XMLStructure is None:
-            backing_story = self.open("XML/BackingStory.xml", mode="r")
+            backing_story = self.open(BACKINGSTORY, mode="r")
             backing_story_doc = XMLDocument(xml_file=backing_story)
 
             root_elt = backing_story_doc.dom.find("*//XMLElement")
@@ -81,6 +85,14 @@ class IDMLPackage(zipfile.ZipFile):
             self._stories = stories
         return self._stories
             
+    @property
+    def story_ids(self):
+        """ extract  `ID' from `Stories/Story_ID.xml'. """
+        if self._story_ids is None:
+            story_ids = [rx_story_id.match(elt).group(1) for elt in self.stories]
+            self._story_ids = story_ids
+        return self._story_ids
+            
     @use_working_copy
     def prefix(self, prefix, working_copy_path=None):
         """Change references and filename by inserting `prefix_` everywhere. 
@@ -124,7 +136,8 @@ class IDMLPackage(zipfile.ZipFile):
         
         p = self._add_spread_elements_from_idml(idml_package, at, only)
         p = p._add_stories_from_idml(idml_package, at, only)
-        p._add_XMLElements_from_idml(idml_package, at, only)
+        #p._add_XMLElements_from_idml(idml_package, at, only)
+        p._XMLStructure = None
         return p
 
     def _add_fonts_from_idml(self, idml_package):
@@ -167,14 +180,116 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def _add_stories_from_idml(self, idml_package, at, only, working_copy_path=None):
+        """Add all idml_package stories and insert `only' refence at `at' position in self. 
+        
+        What we have:
+        =============
+        
+        o self Story file containing "at" (say /Root/article[3] or "udd") [1]:
+
+            <XMLElement Self="di2" MarkupTag="XMLTag/Root">
+                <XMLElement Self="di2i3" MarkupTag="XMLTag/article" XMLContent="u102"/>
+                <XMLElement Self="di2i4" MarkupTag="XMLTag/article" XMLContent="udb"/>
+                <XMLElement Self="di2i5" MarkupTag="XMLTag/article" XMLContent="udd"/> (A)
+                <XMLElement Self="di2i6" MarkupTag="XMLTag/advertise" XMLContent="udf"/>
+            </XMLElement>
+
+
+        o idml_package Story containing "only" (say /Root/module[1] or "u102") [2]:
+        
+            <XMLElement Self="di2" MarkupTag="XMLTag/Root">
+                <XMLElement Self="di2i3" MarkupTag="XMLTag/module" XMLContent="u102"/> (B)
+            </XMLElement>
+
+        What we get:
+        ============
+
+        o A glue-Story file (Story/Story_glue.xml) is created to link those elements [3]:
+
+            <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
+                <Story Self="glue" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+                    <XMLElement Self="di2i5" MarkupTag="XMLTag/article" XMLContent="udd">        (A)
+                        <XMLElement Self="di2i5i1" MarkupTag="XMLTag/module" XMLContent="u102"/> (B)
+                    </XMLElement>
+                </Story>
+            </idPkg:Story>
+
+        o the file in [1] is repaired to point to the glue-Story [4]:
+
+            <XMLElement Self="di2" MarkupTag="XMLTag/Root">
+                <XMLElement Self="di2i3" MarkupTag="XMLTag/article" XMLContent="u102"/>
+                <XMLElement Self="di2i4" MarkupTag="XMLTag/article" XMLContent="udb"/>
+                <XMLElement Self="di2i5" MarkupTag="XMLTag/article" XMLContent="glue"/> (A)
+                <XMLElement Self="di2i6" MarkupTag="XMLTag/advertise" XMLContent="udf"/>
+            </XMLElement>
+
+        o the "Self" attributes of idml_package Story files are altered to fit in their new environment [5]:
+        
+        TODO 
+
+        o The designmap.xml file is updated [6].
+        
+        """
+
+        # get (A).
+        xml_element_dest = self.XMLStructure.dom.xpath(at)[0]
+        story_dest_filename = self.get_story_by_xpath(at)
+        story_dest_abs_filename = os.path.join(working_copy_path, story_dest_filename)
+        story_dest = open(story_dest_abs_filename, mode="r")
+        story_dest_doc = XMLDocument(story_dest)
+        story_dest_elt = story_dest_doc.dom.xpath("//XMLElement[@XMLContent='%s']" % xml_element_dest.get("XMLContent"))[0]
+
+        # Init Glue-Story XML and copy (A) in it.
+        glue_dom = etree.XML(create_story_xml("glue"))
+        glue_dom_elt = glue_dom.xpath("//Story")[0]
+        glue_dom_elt.append(copy.copy(story_dest_elt))
+
+        # Get (B) and copy it in glue XML as (A) child.
+        xml_element_src = idml_package.XMLStructure.dom.xpath(only)[0]
+        story_src_filename = idml_package.get_story_by_xpath(only)
+        story_src = idml_package.open(story_src_filename, mode="r")
+        story_src_doc = XMLDocument(story_src)
+        story_src_elt = story_src_doc.dom.xpath("//XMLElement[@XMLContent='%s']" % xml_element_src.get("XMLContent"))[0]
+        glue_dom_elt = glue_dom.xpath("//Story/XMLElement[1]")[0]
+        glue_dom_elt.append(copy.copy(story_src_elt))
+
+        # [4]: (A) is now referencing the Glue Story file.
+        story_dest_elt.set("XMLContent", "glue")
+        new_xml = etree.tostring(story_dest_doc.dom, pretty_print=True)
+        story_dest.close()
+        story_dest = open(story_dest_abs_filename, mode="w+")
+        story_dest.write(new_xml)
+        story_dest.close()
+
+        # Save() Glue-Story file in the working_copy.
+        glue_story_filename = os.path.join(working_copy_path, "Stories", "Story_glue.xml")
+        glue_story = open(glue_story_filename, mode="w+")
+        glue_story.write(etree.tostring(glue_dom, pretty_print=True))
+        glue_story.close()
+
+        story_src.close()
+
         # Stories files are added.
         for filename in idml_package.stories:
             story_cp = open(os.path.join(working_copy_path, filename), mode="w+")
             story_cp.write(idml_package.open(filename, mode="r").read())
             story_cp.close()
+
+        # Update designmap.xml.
+        designmap_abs_filename = os.path.join(working_copy_path, "designmap.xml")
+        designmap = open(designmap_abs_filename, mode="r")
+        designmap_doc = XMLDocument(designmap)
+
+        add_stories_to_designmap(designmap_doc.dom, ["glue"]+idml_package.story_ids)
+
+        designmap.close()
+        designmap = open(designmap_abs_filename, mode="w+")
+        designmap.write(etree.tostring(designmap_doc.dom, pretty_print=True))
+        designmap.close()
+
         return self
         # BackingStory.xml ??
-        # Designmap.xml
 
     def _add_XMLElements_from_idml(self, idml_package, at, only):
         only = copy.deepcopy(idml_package.XMLStructure.dom.xpath(only)[0])
@@ -190,13 +305,31 @@ class IDMLPackage(zipfile.ZipFile):
         for filename in self.spreads:
             spread = self.open(filename, mode="r")
             spread_doc = XMLDocument(spread)
-            if spread_doc.dom.xpath("//*[@Self='%s']"%reference):
+            if spread_doc.dom.xpath("//*[@Self='%s']" % reference):
                 result = filename
             spread.close()
             if result:
                 break
         return result
 
+    def get_story_by_xpath(self, xpath):
+        """Return the story (or BackingStory) filename containing the element selected by xpath string."""
+
+        #TODO: caching, unittest.
+        result = None
+        reference = self.XMLStructure.dom.xpath(xpath)[0].get("Self")
+        for filename in [BACKINGSTORY]+self.stories:
+            story = self.open(filename, mode="r")
+            story_doc = XMLDocument(story)
+            if story_doc.dom.xpath("//*[@Self='%s']" % reference):
+                result = filename
+            story.close()
+            if result:
+                break
+        return result
+
+
+    # TODO: rename in get_story_filename_by_reference ?
     def get_story_filename_by_xml_value(self, xml_value):
         return u"Stories/Story_%s.xml" % xml_value
 
@@ -257,3 +390,21 @@ def prefix_content_filename(filename, prefix, rx):
     return "%s%s%s" % (start, prefix, end)
 
 
+def create_story_xml(story_name):
+    return """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
+        <Story Self="%s" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+        </Story>
+    </idPkg:Story>""" % story_name
+
+def add_stories_to_designmap(dom, stories):
+    """This function is outside IDMLPackage because of readonly limitations of ZipFile. """
+    
+    # Add stories in StoryList.
+    elt = dom.xpath("/Document")[0]
+    current_stories = elt.get("StoryList").split(" ")
+    elt.set("StoryList", " ".join(current_stories+stories))
+
+    # Add <idPkg:Story src="Stories/Story_[name].xml"/> elements.
+    for story in stories:
+        elt.append(etree.Element("{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Story", src="Stories/story_%s.xml" % story))
