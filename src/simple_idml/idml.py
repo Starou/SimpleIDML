@@ -134,11 +134,7 @@ class IDMLPackage(zipfile.ZipFile):
                 xml_file = open(abs_filename, mode="r")
                 doc = XMLDocument(xml_file)
                 doc.prefix_references(prefix)
-                new_xml = etree.tostring(doc.dom, xml_declaration=True,
-                                         encoding="UTF-8",
-                                         standalone=True,
-                                         doctype=doctypes.get(filename, ""),
-                                         pretty_print=True)
+                new_xml = doc.tostring(ref_doctype=filename)
                 xml_file.close()
 
                 # override.
@@ -199,10 +195,9 @@ class IDMLPackage(zipfile.ZipFile):
             child_copy = copy.deepcopy(child)
             spread_dest_elt.append(child_copy)
 
-        new_xml = etree.tostring(spread_dest_doc.dom, xml_declaration=True, encoding="UTF-8", standalone=True, pretty_print=True)
         spread_dest.close()
         spread_dest = open(spread_dest_abs_filename, mode="w+")
-        spread_dest.write(new_xml)
+        spread_dest.write(spread_dest_doc.tostring(ref_doctype=None))
         spread_dest.close()
 
         return self
@@ -285,7 +280,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         # [4]: (A) is now referencing the Glue Story file.
         story_dest_elt.set("XMLContent", "glue")
-        new_xml = etree.tostring(story_dest_doc.dom, xml_declaration=True, encoding="UTF-8", standalone=True, pretty_print=True)
+        new_xml = story_dest_doc.tostring(ref_doctype=None)
         story_dest.close()
         story_dest = open(story_dest_abs_filename, mode="w+")
         story_dest.write(new_xml)
@@ -314,7 +309,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         designmap.close()
         designmap = open(designmap_abs_filename, mode="w+")
-        designmap.write(etree.tostring(designmap_doc.dom, xml_declaration=True, encoding="UTF-8", standalone=True, pretty_print=True))
+        designmap.write(designmap_doc.tostring(ref_doctype="designmap.xml"))
         designmap.close()
 
         return self
@@ -404,6 +399,14 @@ class XMLDocument(object):
             elt[0].set("StoryList", " ".join(["%s%s" % (prefix, s) 
                                            for s in elt[0].get("StoryList").split(" ")]))
 
+    def tostring(self, ref_doctype=None):
+        return etree.tostring(self.dom,
+                              xml_declaration=True,
+                              encoding="UTF-8",
+                              standalone=True,
+                              doctype=doctypes.get(ref_doctype, None),
+                              pretty_print=True)
+
 
 def XMLElementToElement(XMLElement):
     """ Extract data from a XMLElement tag to restore the tag as seen by the ID end-user.
@@ -438,4 +441,4 @@ def add_stories_to_designmap(dom, stories):
 
     # Add <idPkg:Story src="Stories/Story_[name].xml"/> elements.
     for story in stories:
-        elt.append(etree.Element("{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Story", src="Stories/story_%s.xml" % story))
+        elt.append(etree.Element("{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Story", src="Stories/Story_%s.xml" % story))
