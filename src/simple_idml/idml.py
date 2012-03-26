@@ -64,6 +64,7 @@ class IDMLPackage(zipfile.ZipFile):
         kwargs["compression"] = zipfile.ZIP_STORED
         zipfile.ZipFile.__init__(self, *args, **kwargs)
         self._XMLStructure = None
+        self._tags = None
         self._spreads = None
         self._stories = None
         self._story_ids = None
@@ -111,6 +112,17 @@ class IDMLPackage(zipfile.ZipFile):
             self._XMLStructure = structure
         return self._XMLStructure
 
+    # TODO: TESTS
+    @property
+    def tags(self):
+        if self._tags is None:
+            tags_src = self.open(TAGS, mode="r")
+            tags_doc = XMLDocument(tags_src)
+            tags = [copy.deepcopy(elt) for elt in tags_doc.dom.xpath("//XMLTag")]
+            self._tags = tags
+            tags_src.close()
+        return self._tags
+            
     @property
     def spreads(self):
         if self._spreads is None:
@@ -174,9 +186,8 @@ class IDMLPackage(zipfile.ZipFile):
     def insert_idml(self, idml_package, at, only):
         self._add_fonts_from_idml(idml_package)
         self._add_graphic_from_idml(idml_package)
-        self._add_tags_from_idml(idml_package)
-        
-        p = self._add_spread_elements_from_idml(idml_package, at, only)
+        p = self._add_tags_from_idml(idml_package)
+        p = p._add_spread_elements_from_idml(idml_package, at, only)
         p = p._add_stories_from_idml(idml_package, at, only)
         p._XMLStructure = None
         return p
@@ -189,6 +200,22 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def _add_tags_from_idml(self, idml_package, working_copy_path=None):
+        tags_abs_filename = os.path.join(working_copy_path, TAGS)
+        tags = open(tags_abs_filename, mode="r")
+        tags_doc = XMLDocument(tags)
+        tags_root_elt = tags_doc.dom.xpath("/idPkg:Tags", 
+                                  namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0]
+        for tag in idml_package.tags:
+            if not tags_root_elt.xpath("//XMLTag[@Self='%s']"%(tag.get("Self"))):
+                tags_root_elt.append(copy.deepcopy(tag))
+            
+        # TODO Wrap all this stuff in a XMLDocument method.
+        # story_dest_doc.overwrite_and_close()
+        new_xml = tags_doc.tostring(ref_doctype=None)
+        tags.close()
+        tags = open(tags_abs_filename, mode="w+")
+        tags.write(new_xml)
+        tags.close()
 
         return self
 
@@ -267,7 +294,6 @@ class IDMLPackage(zipfile.ZipFile):
         story_src_doc = XMLDocument(story_src)
         story_src_elt = story_src_doc.dom.xpath("//XMLElement[@XMLContent='%s']" % xml_element_src.get("XMLContent"))[0]
 
-        # get (A).
         xml_element_dest = self.XMLStructure.dom.xpath(at)[0]
         story_dest_filename = self.get_story_by_xpath(at)
         story_dest_abs_filename = os.path.join(working_copy_path, story_dest_filename)
@@ -277,6 +303,8 @@ class IDMLPackage(zipfile.ZipFile):
         story_dest_elt.attrib.pop("XMLContent")
         story_dest_elt.append(copy.copy(story_src_elt))
 
+        # TODO Wrap all this stuff in a XMLDocument method.
+        # story_dest_doc.overwrite_and_close()
         new_xml = story_dest_doc.tostring(ref_doctype=None)
         story_dest.close()
         story_dest = open(story_dest_abs_filename, mode="w+")

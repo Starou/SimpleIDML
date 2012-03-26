@@ -37,6 +37,18 @@ class SimpleIDMLTestCase(unittest.TestCase):
                                              u'Stories/Story_u102.xml',
                                              u'Stories/Story_ue4.xml'])
 
+        # Tags.
+        self.assertEqual([etree.tostring(tag) for tag in idml_file.tags], 
+                        ['<XMLTag Self="XMLTag/advertise" Name="advertise">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Green</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                         '<XMLTag Self="XMLTag/article" Name="article">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Red</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                         '<XMLTag Self="XMLTag/content" Name="content">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Magenta</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                         '<XMLTag Self="XMLTag/description" Name="description">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Gray</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                         '<XMLTag Self="XMLTag/illustration" Name="illustration">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Cyan</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t', 
+                         '<XMLTag Self="XMLTag/Root" Name="Root">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">LightBlue</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                         '<XMLTag Self="XMLTag/Story" Name="Story">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">BrickRed</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                         '<XMLTag Self="XMLTag/subtitle" Name="subtitle">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Yellow</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                         '<XMLTag Self="XMLTag/title" Name="title">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Blue</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n'])
+
         # XML Structure.
         self.assertEqual(etree.tostring(idml_file.XMLStructure.dom, pretty_print=True),
 """<Root Self="di2">
@@ -131,26 +143,14 @@ class SimpleIDMLTestCase(unittest.TestCase):
         self.assertEqual(main_idml_file.stories, ['Stories/Story_article1u102.xml',
                                                   'Stories/Story_article1u11a.xml', 
                                                   'Stories/Story_article1ue8.xml', 
-                                                  'Stories/Story_glue.xml',
                                                   'Stories/Story_mainu102.xml',
                                                   'Stories/Story_mainu11b.xml',
                                                   'Stories/Story_mainu139.xml',
                                                   'Stories/Story_mainue4.xml'])
 
-        # Glue-story file content.
-        #print(main_idml_file.open("Stories/Story_glue.xml", mode="r").read())
-        self.assertEqual(main_idml_file.open("Stories/Story_glue.xml", mode="r").read(),
-"""<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
-<idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
-        <Story Self="glue" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
-        <XMLElement Self="maindi2i5" MarkupTag="XMLTag/article" XMLContent="mainudd"><XMLElement Self="article1di2i3" MarkupTag="XMLTag/module" XMLContent="article1u102"/>
-				</XMLElement>
-					</Story>
-    </idPkg:Story>
-""")
                                    
         # The XML Structure has integrated the new file.
-        #print(etree.tostring(main_idml_file.XMLStructure.dom, pretty_print=True))
+        #print"\n", (etree.tostring(main_idml_file.XMLStructure.dom, pretty_print=True))
         self.assertEqual(etree.tostring(main_idml_file.XMLStructure.dom, pretty_print=True),
 """<Root Self="maindi2">
   <article XMLContent="mainu102" Self="maindi2i3">
@@ -163,16 +163,15 @@ class SimpleIDMLTestCase(unittest.TestCase):
     <description XMLContent="mainu139" Self="maindi2i3i4"/>
   </article>
   <article XMLContent="mainudb" Self="maindi2i4"/>
-  <article XMLContent="glue" Self="maindi2i5">
-    <module XMLContent="article1u102" Self="article1di2i3">
-      <main_picture XMLContent="article1ue5" Self="article1di2i3i1"/>
-      <headline XMLContent="article1ue8" Self="article1di2i3i2"/>
-      <Story XMLContent="article1u11a" Self="article1di2i3i3">
-        <article Self="article1di2i3i3i1"/>
-        <informations Self="article1di2i3i3i2"/>
-      </Story>
-    </module>
-  </article>
+  <article Self="maindi2i5"/>
+  <module XMLContent="article1u102" Self="article1di2i3">
+    <main_picture XMLContent="article1ue5" Self="article1di2i3i1"/>
+    <headline XMLContent="article1ue8" Self="article1di2i3i2"/>
+    <Story XMLContent="article1u11a" Self="article1di2i3i3">
+      <article Self="article1di2i3i3i1"/>
+      <informations Self="article1di2i3i3i2"/>
+    </Story>
+  </module>
   <advertise XMLContent="mainudf" Self="maindi2i6"/>
 </Root>
 """)
@@ -180,9 +179,9 @@ class SimpleIDMLTestCase(unittest.TestCase):
         # Designmap.xml.
         designmap = etree.fromstring(main_idml_file.open("designmap.xml", mode="r").read())
         self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
-                         "mainue4 mainu102 mainu11b mainu139 mainu9c glue article1u102 article1u11a article1ue8")
+                         "mainue4 mainu102 mainu11b mainu139 mainu9c article1u102 article1u11a article1ue8")
         self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
-                             namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})), 8)
+                             namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})), 7)
 
         # TODO Test Spread_mainub6.xml content.
 
