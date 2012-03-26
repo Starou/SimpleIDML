@@ -163,13 +163,7 @@ class IDMLPackage(zipfile.ZipFile):
                 xml_file = open(abs_filename, mode="r")
                 doc = XMLDocument(xml_file)
                 doc.prefix_references(prefix)
-                new_xml = doc.tostring(ref_doctype=filename)
-                xml_file.close()
-
-                # override.
-                new_file = open(abs_filename, mode="w+")
-                new_file.write(new_xml)
-                new_file.close()
+                doc.overwrite_and_close(ref_doctype=filename)
 
         # Story and Spread XML files are "prefixed".
         for filename in self.namelist():
@@ -209,14 +203,7 @@ class IDMLPackage(zipfile.ZipFile):
             if not tags_root_elt.xpath("//XMLTag[@Self='%s']"%(tag.get("Self"))):
                 tags_root_elt.append(copy.deepcopy(tag))
             
-        # TODO Wrap all this stuff in a XMLDocument method.
-        # story_dest_doc.overwrite_and_close()
-        new_xml = tags_doc.tostring(ref_doctype=None)
-        tags.close()
-        tags = open(tags_abs_filename, mode="w+")
-        tags.write(new_xml)
-        tags.close()
-
+        tags_doc.overwrite_and_close(ref_doctype=None)
         return self
 
     @use_working_copy
@@ -227,7 +214,6 @@ class IDMLPackage(zipfile.ZipFile):
         spread_src = idml_package.open(idml_package.spreads[0], mode="r")
         spread_src_doc = XMLDocument(spread_src)
 
-        # We work in the working_copy.
         spread_dest_filename = self.get_spread_by_xpath(at)
         spread_dest_abs_filename = os.path.join(working_copy_path, spread_dest_filename)
         spread_dest = open(spread_dest_abs_filename, mode="r")
@@ -240,11 +226,7 @@ class IDMLPackage(zipfile.ZipFile):
             child_copy = copy.deepcopy(child)
             spread_dest_elt.append(child_copy)
 
-        spread_dest.close()
-        spread_dest = open(spread_dest_abs_filename, mode="w+")
-        spread_dest.write(spread_dest_doc.tostring(ref_doctype=None))
-        spread_dest.close()
-
+        spread_dest_doc.overwrite_and_close(ref_doctype=None)
         return self
 
     @use_working_copy
@@ -303,13 +285,7 @@ class IDMLPackage(zipfile.ZipFile):
         story_dest_elt.attrib.pop("XMLContent")
         story_dest_elt.append(copy.copy(story_src_elt))
 
-        # TODO Wrap all this stuff in a XMLDocument method.
-        # story_dest_doc.overwrite_and_close()
-        new_xml = story_dest_doc.tostring(ref_doctype=None)
-        story_dest.close()
-        story_dest = open(story_dest_abs_filename, mode="w+")
-        story_dest.write(new_xml)
-        story_dest.close()
+        story_dest_doc.overwrite_and_close(ref_doctype=None)
 
         # Stories files are added.
         for filename in idml_package.stories:
@@ -321,13 +297,8 @@ class IDMLPackage(zipfile.ZipFile):
         designmap_abs_filename = os.path.join(working_copy_path, "designmap.xml")
         designmap = open(designmap_abs_filename, mode="r")
         designmap_doc = XMLDocument(designmap)
-
         add_stories_to_designmap(designmap_doc.dom, idml_package.story_ids)
-
-        designmap.close()
-        designmap = open(designmap_abs_filename, mode="w+")
-        designmap.write(designmap_doc.tostring(ref_doctype="designmap.xml"))
-        designmap.close()
+        designmap_doc.overwrite_and_close(ref_doctype="designmap.xml")
 
         return self
         # BackingStory.xml ??
@@ -376,6 +347,7 @@ class XMLDocument(object):
     
     def __init__(self, xml_file=None, XMLElement=None):
         if xml_file:
+            self.xml_file = xml_file
             self.dom = etree.fromstring(xml_file.read())
         elif XMLElement is not None:
             self.dom = XMLElementToElement(XMLElement)
@@ -419,6 +391,14 @@ class XMLDocument(object):
                               standalone=True,
                               doctype=doctypes.get(ref_doctype, None),
                               pretty_print=True)
+
+    def overwrite_and_close(self, ref_doctype=None):
+        new_xml = self.tostring(ref_doctype)
+        filename = self.xml_file.name
+        self.xml_file.close()
+        xml_file = open(filename, mode="w+")
+        xml_file.write(new_xml)
+        xml_file.close()
 
 
 def XMLElementToElement(XMLElement):
