@@ -16,6 +16,8 @@ TAGS = "XML/Tags.xml"
 FONTS = "Resources/Fonts.xml"
 STYLES = "Resources/Styles.xml"
 
+IdPkgNS = "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"
+
 xmltag_prefix = "XMLTag/"
 rx_contentfile = re.compile(r"^(Story_|Spread_)(.+\.xml)$")
 rx_contentfile2 = re.compile(r"^(Stories/Story_|Spreads/Spread_)(.+\.xml)$")
@@ -143,8 +145,8 @@ class IDMLPackage(zipfile.ZipFile):
             style_groups_src = self.open(STYLES, mode="r")
             style_groups_doc = XMLDocument(style_groups_src)
             style_groups = [copy.deepcopy(elt) for elt in style_groups_doc.dom.xpath("/idPkg:Styles/*",
-                                                                                     namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})
-                           if re.match(r"^.+Group$", elt.tag)]
+                                                                                     namespaces={'idPkg':IdPkgNS})
+                            if re.match(r"^.+Group$", elt.tag)]
             self._style_groups = style_groups
             style_groups_src.close()
         return self._style_groups
@@ -220,8 +222,7 @@ class IDMLPackage(zipfile.ZipFile):
         fonts_abs_filename = os.path.join(working_copy_path, FONTS)
         fonts = open(fonts_abs_filename, mode="r")
         fonts_doc = XMLDocument(fonts)
-        fonts_root_elt = fonts_doc.dom.xpath("/idPkg:Fonts", 
-                                  namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0]
+        fonts_root_elt = fonts_doc.dom.xpath("/idPkg:Fonts", namespaces={'idPkg':IdPkgNS})[0]
         for font_family in idml_package.font_families:
             fonts_root_elt.append(copy.deepcopy(font_family))
             
@@ -234,8 +235,7 @@ class IDMLPackage(zipfile.ZipFile):
         styles_abs_filename = os.path.join(working_copy_path, STYLES)
         styles = open(styles_abs_filename, mode="r")
         styles_doc = XMLDocument(styles)
-        styles_root_elt = styles_doc.dom.xpath("/idPkg:Styles", 
-                                         namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0]
+        styles_root_elt = styles_doc.dom.xpath("/idPkg:Styles", namespaces={'idPkg':IdPkgNS})[0]
         for group_to_insert in idml_package.style_groups:
             group_host = styles_root_elt.xpath(group_to_insert.tag)
             # Either the group exists.
@@ -257,8 +257,7 @@ class IDMLPackage(zipfile.ZipFile):
         tags_abs_filename = os.path.join(working_copy_path, TAGS)
         tags = open(tags_abs_filename, mode="r")
         tags_doc = XMLDocument(tags)
-        tags_root_elt = tags_doc.dom.xpath("/idPkg:Tags", 
-                                  namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0]
+        tags_root_elt = tags_doc.dom.xpath("/idPkg:Tags", namespaces={'idPkg':IdPkgNS})[0]
         for tag in idml_package.tags:
             if not tags_root_elt.xpath("//XMLTag[@Self='%s']"%(tag.get("Self"))):
                 tags_root_elt.append(copy.deepcopy(tag))
@@ -484,8 +483,7 @@ class XMLDocument(object):
 
         # <idPkg:Spread src="Spreads/Spread_ub6.xml"/>
         # <idPkg:Story src="Stories/Story_u139.xml"/>
-        for elt in self.dom.xpath(".//idPkg:Spread | .//idPkg:Story", 
-                                  namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"}):
+        for elt in self.dom.xpath(".//idPkg:Spread | .//idPkg:Story", namespaces={'idPkg':IdPkgNS}):
             if elt.get("src") and rx_contentfile2.match(elt.get("src")):
                 elt.set("src", prefix_content_filename(elt.get("src"), prefix, rx_contentfile2))
 
