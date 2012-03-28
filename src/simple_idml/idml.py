@@ -4,6 +4,7 @@ import os, shutil
 import zipfile
 import re
 import copy
+from decimal import Decimal
 
 from lxml import etree
 from xml.dom.minidom import parseString
@@ -112,7 +113,6 @@ class IDMLPackage(zipfile.ZipFile):
             self._XMLStructure = structure
         return self._XMLStructure
 
-    # TODO: TESTS
     @property
     def tags(self):
         if self._tags is None:
@@ -181,7 +181,8 @@ class IDMLPackage(zipfile.ZipFile):
         self._add_fonts_from_idml(idml_package)
         self._add_graphic_from_idml(idml_package)
         p = self._add_tags_from_idml(idml_package)
-        p = p._add_spread_elements_from_idml(idml_package, at, only)
+        t = self._get_item_translation_for_insert(idml_package, at, only)
+        p = p._add_spread_elements_from_idml(idml_package, at, only, t)
         p = p._add_stories_from_idml(idml_package, at, only)
         p._XMLStructure = None
         return p
@@ -206,8 +207,33 @@ class IDMLPackage(zipfile.ZipFile):
         tags_doc.overwrite_and_close(ref_doctype=None)
         return self
 
+    def _get_item_translation_for_insert(self, idml_package, at, only):
+        """ Compute the ItemTransform shift to apply to the elements in idml_package to insert. """
+
+        at_elem = self.get_spread_elem_by_xpath(at)
+        # the first `PathPointType' tag contain the upper-left position.
+        at_rel_pos_x, at_rel_pos_y = self.get_elem_point_position(at_elem, 0)
+        at_transform_x, at_transform_y = self.get_elem_translation(at_elem)
+
+        only_elem = idml_package.get_spread_elem_by_xpath(only)
+        only_rel_pos_x, only_rel_pos_y = idml_package.get_elem_point_position(only_elem, 0)
+        only_transform_x, only_transform_y = idml_package.get_elem_translation(only_elem)
+
+        x = (at_transform_x + at_rel_pos_x) - (only_transform_x + only_rel_pos_x)
+        y = (at_transform_y + at_rel_pos_y) - (only_transform_y + only_rel_pos_y)
+
+        return x, y
+
+    def apply_translation_to_element(self, element, translation):
+        """ItemTransform is a space separated string of 6 numerical values forming the transform matrix. """
+        translation_x, translation_y = translation
+        item_transform = element.get("ItemTransform").split(" ")
+        item_transform[4] = str(Decimal(item_transform[4]) + translation_x)
+        item_transform[5] = str(Decimal(item_transform[5]) + translation_y)
+        element.set("ItemTransform", " ".join(item_transform))
+
     @use_working_copy
-    def _add_spread_elements_from_idml(self, idml_package, at, only, working_copy_path=None):
+    def _add_spread_elements_from_idml(self, idml_package, at, only, translation, working_copy_path=None):
         """ Append idml_package spread elements into self.spread[0] <Spread> node. """
 
         # There should be only one spread in the idml_package.
@@ -224,6 +250,7 @@ class IDMLPackage(zipfile.ZipFile):
             if child.tag in ["Page", "FlattenerPreference"]:
                 continue
             child_copy = copy.deepcopy(child)
+            self.apply_translation_to_element(child_copy, translation)
             spread_dest_elt.append(child_copy)
 
         spread_dest_doc.overwrite_and_close(ref_doctype=None)
@@ -313,7 +340,8 @@ class IDMLPackage(zipfile.ZipFile):
         for filename in self.spreads:
             spread = self.open(filename, mode="r")
             spread_doc = XMLDocument(spread)
-            if spread_doc.dom.xpath("//*[@Self='%s']" % reference):
+            if spread_doc.getElementById(reference, tag="*") is not None or \
+               spread_doc.getElementById(reference, tag="*", attr="ParentStory") is not None:
                 result = filename
             spread.close()
             if result:
@@ -336,14 +364,36 @@ class IDMLPackage(zipfile.ZipFile):
                 break
         return result
 
+    def get_spread_elem_by_xpath(self, xpath):
+        """Return the spread etree.Element designed by XMLElement xpath. """
+
+        spread_filename = self.get_spread_by_xpath(xpath)
+        spread_file = self.open(spread_filename, mode="r")
+        spread_doc = XMLDocument(spread_file)
+        elt_id = self.XMLStructure.dom.xpath(xpath)[0].get("XMLContent")
+        # etree FutureWarning when trying to simply do elt = X or Y.
+        elt = spread_doc.getElementById(elt_id, tag="*") 
+        if elt is None:
+            elt = spread_doc.getElementById(elt_id, tag="*", attr="ParentStory")
+        spread_file.close()
+
+        return elt
 
     # TODO: rename in get_story_filename_by_reference ?
     def get_story_filename_by_xml_value(self, xml_value):
         return u"Stories/Story_%s.xml" % xml_value
 
+    def get_elem_point_position(self, elem, point_index=0):
+        point = elem.xpath("Properties/PathGeometry/GeometryPathType/PathPointArray/PathPointType")[point_index]
+        x, y = point.get("Anchor").split(" ")
+        return Decimal(x), Decimal(y)
+
+    def get_elem_translation(self, elem):
+        item_transform = elem.get("ItemTransform").split(" ")
+        return Decimal(item_transform[4]), Decimal(item_transform[5])
 
 class XMLDocument(object):
-    """A Document wrapper to fit IDML XML Structure."""
+    """An etree document wrapper to fit IDML XML Structure."""
     
     def __init__(self, xml_file=None, XMLElement=None):
         if xml_file:
@@ -354,8 +404,9 @@ class XMLDocument(object):
         else:
             raise BaseException, "You must provide either a xml file or a name."
 
-    def getElementById(self, id):
-        return self.dom.find("*/XMLElement[@Self='%s']" % id)
+    def getElementById(self, id, tag="XMLElement", attr="Self"):
+        """ tag is by default XMLElement, the XML tag representing the InDesign XML structure inside IDML files."""
+        return self.dom.find("*/%s[@%s='%s']" % (tag, attr, id))
 
     def prefix_references(self, prefix):
         """Update references inside various XML files found in an IDML package after a call to prefix()."""

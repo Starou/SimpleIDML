@@ -140,11 +140,11 @@ class SimpleIDMLTestCase(unittest.TestCase):
                                                     only="/Root/module[1]")
 
         # Stories.
-        self.assertEqual(main_idml_file.stories, ['Stories/Story_article1u102.xml',
-                                                  'Stories/Story_article1u11a.xml', 
-                                                  'Stories/Story_article1ue8.xml', 
+        self.assertEqual(main_idml_file.stories, ['Stories/Story_article1u188.xml',
+                                                  'Stories/Story_article1u19f.xml',
+                                                  'Stories/Story_article1u1db.xml', 
                                                   'Stories/Story_mainu102.xml',
-                                                  'Stories/Story_mainu11b.xml',
+                                                  'Stories/Story_mainu11b.xml', 
                                                   'Stories/Story_mainu139.xml',
                                                   'Stories/Story_mainue4.xml'])
 
@@ -164,12 +164,12 @@ class SimpleIDMLTestCase(unittest.TestCase):
   </article>
   <article XMLContent="mainudb" Self="maindi2i4"/>
   <article Self="maindi2i5"/>
-  <module XMLContent="article1u102" Self="article1di2i3">
-    <main_picture XMLContent="article1ue5" Self="article1di2i3i1"/>
-    <headline XMLContent="article1ue8" Self="article1di2i3i2"/>
-    <Story XMLContent="article1u11a" Self="article1di2i3i3">
-      <article Self="article1di2i3i3i1"/>
-      <informations Self="article1di2i3i3i2"/>
+  <module XMLContent="article1u1db" Self="article1di3i12">
+    <main_picture XMLContent="article1u182" Self="article1di3i12i1"/>
+    <headline XMLContent="article1u188" Self="article1di3i12i2"/>
+    <Story XMLContent="article1u19f" Self="article1di3i12i3">
+      <article Self="article1di3i12i3i2"/>
+      <informations Self="article1di3i12i3i1"/>
     </Story>
   </module>
   <advertise XMLContent="mainudf" Self="maindi2i6"/>
@@ -179,7 +179,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
         # Designmap.xml.
         designmap = etree.fromstring(main_idml_file.open("designmap.xml", mode="r").read())
         self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
-                         "mainue4 mainu102 mainu11b mainu139 mainu9c article1u102 article1u11a article1ue8")
+                         "mainue4 mainu102 mainu11b mainu139 mainu9c article1u188 article1u19f article1u1db")
         self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
                              namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})), 7)
 
