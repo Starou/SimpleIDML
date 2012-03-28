@@ -14,6 +14,7 @@ from simple_idml.decorators import use_working_copy
 BACKINGSTORY = "XML/BackingStory.xml"
 TAGS = "XML/Tags.xml"
 FONTS = "Resources/Fonts.xml"
+STYLES = "Resources/Styles.xml"
 
 xmltag_prefix = "XMLTag/"
 rx_contentfile = re.compile(r"^(Story_|Spread_)(.+\.xml)$")
@@ -68,6 +69,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._XMLStructure = None
         self._tags = None
         self._font_families = None
+        self._style_groups = None
         self._spreads = None
         self._stories = None
         self._story_ids = None
@@ -136,6 +138,18 @@ class IDMLPackage(zipfile.ZipFile):
         return self._font_families
             
     @property
+    def style_groups(self):
+        if self._style_groups is None:
+            style_groups_src = self.open(STYLES, mode="r")
+            style_groups_doc = XMLDocument(style_groups_src)
+            style_groups = [copy.deepcopy(elt) for elt in style_groups_doc.dom.xpath("/idPkg:Styles/*",
+                                                                                     namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})
+                           if re.match(r"^.+Group$", elt.tag)]
+            self._style_groups = style_groups
+            style_groups_src.close()
+        return self._style_groups
+
+    @property
     def spreads(self):
         if self._spreads is None:
             spreads = [elt for elt in self.namelist() if re.match(ur"^Spreads/*", elt)]
@@ -193,6 +207,7 @@ class IDMLPackage(zipfile.ZipFile):
         #self._add_graphic_from_idml(idml_package)
         t = self._get_item_translation_for_insert(idml_package, at, only)
         p = self._add_font_families_from_idml(idml_package)
+        p = p._add_styles_from_idml(idml_package)
         p = p._add_tags_from_idml(idml_package)
         p = p._add_spread_elements_from_idml(idml_package, at, only, t)
         p = p._add_stories_from_idml(idml_package, at, only)
@@ -211,6 +226,27 @@ class IDMLPackage(zipfile.ZipFile):
             fonts_root_elt.append(copy.deepcopy(font_family))
             
         fonts_doc.overwrite_and_close(ref_doctype=None)
+        return self
+
+    @use_working_copy
+    def _add_styles_from_idml(self, idml_package, working_copy_path=None):
+        """Append styles to their groups in STYLES file. """
+        styles_abs_filename = os.path.join(working_copy_path, STYLES)
+        styles = open(styles_abs_filename, mode="r")
+        styles_doc = XMLDocument(styles)
+        styles_root_elt = styles_doc.dom.xpath("/idPkg:Styles", 
+                                         namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0]
+        for group_to_insert in idml_package.style_groups:
+            group_host = styles_root_elt.xpath(group_to_insert.tag)
+            # Either the group exists.
+            if group_host:
+                for style_to_insert in group_to_insert.iterchildren():
+                    group_host[0].append(copy.deepcopy(style_to_insert))
+            # or not.
+            else:
+                styles_root_elt.append(copy.deepcopy(group_to_insert))
+            
+        styles_doc.overwrite_and_close(ref_doctype=None)
         return self
 
     def _add_graphic_from_idml(self, idml_package):

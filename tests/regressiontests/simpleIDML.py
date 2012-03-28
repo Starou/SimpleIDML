@@ -49,6 +49,16 @@ class SimpleIDMLTestCase(unittest.TestCase):
                          '<XMLTag Self="XMLTag/subtitle" Name="subtitle">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Yellow</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
                          '<XMLTag Self="XMLTag/title" Name="title">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Blue</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n'])
 
+        # Styles.
+        self.assertEqual([style.tag for style in idml_file.style_groups], ['RootCharacterStyleGroup',
+                                                                           'RootParagraphStyleGroup',
+                                                                           'RootCellStyleGroup',
+                                                                           'RootTableStyleGroup',
+                                                                           'RootObjectStyleGroup'])
+
+        # Fonts.
+        self.assertEqual([font.get("Name") for font in idml_file.font_families], ['Minion Pro', 'Myriad Pro', 'Kozuka Mincho Pro', 'Vollkorn'])
+
         # XML Structure.
         self.assertEqual(etree.tostring(idml_file.XMLStructure.dom, pretty_print=True),
 """<Root Self="di2">
@@ -187,6 +197,29 @@ class SimpleIDMLTestCase(unittest.TestCase):
                              namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})), 7)
 
         # TODO Test Spread_mainub6.xml content.
+
+        # Styles.
+        self.assertEqual([[style.get("Self") for style in style_group.iterchildren()] for style_group in main_idml_file.style_groups], 
+                         [['mainCharacterStyle/$ID/[No character style]',
+                           'article1CharacterStyle/$ID/[No character style]'],
+                          ['mainParagraphStyle/$ID/[No paragraph style]',
+                           'mainParagraphStyle/$ID/NormalParagraphStyle', 
+                           'article1ParagraphStyle/$ID/[No paragraph style]',
+                           'article1ParagraphStyle/$ID/NormalParagraphStyle'],
+                          ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
+                          ['mainTableStyle/$ID/[No table style]',
+                           'mainTableStyle/$ID/[Basic Table]', 
+                           'article1TableStyle/$ID/[No table style]',
+                           'article1TableStyle/$ID/[Basic Table]'],
+                          ['mainObjectStyle/$ID/[None]',
+                           'mainObjectStyle/$ID/[Normal Graphics Frame]',
+                           'mainObjectStyle/$ID/[Normal Text Frame]',
+                           'mainObjectStyle/$ID/[Normal Grid]', 
+                           'article1ObjectStyle/$ID/[None]', 
+                           'article1ObjectStyle/$ID/[Normal Graphics Frame]',
+                           'article1ObjectStyle/$ID/[Normal Text Frame]', 
+                           'article1ObjectStyle/$ID/[Normal Grid]']
+                         ])
 
 
 class XMLDocumentTestCase(unittest.TestCase):
