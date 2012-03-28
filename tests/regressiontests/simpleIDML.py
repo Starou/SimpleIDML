@@ -91,6 +91,9 @@ class SimpleIDMLTestCase(unittest.TestCase):
                                              'Stories/Story_FOOu11b.xml',
                                              'Stories/Story_FOOu139.xml',
                                              'Stories/Story_FOOue4.xml'])
+        story = etree.fromstring(idml_file.open("Stories/Story_FOOu102.xml").read())
+        self.assertEqual(story.xpath("//CharacterStyleRange")[0].get("AppliedCharacterStyle"),
+                         "FOOCharacterStyle/$ID/[No character style]")
 
         # XML Structure.
         self.assertEqual(etree.tostring(idml_file.XMLStructure.dom, pretty_print=True),

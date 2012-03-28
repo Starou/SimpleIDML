@@ -13,6 +13,7 @@ from simple_idml.decorators import use_working_copy
 
 BACKINGSTORY = "XML/BackingStory.xml"
 TAGS = "XML/Tags.xml"
+FONTS = "Resources/Fonts.xml"
 
 xmltag_prefix = "XMLTag/"
 rx_contentfile = re.compile(r"^(Story_|Spread_)(.+\.xml)$")
@@ -66,6 +67,7 @@ class IDMLPackage(zipfile.ZipFile):
         zipfile.ZipFile.__init__(self, *args, **kwargs)
         self._XMLStructure = None
         self._tags = None
+        self._font_families = None
         self._spreads = None
         self._stories = None
         self._story_ids = None
@@ -124,6 +126,16 @@ class IDMLPackage(zipfile.ZipFile):
         return self._tags
             
     @property
+    def font_families(self):
+        if self._font_families is None:
+            font_families_src = self.open(FONTS, mode="r")
+            font_families_doc = XMLDocument(font_families_src)
+            font_families = [copy.deepcopy(elt) for elt in font_families_doc.dom.xpath("//FontFamily")]
+            self._font_families = font_families
+            font_families_src.close()
+        return self._font_families
+            
+    @property
     def spreads(self):
         if self._spreads is None:
             spreads = [elt for elt in self.namelist() if re.match(ur"^Spreads/*", elt)]
@@ -178,17 +190,28 @@ class IDMLPackage(zipfile.ZipFile):
         return self
 
     def insert_idml(self, idml_package, at, only):
-        self._add_fonts_from_idml(idml_package)
-        self._add_graphic_from_idml(idml_package)
-        p = self._add_tags_from_idml(idml_package)
+        #self._add_graphic_from_idml(idml_package)
         t = self._get_item_translation_for_insert(idml_package, at, only)
+        p = self._add_font_families_from_idml(idml_package)
+        p = p._add_tags_from_idml(idml_package)
         p = p._add_spread_elements_from_idml(idml_package, at, only, t)
         p = p._add_stories_from_idml(idml_package, at, only)
         p._XMLStructure = None
         return p
 
-    def _add_fonts_from_idml(self, idml_package):
-        pass
+    @use_working_copy
+    def _add_font_families_from_idml(self, idml_package, working_copy_path=None):
+        # TODO test.
+        fonts_abs_filename = os.path.join(working_copy_path, FONTS)
+        fonts = open(fonts_abs_filename, mode="r")
+        fonts_doc = XMLDocument(fonts)
+        fonts_root_elt = fonts_doc.dom.xpath("/idPkg:Fonts", 
+                                  namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0]
+        for font_family in idml_package.font_families:
+            fonts_root_elt.append(copy.deepcopy(font_family))
+            
+        fonts_doc.overwrite_and_close(ref_doctype=None)
+        return self
 
     def _add_graphic_from_idml(self, idml_package):
         pass
@@ -414,10 +437,11 @@ class XMLDocument(object):
         # <XMLElement Self="di2i3" MarkupTag="XMLTag/article" XMLContent="u102"/>
         # <[Spread|Page|...] Self="ub6" FlattenerOverride="Default" 
         # <[TextFrame|...] Self="uca" ParentStory="u102" ...>
+        # <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" PointSize="10"/>
         for elt in self.dom.iter():
             if elt.tag in excluded_tags_for_prefix:
                 continue
-            for attr in ("Self", "XMLContent", "ParentStory"):
+            for attr in ("Self", "XMLContent", "ParentStory", "AppliedCharacterStyle"):
                 if elt.get(attr):
                     #TODO prefix_element_attr(attr, prefix)
                     elt.set(attr, "%s%s" % (prefix, elt.get(attr)))
