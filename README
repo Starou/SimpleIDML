@@ -9,7 +9,7 @@ SimpleIDML is a Python library to manipulate Adobe® InDesign® IDML file. The m
 compose IDML files together and produce complex documents from simple pieces and to separate the data from the structure.
 
 The philosophy behind SimpleIDML is to keep separated the content and the structure and to use XML files to feed your documents.
-Keeping this isolation is important ease the debugging and to keep track of what is going on.
+Keeping this isolation is important to ease the debugging and to keep track of what is going on.
 You can use the same XML file to build your IDML document and to fill it, but this is a second step done in InDesign through the
 XML Import function.
 
@@ -21,5 +21,62 @@ IDML (*InDesign Markup Language*) files are a Zip archives (Adobe calls them pac
 made a great step forward with this functionnality because those files can completely express the content of the native (binary) documents.
 This is a small revolution in the print world when it comes to automatically process files in both ways (Round-trip). Everybody
 speak XML. No more fragile *AppleScript* to construct a document. You don't even need the software to be installed on the machine
-to works with IDML files, *that* is the revolution for us, developers and software archictects.
+to works with IDML files, *that* is the revolution for us, developers and software architects.
+
+
+What does SimpleIDML do ?
+=========================
+
+The main functionality is to compose a document from pieces::
+
+
+    >>> from simple_idml import idml
+    >>> my_idml_package = idml.IDMLPackage("/path/to/my_main_document.idml")
+    >>> my_idml_package.spreads
+    [u'Spreads/Spread_ub6.xml', u'Spreads/Spread_ubc.xml', u'Spreads/Spread_uc3.xml']
+    >>> my_idml_package.stories
+    [u'Stories/Story_u139.xml', u'Stories/Story_u11b.xml', u'Stories/Story_u102.xml', u'Stories/Story_ue4.xml']
+    
+
+Some attributes are *lxml.etree* Elements or documents::
+
+    >>> my_package.font_families
+    [<Element FontFamily at 0x1010048c0>, <Element FontFamily at 0x101004a50>, <Element FontFamily at 0x101004aa0>,
+        <Element FontFamily at 0x101004af0>]
+    >>> [e.get("Name") for e in my_package.font_families]
+    ['Minion Pro', 'Myriad Pro', 'Kozuka Mincho Pro', 'Vollkorn']
+
+    >>> my_package.XMLStructure.dom
+    <Element Root at 0x101004910>
+    >>> from lxml import etree
+    >>> print etree.tostring(my_package.XMLStructure.dom, pretty_print=True)
+    <Root Self="di2">
+      <article XMLContent="u102" Self="di2i3">
+        <Story XMLContent="ue4" Self="di2i3i1">
+          <title Self="di2i3i1i1"/>
+          <subtitle Self="di2i3i1i2"/>
+        </Story>
+        <content XMLContent="u11b" Self="di2i3i2"/>
+        <illustration XMLContent="u135" Self="di2i3i3"/>
+        <description XMLContent="u139" Self="di2i3i4"/>
+      </article>
+      <article XMLContent="udb" Self="di2i4"/>
+      <article XMLContent="udd" Self="di2i5"/>
+      <advertise XMLContent="udf" Self="di2i6"/>
+    </Root>
+    
+
+
+Installation
+============
+
+::
+    
+    python setup.py build
+    sudo python setup.py install
+
+Dependencies
+------------
+
+- lxml
 
