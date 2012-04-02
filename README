@@ -27,7 +27,10 @@ to works with IDML files, *that* is the revolution for us, developers and softwa
 What does SimpleIDML do ?
 =========================
 
-The main functionality is to compose a document from pieces::
+Package exploration
+-------------------
+
+The main functionality is to compose a document from pieces but you can discover the structure of your files::
 
 
     >>> from simple_idml import idml
@@ -38,7 +41,7 @@ The main functionality is to compose a document from pieces::
     [u'Stories/Story_u139.xml', u'Stories/Story_u11b.xml', u'Stories/Story_u102.xml', u'Stories/Story_ue4.xml']
     
 
-Some attributes are *lxml.etree* Elements or documents::
+Some attributes are *lxml.etree* Elements or Documents::
 
     >>> my_package.font_families
     [<Element FontFamily at 0x1010048c0>, <Element FontFamily at 0x101004a50>, <Element FontFamily at 0x101004aa0>,
@@ -65,6 +68,63 @@ Some attributes are *lxml.etree* Elements or documents::
       <advertise XMLContent="udf" Self="di2i6"/>
     </Root>
     
+
+*XMLStructure* attribute is a representation of the XML Structure of your InDesign XML-ready document (The one you want 
+to use to populate the content with data from an external XML file having the same structure).
+
+
+Build package
+-------------
+
+
+Compose document
+----------------
+
+
+Using the XML Structure you can ask SimpleIDML to insert into a document at a XML tag the content of another XML tag from
+another document. The tag paths are expressed using Xpath syntax (You should always make a copy of your idml files before
+altering them with *shutil.copy2(src, dst)* for instance)::
+
+
+    >>> from simple_idml import idml
+    >>> idml_main = idml.IDMLPackage("/path/to/my_main_document.idml")
+    >>> idml_module = idml.IDMLPackage("/path/to/my_small_document.idml")
+
+    >>> idml_main = idml_main.prefix("main")
+    >>> idml_article = idml_module.prefix("article")
+
+    >>> idml_main = idml_main.insert_idml(idml_article, at="/Root/article[3]", only="/Root/module[1]")
+    >>> idml_main.stories
+    ['Stories/Story_article1u188.xml', 'Stories/Story_article1u19f.xml', 'Stories/Story_article1u1db.xml', 
+     'Stories/Story_mainu102.xml', 'Stories/Story_mainu11b.xml', 'Stories/Story_mainu139.xml', 'Stories/Story_mainue4.xml']
+
+
+    >>> print etree.tostring(idml_main.XMLStructure.dom, pretty_print=True)
+    <Root Self="maindi2">
+      <article XMLContent="mainu102" Self="maindi2i3">
+        <Story XMLContent="mainue4" Self="maindi2i3i1">
+          <title Self="maindi2i3i1i1"/>
+          <subtitle Self="maindi2i3i1i2"/>
+        </Story>
+        <content XMLContent="mainu11b" Self="maindi2i3i2"/>
+        <illustration XMLContent="mainu135" Self="maindi2i3i3"/>
+        <description XMLContent="mainu139" Self="maindi2i3i4"/>
+      </article>
+      <article XMLContent="mainudb" Self="maindi2i4"/>
+      <article Self="maindi2i5"/>
+      <module XMLContent="article1u1db" Self="article1di3i12">
+        <main_picture XMLContent="article1u182" Self="article1di3i12i1"/>
+        <headline XMLContent="article1u188" Self="article1di3i12i2"/>
+        <Story XMLContent="article1u19f" Self="article1di3i12i3">
+          <article Self="article1di3i12i3i2"/>
+          <informations Self="article1di3i12i3i1"/>
+        </Story>
+      </module>
+      <advertise XMLContent="mainudf" Self="maindi2i6"/>
+    </Root>
+
+
+Always prefix your document before using *insert_idml* to avoid reference collisions.
 
 
 Installation
