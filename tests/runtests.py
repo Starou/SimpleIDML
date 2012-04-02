@@ -11,7 +11,7 @@ def load_suite_tests(only=None):
     only_module, only_test_case = None, None
     if only:
         args = only.split(".")
-        only_module, only_test_case, only_function = args[0], args[1], (args[2:] and args[2] or None)
+        only_module, only_test_case, only_function = args[0], (args[1:] and args[1] or None), (args[2:] and args[2] or None)
     suites = []
     for dirpath, dirnames, filenames in os.walk(REGRESSION_TEST_DIR):
         for f in filenames:

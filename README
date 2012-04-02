@@ -1,0 +1,23 @@
+==========
+SimpleIDML
+==========
+
+What is SimpleIDML ?
+====================
+
+SimpleIDML is a Python library to manipulate Adobe® InDesign® IDML file. The main purpose being the ability to 
+compose IDML files together and produce complex documents from simple pieces and to separate the data from the structure.
+
+The philosophy behind SimpleIDML is to keep separated the content and the structure and to use XML files to feed your documents.
+Keeping this isolation ease the debugging.
+
+
+What are IDML files ?
+=====================
+
+IDML (*InDesign Markup Language*) files are a Zip archives (Adobe calls them packages) storing essentially XML files. Adobe 
+made a great step forward with this functionnality because those files can completely express the content of the native (binary) documents.
+This is a small revolution in the print world when it comes to automatically process files in both ways (Round-trip). Everybody
+speak XML. No more fragile *AppleScript* to construct a document. You don't even need the software to be installed on the machine
+to works with IDML files, *that* is the revolution for us, developers and software archictects.
+
