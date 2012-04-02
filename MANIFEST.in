@@ -1,0 +1,5 @@
+include README
+include LICENSE
+include TODO
+include AUTHORS
+recursive-include tests *.py *.json *.txt *.idml

@@ -1,0 +1,1 @@
++ A huge optimization is possible in insert_idml() in reusing the same working copy in the several methods.
