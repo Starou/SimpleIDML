@@ -13,15 +13,17 @@ Keeping this isolation is important to ease the debugging and to keep track of w
 You can use the same XML file to build your IDML document and to fill it, but this is a second step done in InDesign through the
 XML Import function.
 
+I urge you to take a look in the *regressiontests* directory for real-world (well, *my* real-world) examples.
+
 
 What are IDML files ?
 =====================
 
 IDML (*InDesign Markup Language*) files are a Zip archives (Adobe calls them packages) storing essentially XML files. Adobe 
-made a great step forward with this functionnality because those files can completely express the content of the native (binary) documents.
-This is a small revolution in the print world when it comes to automatically process files in both ways (Round-trip). Everybody
-speak XML. No more fragile *AppleScript* to construct a document. You don't even need the software to be installed on the machine
-to works with IDML files, *that* is the revolution for us, developers and software architects.
+made a great step forward with this functionnality because those files can completely express the content of the native (binary)
+documents.
+This is a small revolution in the print world when it comes to automatically process files in both ways from templates and database
+(Round-trip) because everybody speak XML. No more awkward *AppleScript* to construct a document.
 
 
 What does SimpleIDML do ?
@@ -30,7 +32,7 @@ What does SimpleIDML do ?
 Package exploration
 -------------------
 
-The main functionality is to compose a document from pieces but you can discover the structure of your files::
+You can discover the structure of your IDML files::
 
 
     >>> from simple_idml import idml
@@ -82,8 +84,11 @@ Compose document
 
 
 Using the XML Structure you can ask SimpleIDML to insert into a document at a XML tag the content of another XML tag from
-another document. The tag paths are expressed using Xpath syntax (You should always make a copy of your idml files before
-altering them with *shutil.copy2(src, dst)* for instance)::
+another document. The tag paths are expressed using XPath_ syntax. Note that you should always make a copy of your idml 
+files before altering them with *shutil.copy2(src, dst)* for instance and prefix your document before using *insert_idml()*
+to avoid reference collisions.
+
+::
 
 
     >>> from simple_idml import idml
@@ -124,8 +129,6 @@ altering them with *shutil.copy2(src, dst)* for instance)::
     </Root>
 
 
-Always prefix your document before using *insert_idml* to avoid reference collisions.
-
 
 Installation
 ============
@@ -138,5 +141,8 @@ Installation
 Dependencies
 ------------
 
+- Python >= 2.6
 - lxml
 
+
+.. _XPath: http://en.wikipedia.org/wiki/XPath
