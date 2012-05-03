@@ -493,13 +493,26 @@ class XMLDocument(object):
             elt[0].set("StoryList", " ".join(["%s%s" % (prefix, s) 
                                            for s in elt[0].get("StoryList").split(" ")]))
 
+    # I'am not very happy with the «ref_doctype» choice. An explicit doctype looks better now. 
     def tostring(self, ref_doctype=None):
-        return etree.tostring(self.dom,
-                              xml_declaration=True,
-                              encoding="UTF-8",
-                              standalone=True,
-                              doctype=doctypes.get(ref_doctype, None),
-                              pretty_print=True)
+        doctype = doctypes.get(ref_doctype, None)
+        kwargs = {"xml_declaration": True,
+                  "encoding": "UTF-8",
+                  "standalone": True,
+                  "pretty_print": True}
+
+        if etree.LXML_VERSION < (2, 3):
+            s  = etree.tostring(self.dom, **kwargs)
+            if doctype:
+                lines = s.splitlines()
+                lines.insert(1, doctype)
+                s = "\n".join(lines)
+                s += "\n"
+        else:
+            kwargs["doctype"] = doctype
+            s  = etree.tostring(self.dom, **kwargs)
+
+        return s
 
     def overwrite_and_close(self, ref_doctype=None):
         new_xml = self.tostring(ref_doctype)
