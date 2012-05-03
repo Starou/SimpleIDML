@@ -506,8 +506,10 @@ class XMLDocument(object):
             if doctype:
                 lines = s.splitlines()
                 lines.insert(1, doctype)
-                s = "\n".join(lines)
+                s = "\n".join(line.decode("utf-8") for line in lines)
                 s += "\n"
+                s = s.encode("utf-8")
+                
         else:
             kwargs["doctype"] = doctype
             s  = etree.tostring(self.dom, **kwargs)

@@ -230,15 +230,15 @@ class XMLDocumentTestCase(unittest.TestCase):
     def test_to_string(self):
         xml_file = StringIO.StringIO()
         xml_file.write("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-        <document>This is a XML document.</document>""")
+                          <document>This is a XML document with unicode : ₣.</document>""")
         xml_file.seek(0)
         doc = XMLDocument(xml_file)
         self.assertEqual(doc.tostring(), """<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
-<document>This is a XML document.</document>
+<document>This is a XML document with unicode : ₣.</document>
 """)
         self.assertEqual(doc.tostring(ref_doctype="designmap.xml"), """<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 <?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="7.5(142)" ?>
-<document>This is a XML document.</document>
+<document>This is a XML document with unicode : ₣.</document>
 """)
 
 def suite():
