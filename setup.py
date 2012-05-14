@@ -15,5 +15,6 @@ setup(
     ],
     data_files=[],
     scripts = [
+        'src/scripts/simpleidml_create_package_from_dir.py',
     ],
 )
