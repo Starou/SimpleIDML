@@ -1,1 +1,6 @@
 + A huge optimization is possible in insert_idml() in reusing the same working copy in the several methods.
++ Add an abstraction over "working_copy_path" when working in mode="w" on IDMLPackages. This should be an IDMLPackage 
+    subclass ? Or maybe a method to push/synchronize an IDMLPackage modifications (stored in RAM with Spreads, Pages etc)
+    to the working copy.
++ idml.XMLDocument is shit. Should be replace by IDMLXMLFile and subclasses like Spread etc.
++ In insert_idml() and add_page(), only add mandatory Stories, not all of them.

@@ -61,6 +61,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
         self.assertEqual([font.get("Name") for font in idml_file.font_families], ['Minion Pro', 'Myriad Pro', 'Kozuka Mincho Pro', 'Vollkorn'])
 
         # XML Structure.
+       # print"\n", (etree.tostring(idml_file.XMLStructure.dom, pretty_print=True))
         self.assertEqual(etree.tostring(idml_file.XMLStructure.dom, pretty_print=True),
 """<Root Self="di2">
   <article XMLContent="u102" Self="di2i3">
@@ -75,6 +76,25 @@ class SimpleIDMLTestCase(unittest.TestCase):
   <article XMLContent="udb" Self="di2i4"/>
   <article XMLContent="udd" Self="di2i5"/>
   <advertise XMLContent="udf" Self="di2i6"/>
+</Root>
+""")
+
+        # Test a file with a slighly different structure
+        idml_file = os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml")
+        idml_file = IDMLPackage(idml_file)
+        #print"\n", (etree.tostring(idml_file.XMLStructure.dom, pretty_print=True))
+        self.assertEqual(etree.tostring(idml_file.XMLStructure.dom, pretty_print=True), 
+"""<Root Self="di2">
+  <page Self="di2ib">
+    <title XMLContent="u1b2" Self="di2ibi34"/>
+    <article XMLContent="u1c9" Self="di2ibi33"/>
+    <article XMLContent="u1e0" Self="di2ibi32"/>
+    <article XMLContent="u1fb" Self="di2ibi31"/>
+    <article XMLContent="u212" Self="di2ibi30"/>
+  </page>
+  <page Self="di2i10">
+    <advertise XMLContent="u278" Self="di2i10i36"/>
+  </page>
 </Root>
 """)
 
@@ -133,7 +153,6 @@ class SimpleIDMLTestCase(unittest.TestCase):
                         "Spreads/Spread_FOOub6.xml")
                                    
     def test_insert_idml(self):
-
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"), 
                      os.path.join(OUTPUT_DIR, "4-pages.idml"))
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo.idml"), 
@@ -159,7 +178,6 @@ class SimpleIDMLTestCase(unittest.TestCase):
                                                   'Stories/Story_mainu139.xml',
                                                   'Stories/Story_mainue4.xml'])
 
-                                   
         # The XML Structure has integrated the new file.
         #print"\n", (etree.tostring(main_idml_file.XMLStructure.dom, pretty_print=True))
         self.assertEqual(etree.tostring(main_idml_file.XMLStructure.dom, pretty_print=True),
@@ -174,15 +192,16 @@ class SimpleIDMLTestCase(unittest.TestCase):
     <description XMLContent="mainu139" Self="maindi2i3i4"/>
   </article>
   <article XMLContent="mainudb" Self="maindi2i4"/>
-  <article Self="maindi2i5"/>
-  <module XMLContent="article1u1db" Self="article1di3i12">
-    <main_picture XMLContent="article1u182" Self="article1di3i12i1"/>
-    <headline XMLContent="article1u188" Self="article1di3i12i2"/>
-    <Story XMLContent="article1u19f" Self="article1di3i12i3">
-      <article Self="article1di3i12i3i2"/>
-      <informations Self="article1di3i12i3i1"/>
-    </Story>
-  </module>
+  <article Self="maindi2i5">
+    <module XMLContent="article1u1db" Self="article1di3i12">
+      <main_picture XMLContent="article1u182" Self="article1di3i12i1"/>
+      <headline XMLContent="article1u188" Self="article1di3i12i2"/>
+      <Story XMLContent="article1u19f" Self="article1di3i12i3">
+        <article Self="article1di3i12i3i2"/>
+        <informations Self="article1di3i12i3i1"/>
+      </Story>
+    </module>
+  </article>
   <advertise XMLContent="mainudf" Self="maindi2i6"/>
 </Root>
 """)
@@ -222,7 +241,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
 
 class XMLDocumentTestCase(unittest.TestCase):
     def test_get_element_by_id(self):
-        xml_file = open(os.path.join(IDMLFILES_DIR, "4-pages.idml.open", "Stories", "Story_ue4.xml"), mode="r")
+        xml_file = open(os.path.join(IDMLFILES_DIR, "4-pages.idml Folder", "Stories", "Story_ue4.xml"), mode="r")
         doc = XMLDocument(xml_file)
         elt = doc.getElementById("di2i3i1")
         self.assertTrue(elt is not None)

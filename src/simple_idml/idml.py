@@ -93,8 +93,12 @@ class IDMLPackage(zipfile.ZipFile):
 
             def append_childs(source_node, destination_node):
                 """Recursive function to discover node structure from a story to another. """
-                for elt in source_node.iter("XMLElement"):
+                for elt in source_node.iterchildren():
+                    if not elt.tag == "XMLElement":
+                        append_childs(elt, destination_node)
                     if elt.get("Self") == source_node.get("Self"):
+                        continue
+                    if not elt.get("MarkupTag"):
                         continue
                     new_destination_node = XMLElementToElement(elt)
                     destination_node.append(new_destination_node)
@@ -112,7 +116,8 @@ class IDMLPackage(zipfile.ZipFile):
                             new_source_node = story_doc.getElementById(elt.get("Self"))
                             append_childs(new_source_node, new_destination_node)
                             story.close()
-
+                    else:
+                        append_childs(elt, new_destination_node)
             append_childs(root_elt, structure.dom)
 
             backing_story.close()
@@ -157,7 +162,7 @@ class IDMLPackage(zipfile.ZipFile):
             spreads = [elt for elt in self.namelist() if re.match(ur"^Spreads/*", elt)]
             self._spreads = spreads
         return self._spreads
-            
+
     @property
     def stories(self):
         if self._stories is None:
@@ -372,7 +377,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         story_dest_doc.overwrite_and_close(ref_doctype=None)
 
-        # Stories files are added.
+        # Stories files are added. TODO: add only the stories required.
         for filename in idml_package.stories:
             story_cp = open(os.path.join(working_copy_path, filename), mode="w+")
             story_cp.write(idml_package.open(filename, mode="r").read())
