@@ -242,6 +242,9 @@ class IDMLPackage(zipfile.ZipFile):
     @use_working_copy
     def _add_font_families_from_idml(self, idml_package, working_copy_path=None):
         # TODO test.
+        # TODO Optimization. There is a linear expansion of the Fonts.xml size
+        #      as packages are merged. Do something cleaver to prune or reuse
+        #      fonts already here.
         fonts_abs_filename = os.path.join(working_copy_path, FONTS)
         fonts = open(fonts_abs_filename, mode="r")
         fonts_doc = XMLDocument(fonts)
@@ -424,6 +427,9 @@ class IDMLPackage(zipfile.ZipFile):
         last_spread.synchronize(working_copy_path)
 
         self._add_stories_from_idml(idml_package, at, only, working_copy_path=working_copy_path)
+        self._add_font_families_from_idml(idml_package, working_copy_path=working_copy_path)
+        self._add_styles_from_idml(idml_package, working_copy_path=working_copy_path)
+        self._add_tags_from_idml(idml_package, working_copy_path=working_copy_path)
         
         return self
 
