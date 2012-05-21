@@ -78,10 +78,16 @@ to use to populate the content with data from an external XML file having the sa
 Build package
 -------------
 
+There is a convenient script to create a IDML package from a flat directory called *simpleidml_create_package_from_dir.py*
+which should be in your PATH.
+
 
 Compose document
 ----------------
 
+
+Insert elements
+'''''''''''''''
 
 Using the XML Structure you can ask SimpleIDML to insert into a document at a XML tag the content of another XML tag from
 another document. The tag paths are expressed using XPath_ syntax. Note that you should always make a copy of your idml 
@@ -128,6 +134,12 @@ to avoid reference collisions.
       <advertise XMLContent="mainudf" Self="maindi2i6"/>
     </Root>
 
+
+
+Add pages
+'''''''''
+
+*Still in progress*
 
 
 Installation
