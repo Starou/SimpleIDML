@@ -17,6 +17,10 @@ def simple_decorator(decorator):
 @simple_decorator
 def use_working_copy(view_func):
     def new_func(idml_package, *args, **kwargs):
+        # In nested calls, we use the working_copy of the parent method.
+        if "working_copy_path" in kwargs:
+            return view_func(idml_package, *args, **kwargs)
+
         # TODO: use tempfile package.
         tmp_filename = "%s_TMP" % idml_package.filename
         idml_package.extractall(tmp_filename)
