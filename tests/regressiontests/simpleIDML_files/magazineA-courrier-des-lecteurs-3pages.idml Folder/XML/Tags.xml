@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<idPkg:Tags xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
+	<XMLTag Self="XMLTag/advertise" Name="advertise">
+		<Properties>
+			<TagColor type="enumeration">Green</TagColor>
+		</Properties>
+	</XMLTag>
+	<XMLTag Self="XMLTag/article" Name="article">
+		<Properties>
+			<TagColor type="enumeration">Red</TagColor>
+		</Properties>
+	</XMLTag>
+	<XMLTag Self="XMLTag/content" Name="content">
+		<Properties>
+			<TagColor type="enumeration">Magenta</TagColor>
+		</Properties>
+	</XMLTag>
+	<XMLTag Self="XMLTag/description" Name="description">
+		<Properties>
+			<TagColor type="enumeration">Gray</TagColor>
+		</Properties>
+	</XMLTag>
+	<XMLTag Self="XMLTag/drawing" Name="drawing">
+		<Properties>
+			<TagColor type="enumeration">Orange</TagColor>
+		</Properties>
+	</XMLTag>
+	<XMLTag Self="XMLTag/illustration" Name="illustration">
+		<Properties>
+			<TagColor type="enumeration">Cyan</TagColor>
+		</Properties>
+	</XMLTag>
+	<XMLTag Self="XMLTag/page" Name="page">
+		<Properties>
+			<TagColor type="enumeration">Black</TagColor>
+		</Properties>
+	</XMLTag>
+	<XMLTag Self="XMLTag/Root" Name="Root">
+		<Properties>
+			<TagColor type="enumeration">LightBlue</TagColor>
+		</Properties>
+	</XMLTag>
+	<XMLTag Self="XMLTag/Story" Name="Story">
+		<Properties>
+			<TagColor type="enumeration">BrickRed</TagColor>
+		</Properties>
+	</XMLTag>
+	<XMLTag Self="XMLTag/subtitle" Name="subtitle">
+		<Properties>
+			<TagColor type="enumeration">Yellow</TagColor>
+		</Properties>
+	</XMLTag>
+	<XMLTag Self="XMLTag/title" Name="title">
+		<Properties>
+			<TagColor type="enumeration">Blue</TagColor>
+		</Properties>
+	</XMLTag>
+</idPkg:Tags>

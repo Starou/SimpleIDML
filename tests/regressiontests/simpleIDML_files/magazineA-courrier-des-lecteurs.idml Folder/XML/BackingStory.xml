@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<idPkg:BackingStory xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
+	<XmlStory Self="u9c" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+		<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/NormalParagraphStyle">
+			<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]">
+				<XMLElement Self="di2" MarkupTag="XMLTag/Root">
+					<XMLElement Self="di2ib" MarkupTag="XMLTag/page">
+						<XMLElement Self="di2ibi34" MarkupTag="XMLTag/title" XMLContent="u1b2"/>
+						<XMLElement Self="di2ibi33" MarkupTag="XMLTag/article" XMLContent="u1c9"/>
+						<XMLElement Self="di2ibi32" MarkupTag="XMLTag/article" XMLContent="u1e0"/>
+						<XMLElement Self="di2ibi31" MarkupTag="XMLTag/article" XMLContent="u1fb"/>
+						<XMLElement Self="di2ibi30" MarkupTag="XMLTag/article" XMLContent="u212"/>
+					</XMLElement>
+					<XMLElement Self="di2i10" MarkupTag="XMLTag/page">
+						<XMLElement Self="di2i10i36" MarkupTag="XMLTag/advertise" XMLContent="u278"/>
+					</XMLElement>
+				</XMLElement>
+				<Content>﻿</Content>
+			</CharacterStyleRange>
+		</ParagraphStyleRange>
+	</XmlStory>
+</idPkg:BackingStory>

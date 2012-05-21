@@ -73,6 +73,8 @@ class IDMLPackage(zipfile.ZipFile):
         self._font_families = None
         self._style_groups = None
         self._spreads = None
+        self._spreads_objects = None
+        self._pages = None
         self._stories = None
         self._story_ids = None
 
@@ -163,6 +165,22 @@ class IDMLPackage(zipfile.ZipFile):
             self._spreads = spreads
         return self._spreads
 
+    @property
+    def spreads_objects(self):
+        if self._spreads_objects is None:
+            spreads_objects = [Spread(self, s) for s in self.spreads]
+            self._spreads_objects = spreads_objects
+        return self._spreads_objects
+
+    @property
+    def pages(self):
+        if self._pages is None:
+            pages = []
+            for spread in self.spreads_objects:
+                pages += spread.pages
+            self._pages = pages
+        return self._pages
+            
     @property
     def stories(self):
         if self._stories is None:
@@ -326,7 +344,7 @@ class IDMLPackage(zipfile.ZipFile):
         What we have:
         =============
         
-        o The Story file in self containing "at" (say /Root/article[3] or "udd") [1]:
+        o The Story file in self containing "at" (/Root/article[3] marked by (A)) [1]:
 
             <XMLElement Self="di2" MarkupTag="XMLTag/Root">
                 <XMLElement Self="di2i3" MarkupTag="XMLTag/article" XMLContent="u102"/>
@@ -336,13 +354,13 @@ class IDMLPackage(zipfile.ZipFile):
             </XMLElement>
 
 
-        o The idml_package Story file containing "only" (say /Root/module[1] or "prefixedu102") [2]:
+        o The idml_package Story file containing "only" (/Root/module[1] marked by (B)) [2]:
         
             <XMLElement Self="prefixeddi2" MarkupTag="XMLTag/Root">
                 <XMLElement Self="prefixeddi2i3" MarkupTag="XMLTag/module" XMLContent="prefixedu102"/> (B)
             </XMLElement>
 
-        What we need:
+        What we want:
         =============
 
         o At (A) in the file in [1] we are pointing to (B):
@@ -364,15 +382,16 @@ class IDMLPackage(zipfile.ZipFile):
         story_src_filename = idml_package.get_story_by_xpath(only)
         story_src = idml_package.open(story_src_filename, mode="r")
         story_src_doc = XMLDocument(story_src)
-        story_src_elt = story_src_doc.dom.xpath("//XMLElement[@XMLContent='%s']" % xml_element_src.get("XMLContent"))[0]
+        story_src_elt = story_src_doc.dom.xpath("//XMLElement[@Self='%s']" % xml_element_src.get("Self"))[0]
 
         xml_element_dest = self.XMLStructure.dom.xpath(at)[0]
         story_dest_filename = self.get_story_by_xpath(at)
         story_dest_abs_filename = os.path.join(working_copy_path, story_dest_filename)
         story_dest = open(story_dest_abs_filename, mode="r")
         story_dest_doc = XMLDocument(story_dest)
-        story_dest_elt = story_dest_doc.dom.xpath("//XMLElement[@XMLContent='%s']" % xml_element_dest.get("XMLContent"))[0]
-        story_dest_elt.attrib.pop("XMLContent")
+        story_dest_elt = story_dest_doc.dom.xpath("//XMLElement[@Self='%s']" % xml_element_dest.get("Self"))[0]
+        if story_dest_elt.get("XMLContent"):
+            story_dest_elt.attrib.pop("XMLContent")
         story_dest_elt.append(copy.copy(story_src_elt))
 
         story_dest_doc.overwrite_and_close(ref_doctype=None)
@@ -392,6 +411,21 @@ class IDMLPackage(zipfile.ZipFile):
 
         return self
         # BackingStory.xml ??
+
+    @use_working_copy
+    def add_page_from_idml(self, idml_package, page_number, at, only, working_copy_path=None):
+        last_spread = self.spreads_objects[-1]
+        if len(last_spread.pages) > 1:
+            # TODO
+            last_spread = self.add_spread()
+
+        page = idml_package.pages[page_number-1]
+        last_spread.add_page(page)
+        last_spread.synchronize(working_copy_path)
+
+        self._add_stories_from_idml(idml_package, at, only, working_copy_path=working_copy_path)
+        
+        return self
 
     def get_spread_by_xpath(self, xpath):
         """ Search for the spread file having the element identified by the XMLContent attribute
@@ -556,3 +590,165 @@ def add_stories_to_designmap(dom, stories):
     # Add <idPkg:Story src="Stories/Story_[name].xml"/> elements.
     for story in stories:
         elt.append(etree.Element("{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Story", src="Stories/Story_%s.xml" % story))
+
+class IDMLXMLFile(object):
+    def __init__(self, idml_package):
+        self.idml_package = idml_package
+        self.doctype = None
+
+    def tostring(self):
+        kwargs = {"xml_declaration": True,
+                  "encoding": "UTF-8",
+                  "standalone": True,
+                  "pretty_print": True}
+
+        if etree.LXML_VERSION < (2, 3):
+            s  = etree.tostring(self.dom, **kwargs)
+            if self.doctype:
+                lines = s.splitlines()
+                lines.insert(1, self.doctype)
+                s = "\n".join(line.decode("utf-8") for line in lines)
+                s += "\n"
+                s = s.encode("utf-8")
+        else:
+            kwargs["doctype"] = self.doctype
+            s  = etree.tostring(self.dom, **kwargs)
+        return s
+
+class Spread(IDMLXMLFile):
+    """ 
+
+        Spread coordinates system
+        -------------------------
+
+                        _ -Y
+       _________________|__________________
+      |                 |                  |  
+      |                 |                  |  
+      |                 |                  |  
+      |                 |                  |  
+      |                 |                  |  
+   -X |                 | (0,0)            | +X 
+   |--|-----------------+-------------------->            
+      |                 |                  |  
+      |                 |                  |  
+      |                 |                  |  
+      |                 |                  |  
+      |                 |                  |  
+      |                 |                  |  
+      |_________________|__________________|
+                        |
+                        ˇ +Y
+    
+    """
+
+
+    def __init__(self, idml_package, spread_name):
+        super(Spread, self).__init__(idml_package)
+        self.name = spread_name
+        self._fobj = None
+        self._pages = None
+        self._dom = None
+        self._node = None
+
+    @property
+    def fobj(self):
+        if self._fobj is None:
+            fobj = self.idml_package.open(self.name, mode="r")
+            self._fobj = fobj
+        return self._fobj
+            
+    @property
+    def pages(self):
+        if self._pages is None:
+            pages = [Page(self, node) for node in self.dom.findall("Spread/Page")]
+            self._pages = pages
+        return self._pages
+            
+    @property
+    def dom(self):
+        if self._dom is None:
+            dom = etree.fromstring(self.fobj.read())
+            self._dom = dom
+        return self._dom
+
+    @property
+    def node(self):
+        if self._node is None:
+            node = self.dom.find("Spread")
+            self._node = node
+        return self._node
+
+    def add_page(self, page):
+        last_page = self.pages[-1]
+        last_page.node.addnext(copy.deepcopy(page.node))
+        # TODO: attributes (layer, masterSpread, ...)
+        for item in page.page_items:
+            self.node.append(copy.deepcopy(item))
+
+    def synchronize(self, working_copy_path):
+        spread_file = open(os.path.join(working_copy_path, self.name), mode="w+")
+        spread_file.write(self.tostring())
+        spread_file.close()
+        
+class Page(object):
+    """ 
+        Coordinate system
+        -----------------
+
+        The <Page> position in the <Spread> is expressed by 2 attributes :
+
+            - `GeometricBounds' (y1 x1 y2 x2) where (x1, y1) is the position of the upper-left
+                corner of the page in the Spread coordinates system *before* transformation
+                and (x2, y2) is the position of the lower-right corner.
+            - `ItemTransform' (a b c d x y) where x and y are the translation applied to the
+                Page into the Spread.
+    """
+    
+    def __init__(self, spread, node):
+        self.spread = spread
+        self.node = node
+        self._page_items = None
+        self._coordinates = None
+
+    @property
+    def page_items(self):
+        if self._page_items is None:
+            page_items = [i for i in self.node.itersiblings() 
+                          if not i.tag == "Page" and self.page_item_is_in_self(i)]
+            self._page_items = page_items
+        return self._page_items
+
+    @property
+    def coordinates(self):
+        if self._coordinates is None:
+            geometric_bounds = [Decimal(c) for c in self.node.get("GeometricBounds").split(" ")]
+            item_transform = [Decimal(c) for c in self.node.get("ItemTransform").split(" ")]
+            coordinates = {
+                "x1": geometric_bounds[1] + item_transform[4],
+                "y1": geometric_bounds[0] + item_transform[5],
+                "x2": geometric_bounds[3] + item_transform[4],
+                "y2": geometric_bounds[2] + item_transform[5],
+            }
+            self._coordinates = coordinates
+        return self._coordinates
+
+    def page_item_is_in_self(self, page_item):
+        """The rule is «If the first `PathPointType' is in the page so is the page item.» 
+        
+            A PathPointType is in the page if its X is in the X-axis range of the page
+            because we assume that 2 pages (or more) of the same Spread are Y-aligned.
+            There is not any D&D reference here.
+        """
+
+        item_transform = [Decimal(c) for c in page_item.get("ItemTransform").split(" ")]
+        #TODO factoriser "Properties/PathGeometry/GeometryPathType/PathPointArray/PathPointType"
+        point = page_item.xpath("Properties/PathGeometry/GeometryPathType/PathPointArray/PathPointType")[0]
+        x, y = [Decimal(c) for c in point.get("Anchor").split(" ")]
+        x = x + item_transform[4]
+        y = y + item_transform[5]
+
+        if x >= self.coordinates["x1"] and x <= self.coordinates["x2"]:
+            return True
+        else:
+            return False

@@ -5,9 +5,11 @@ import glob
 import unittest
 import codecs
 import StringIO
+from decimal import Decimal
 from lxml import etree
 from simple_idml.idml import IDMLPackage
 from simple_idml.idml import XMLDocument
+from simple_idml.idml import Spread
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "simpleIDML_files")
@@ -238,6 +240,51 @@ class SimpleIDMLTestCase(unittest.TestCase):
                            'article1ObjectStyle/$ID/[Normal Grid]']
                          ])
 
+    def test_add_page_from_idml(self):
+        edito_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-edito.idml")
+        courrier_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-courrier-des-lecteurs.idml")
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-edito.idml"), edito_idml_filename)
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml"), courrier_idml_filename)
+
+        edito_idml_file = IDMLPackage(edito_idml_filename)
+        courrier_idml_file = IDMLPackage(courrier_idml_filename)
+
+        # Always start by prefixing packages to avoid collision.
+        edito_idml_file = edito_idml_file.prefix("edito")
+        courrier_idml_file = courrier_idml_file.prefix("courrier")
+        self.assertEqual(len(edito_idml_file.pages), 2)
+
+        new_idml = edito_idml_file.add_page_from_idml(courrier_idml_file,
+                                                      page_number=1,
+                                                      at="/Root",
+                                                      only="/Root/page[1]")
+        self.assertEqual(len(new_idml.pages), 3)
+
+        # The XML Structure has integrated the new file.
+        #print"\n", (etree.tostring(new_idml.XMLStructure.dom, pretty_print=True))
+        self.assertEqual(etree.tostring(new_idml.XMLStructure.dom, pretty_print=True),
+"""<Root Self="editodi2">
+  <page Self="editodi2ib">
+    <article Self="editodi2ibif">
+      <Story XMLContent="editoue4" Self="editodi2ibifi1f">
+        <title Self="editodi2ibifi1fi1"/>
+        <subtitle Self="editodi2ibifi1fi2"/>
+      </Story>
+      <content XMLContent="editou11b" Self="editodi2ibifi1e"/>
+    </article>
+  </page>
+  <page Self="editodi2i10">
+    <advertise XMLContent="editou1de" Self="editodi2i10i23"/>
+  </page>
+  <page Self="courrierdi2ib">
+    <title XMLContent="courrieru1b2" Self="courrierdi2ibi34"/>
+    <article XMLContent="courrieru1c9" Self="courrierdi2ibi33"/>
+    <article XMLContent="courrieru1e0" Self="courrierdi2ibi32"/>
+    <article XMLContent="courrieru1fb" Self="courrierdi2ibi31"/>
+    <article XMLContent="courrieru212" Self="courrierdi2ibi30"/>
+  </page>
+</Root>
+""")
 
 class XMLDocumentTestCase(unittest.TestCase):
     def test_get_element_by_id(self):
@@ -246,6 +293,7 @@ class XMLDocumentTestCase(unittest.TestCase):
         elt = doc.getElementById("di2i3i1")
         self.assertTrue(elt is not None)
 
+    # TODO: move this test to the subclasses of IDMLXMLFile.
     def test_to_string(self):
         xml_file = StringIO.StringIO()
         xml_file.write("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -260,7 +308,67 @@ class XMLDocumentTestCase(unittest.TestCase):
 <document>This is a XML document with unicode : ₣.</document>
 """)
 
+class SpreadTestCase(unittest.TestCase):
+    def test_pages(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
+        spreads = idml_file.spreads
+
+        spread1 = Spread(idml_file, spreads[0])
+        spread1_pages = spread1.pages
+        self.assertEqual(len(spread1_pages), 1)
+        self.assertEqual(spread1_pages[0].node.tag, "Page")
+
+        spread2 = Spread(idml_file, spreads[1])
+        spread2_pages = spread2.pages
+        self.assertEqual(len(spread2_pages), 2)
+        self.assertEqual(spread2_pages[0].node.tag, "Page")
+        self.assertEqual(spread2_pages[1].node.tag, "Page")
+
+class PageTestCase(unittest.TestCase):
+    def test_page_items(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml"), mode="r")
+        spread = Spread(idml_file, idml_file.spreads[1])
+
+        page1 = spread.pages[0]
+        self.assertEqual([i.tag for i in page1.page_items], ["Rectangle"])
+
+        page2 = spread.pages[1]
+        self.assertEqual([i.tag for i in page2.page_items], [
+            'Rectangle',
+            'TextFrame',
+            'Polygon',
+            'Polygon',
+            'Polygon',
+            'GraphicLine',
+            'Polygon',
+            'Polygon',
+            'Oval',
+            'Rectangle',
+        ])
+
+    def test_coordinates(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml"), mode="r")
+        spread = Spread(idml_file, idml_file.spreads[1])
+
+        page1 = spread.pages[0]
+        self.assertEqual(page1.coordinates, {
+            'x1': Decimal('-566.9291338582677'),
+            'y1': Decimal('-379.8425196850394'),
+            'x2': Decimal('0E-13'),
+            'y2': Decimal('379.8425196850394')
+        })
+
+        page2 = spread.pages[1]
+        self.assertEqual(page2.coordinates, {
+            'x1': Decimal('0'),
+            'y1': Decimal('-379.8425196850394'),
+            'x2': Decimal('566.9291338582677'),
+            'y2': Decimal('379.8425196850394'),
+        })
+
 def suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(SimpleIDMLTestCase)
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(XMLDocumentTestCase))
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(SpreadTestCase))
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(PageTestCase))
     return suite

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
+	<Story Self="ue4" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+		<StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection"/>
+		<InCopyExportOption IncludeGraphicProxies="true" IncludeAllResources="false"/>
+		<XMLElement Self="di2ibifi1f" MarkupTag="XMLTag/Story" XMLContent="ue4">
+			<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/NormalParagraphStyle">
+				<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" PointSize="48">
+					<Properties>
+						<AppliedFont type="string">Gill Sans</AppliedFont>
+					</Properties>
+					<Content>L’édito</Content>
+					<XMLElement Self="di2ibifi1fi1" MarkupTag="XMLTag/title"/>
+					<XMLElement Self="di2ibifi1fi2" MarkupTag="XMLTag/subtitle"/>
+					<Content> </Content>
+				</CharacterStyleRange>
+				<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" PointSize="18">
+					<Properties>
+						<AppliedFont type="string">Gill Sans</AppliedFont>
+					</Properties>
+					<Content>de Jean Némard</Content>
+				</CharacterStyleRange>
+			</ParagraphStyleRange>
+		</XMLElement>
+	</Story>
+</idPkg:Story>
