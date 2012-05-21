@@ -228,16 +228,17 @@ class IDMLPackage(zipfile.ZipFile):
 
         return self
 
-    def insert_idml(self, idml_package, at, only):
+    @use_working_copy
+    def insert_idml(self, idml_package, at, only, working_copy_path=None):
         #self._add_graphic_from_idml(idml_package)
         t = self._get_item_translation_for_insert(idml_package, at, only)
-        p = self._add_font_families_from_idml(idml_package)
-        p = p._add_styles_from_idml(idml_package)
-        p = p._add_tags_from_idml(idml_package)
-        p = p._add_spread_elements_from_idml(idml_package, at, only, t)
-        p = p._add_stories_from_idml(idml_package, at, only)
-        p._XMLStructure = None
-        return p
+        self._add_font_families_from_idml(idml_package, working_copy_path=working_copy_path)
+        self._add_styles_from_idml(idml_package, working_copy_path=working_copy_path)
+        self._add_tags_from_idml(idml_package, working_copy_path=working_copy_path)
+        self._add_spread_elements_from_idml(idml_package, at, only, t, working_copy_path=working_copy_path)
+        self._add_stories_from_idml(idml_package, at, only, working_copy_path=working_copy_path)
+        self._XMLStructure = None
+        return self
 
     @use_working_copy
     def _add_font_families_from_idml(self, idml_package, working_copy_path=None):
