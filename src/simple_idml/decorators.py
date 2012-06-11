@@ -24,6 +24,9 @@ def use_working_copy(view_func):
         # TODO: use tempfile package.
         tmp_filename = "%s_TMP" % idml_package.filename
         idml_package.extractall(tmp_filename)
+        idml_package.working_copy_path = tmp_filename
+        idml_package.init_lazy_references()
+
         kwargs["working_copy_path"] = tmp_filename
         
         idml_package = view_func(idml_package, *args, **kwargs)

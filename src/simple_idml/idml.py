@@ -69,6 +69,10 @@ class IDMLPackage(zipfile.ZipFile):
     def __init__(self, *args, **kwargs):
         kwargs["compression"] = zipfile.ZIP_STORED
         zipfile.ZipFile.__init__(self, *args, **kwargs)
+        self.working_copy_path = None
+        self.init_lazy_references()
+
+    def init_lazy_references(self):
         self._XMLStructure = None
         self._tags = None
         self._font_families = None
@@ -169,7 +173,7 @@ class IDMLPackage(zipfile.ZipFile):
     @property
     def spreads_objects(self):
         if self._spreads_objects is None:
-            spreads_objects = [Spread(self, s) for s in self.spreads]
+            spreads_objects = [Spread(self, s, self.working_copy_path) for s in self.spreads]
             self._spreads_objects = spreads_objects
         return self._spreads_objects
 
@@ -432,7 +436,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         page = idml_package.pages[page_number-1]
         last_spread.add_page(page)
-        last_spread.synchronize(working_copy_path)
+        last_spread.synchronize()
 
         self._add_stories_from_idml(idml_package, at, only, working_copy_path=working_copy_path)
         self._add_font_families_from_idml(idml_package, working_copy_path=working_copy_path)
@@ -451,9 +455,9 @@ class IDMLPackage(zipfile.ZipFile):
             os.path.join(working_copy_path, last_spread.name),
             new_spread_wc_path
         )
+        self._spreads_objects = None
         
-        new_spread = Spread(self, new_spread_name)
-        new_spread._fobj = open(new_spread_wc_path, mode="r")
+        new_spread = Spread(self, new_spread_name, working_copy_path)
         new_spread.clear()
         new_spread.node.set("Self", new_spread.get_node_name_from_xml_name())
 
@@ -677,12 +681,13 @@ class IDMLXMLFile(object):
         return s
 
     def synchronize(self):
-        # Must instanciate with a working_copy to use this.
-        # TODO throw exception when RO with a convenient message.
-        self.fobj.seek(0)
-        self.fobj.write(self.tostring())
         self.fobj.close()
         self._fobj = None
+
+        # Must instanciate with a working_copy to use this.
+        fobj = open(os.path.join(self.working_copy_path, self.name), mode="w+")
+        fobj.write(self.tostring())
+        fobj.close()
 
 
 class Spread(IDMLXMLFile):
@@ -713,8 +718,8 @@ class Spread(IDMLXMLFile):
     """
 
 
-    def __init__(self, idml_package, spread_name):
-        super(Spread, self).__init__(idml_package)
+    def __init__(self, idml_package, spread_name, working_copy_path=None):
+        super(Spread, self).__init__(idml_package, working_copy_path)
         self.name = spread_name
         self._pages = None
         self._node = None
@@ -743,12 +748,6 @@ class Spread(IDMLXMLFile):
         for item in page.page_items:
             self.node.append(copy.deepcopy(item))
         self._pages = None
-
-    # Inheritance.
-    def synchronize(self, working_copy_path):
-        spread_file = open(os.path.join(working_copy_path, self.name), mode="w+")
-        spread_file.write(self.tostring())
-        spread_file.close()
 
     def clear(self):
         items = self.node.items()
