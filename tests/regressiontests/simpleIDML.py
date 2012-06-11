@@ -286,6 +286,34 @@ class SimpleIDMLTestCase(unittest.TestCase):
 </Root>
 """)
 
+    def test_add_pages_from_idml(self):
+        edito_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-edito.idml")
+        courrier_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-courrier-des-lecteurs.idml")
+        bloc_notes_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-bloc-notes.idml")
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-edito.idml"), edito_idml_filename)
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml"), courrier_idml_filename)
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-bloc-notes.idml"), bloc_notes_idml_filename)
+
+        edito_idml_file = IDMLPackage(edito_idml_filename)
+        courrier_idml_file = IDMLPackage(courrier_idml_filename)
+        bloc_notes_idml_file = IDMLPackage(bloc_notes_idml_filename)
+
+        # Always start by prefixing packages to avoid collision.
+        edito_idml_file = edito_idml_file.prefix("edito")
+        courrier_idml_file = courrier_idml_file.prefix("courrier")
+        bloc_notes_idml_file = bloc_notes_idml_file.prefix("blocnotes")
+
+        packages_to_add = [
+            (courrier_idml_file, 1, "/Root", "/Root/page[1]"),
+            (bloc_notes_idml_file, 1, "/Root", "/Root/page[1]"),
+        ]
+
+        new_idml = edito_idml_file.add_pages_from_idml(packages_to_add)
+        os.unlink(courrier_idml_filename)
+        os.unlink(bloc_notes_idml_filename)
+
+        self.assertEqual(len(new_idml.pages), 4)
+
 class XMLDocumentTestCase(unittest.TestCase):
     def test_get_element_by_id(self):
         xml_file = open(os.path.join(IDMLFILES_DIR, "4-pages.idml Folder", "Stories", "Story_ue4.xml"), mode="r")

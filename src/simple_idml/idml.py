@@ -23,6 +23,7 @@ rx_contentfile = re.compile(r"^(Story_|Spread_)(.+\.xml)$")
 rx_contentfile2 = re.compile(r"^(Stories/Story_|Spreads/Spread_)(.+\.xml)$")
 
 rx_story_id = re.compile(r"Stories/Story_([\w]+)\.xml")
+rx_node_name_from_xml_name = re.compile(r"[\w]+/[\w]+_([\w]+)\.xml")
 
 excluded_tags_for_prefix = [
     "Document",
@@ -417,11 +418,17 @@ class IDMLPackage(zipfile.ZipFile):
         # BackingStory.xml ??
 
     @use_working_copy
+    def add_pages_from_idml(self, idml_packages, working_copy_path=None):
+        for package, page_number, at, only in idml_packages:
+            self.add_page_from_idml(package, page_number, at, only,
+                                    working_copy_path=working_copy_path)
+        return self
+
+    @use_working_copy
     def add_page_from_idml(self, idml_package, page_number, at, only, working_copy_path=None):
         last_spread = self.spreads_objects[-1]
         if len(last_spread.pages) > 1:
-            # TODO
-            last_spread = self.add_spread()
+            last_spread = self.add_new_spread(working_copy_path)
 
         page = idml_package.pages[page_number-1]
         last_spread.add_page(page)
@@ -431,8 +438,32 @@ class IDMLPackage(zipfile.ZipFile):
         self._add_font_families_from_idml(idml_package, working_copy_path=working_copy_path)
         self._add_styles_from_idml(idml_package, working_copy_path=working_copy_path)
         self._add_tags_from_idml(idml_package, working_copy_path=working_copy_path)
-        
+
         return self
+
+    def add_new_spread(self, working_copy_path):
+        """Create a new empty Spread in the working copy from the last one. """
+
+        new_spread_name = "Spreads/Spread_toto.xml"
+        new_spread_wc_path = os.path.join(working_copy_path, new_spread_name)
+        last_spread = self.spreads_objects[-1]
+        shutil.copy2(
+            os.path.join(working_copy_path, last_spread.name),
+            new_spread_wc_path
+        )
+        
+        new_spread = Spread(self, new_spread_name)
+        new_spread._fobj = open(new_spread_wc_path, mode="r")
+        new_spread.clear()
+        new_spread.node.set("Self", new_spread.get_node_name_from_xml_name())
+
+        designmap = Designmap(self, working_copy_path=working_copy_path)
+        designmap.add_spread(new_spread)
+        designmap.synchronize()
+
+        # The spread synchronization is done outside.
+        return new_spread
+
 
     def get_spread_by_xpath(self, xpath):
         """ Search for the spread file having the element identified by the XMLContent attribute
@@ -598,11 +629,34 @@ def add_stories_to_designmap(dom, stories):
     for story in stories:
         elt.append(etree.Element("{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Story", src="Stories/Story_%s.xml" % story))
 
-class IDMLXMLFile(object):
-    def __init__(self, idml_package):
-        self.idml_package = idml_package
-        self.doctype = None
 
+class IDMLXMLFile(object):
+    name = None
+    doctype = None
+
+    def __init__(self, idml_package, working_copy_path=None):
+        self.idml_package = idml_package
+        self.working_copy_path = working_copy_path
+        self._fobj = None
+        self._dom = None
+
+    @property
+    def fobj(self):
+        if self._fobj is None:
+            if self.working_copy_path:
+                fobj = open(os.path.join(self.working_copy_path, self.name), mode="r+")
+            else:
+                fobj = self.idml_package.open(self.name, mode="r")
+            self._fobj = fobj
+        return self._fobj
+
+    @property
+    def dom(self):
+        if self._dom is None:
+            dom = etree.fromstring(self.fobj.read())
+            self._dom = dom
+        return self._dom
+            
     def tostring(self):
         kwargs = {"xml_declaration": True,
                   "encoding": "UTF-8",
@@ -621,6 +675,15 @@ class IDMLXMLFile(object):
             kwargs["doctype"] = self.doctype
             s  = etree.tostring(self.dom, **kwargs)
         return s
+
+    def synchronize(self):
+        # Must instanciate with a working_copy to use this.
+        # TODO throw exception when RO with a convenient message.
+        self.fobj.seek(0)
+        self.fobj.write(self.tostring())
+        self.fobj.close()
+        self._fobj = None
+
 
 class Spread(IDMLXMLFile):
     """ 
@@ -653,18 +716,9 @@ class Spread(IDMLXMLFile):
     def __init__(self, idml_package, spread_name):
         super(Spread, self).__init__(idml_package)
         self.name = spread_name
-        self._fobj = None
         self._pages = None
-        self._dom = None
         self._node = None
-
-    @property
-    def fobj(self):
-        if self._fobj is None:
-            fobj = self.idml_package.open(self.name, mode="r")
-            self._fobj = fobj
-        return self._fobj
-            
+    
     @property
     def pages(self):
         if self._pages is None:
@@ -673,13 +727,6 @@ class Spread(IDMLXMLFile):
         return self._pages
             
     @property
-    def dom(self):
-        if self._dom is None:
-            dom = etree.fromstring(self.fobj.read())
-            self._dom = dom
-        return self._dom
-
-    @property
     def node(self):
         if self._node is None:
             node = self.dom.find("Spread")
@@ -687,17 +734,56 @@ class Spread(IDMLXMLFile):
         return self._node
 
     def add_page(self, page):
-        last_page = self.pages[-1]
-        last_page.node.addnext(copy.deepcopy(page.node))
+        if self.pages:
+            last_page = self.pages[-1]
+            last_page.node.addnext(copy.deepcopy(page.node))
+        else:
+            self.node.append(copy.deepcopy(page.node))
         # TODO: attributes (layer, masterSpread, ...)
         for item in page.page_items:
             self.node.append(copy.deepcopy(item))
+        self._pages = None
 
+    # Inheritance.
     def synchronize(self, working_copy_path):
         spread_file = open(os.path.join(working_copy_path, self.name), mode="w+")
         spread_file.write(self.tostring())
         spread_file.close()
-        
+
+    def clear(self):
+        items = self.node.items()
+        self.node.clear()
+        for k, v in items:
+            self.node.set(k, v)
+
+        self._pages = None
+
+    def get_node_name_from_xml_name(self):
+        return rx_node_name_from_xml_name.match(self.name).groups()[0]
+
+
+class Designmap(IDMLXMLFile):
+    name = "designmap.xml"
+    doctype = u'<?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="7.5(142)" ?>'
+
+    def __init__(self, idml_package, working_copy_path):
+        super(Designmap, self).__init__(idml_package, working_copy_path)
+        self._spread_nodes = None
+
+    @property
+    def spread_nodes(self):
+        if self._spread_nodes is None:
+            nodes = self.dom.findall("idPkg:Spread", namespaces={'idPkg':IdPkgNS})
+            self._spread_nodes = nodes
+        return self._spread_nodes
+
+    def add_spread(self, spread):
+        if self.spread_nodes:
+            self.spread_nodes[-1].addnext(
+                etree.Element("{%s}Spread" % IdPkgNS, src=spread.name)
+            )
+
+
 class Page(object):
     """ 
         Coordinate system
@@ -759,3 +845,4 @@ class Page(object):
             return True
         else:
             return False
+
