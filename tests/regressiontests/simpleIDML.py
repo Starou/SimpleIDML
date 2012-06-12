@@ -313,6 +313,9 @@ class SimpleIDMLTestCase(unittest.TestCase):
         os.unlink(bloc_notes_idml_filename)
 
         self.assertEqual(len(new_idml.pages), 4)
+        self.assertEqual(new_idml.spreads, ['Spreads/Spread_editoub6.xml',
+                                            'Spreads/Spread_editoubc.xml', 
+                                            'Spreads/Spread_editoubd.xml'])
 
 class XMLDocumentTestCase(unittest.TestCase):
     def test_get_element_by_id(self):

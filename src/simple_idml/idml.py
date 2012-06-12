@@ -10,6 +10,7 @@ from lxml import etree
 from xml.dom.minidom import parseString
 
 from simple_idml.decorators import use_working_copy
+from simple_idml.utils import increment_filename
 
 BACKINGSTORY = "XML/BackingStory.xml"
 TAGS = "XML/Tags.xml"
@@ -448,9 +449,10 @@ class IDMLPackage(zipfile.ZipFile):
     def add_new_spread(self, working_copy_path):
         """Create a new empty Spread in the working copy from the last one. """
 
-        new_spread_name = "Spreads/Spread_toto.xml"
-        new_spread_wc_path = os.path.join(working_copy_path, new_spread_name)
         last_spread = self.spreads_objects[-1]
+        # TODO : make sure the filename does not exists.
+        new_spread_name = increment_filename(last_spread.name)
+        new_spread_wc_path = os.path.join(working_copy_path, new_spread_name)
         shutil.copy2(
             os.path.join(working_copy_path, last_spread.name),
             new_spread_wc_path
