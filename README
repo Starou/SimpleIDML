@@ -184,13 +184,6 @@ You may need to gather pages from severals documents into a single one::
 
 There is a convenient method to add several pages at once::
 
-    edito_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-edito.idml")
-    courrier_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-courrier-des-lecteurs.idml")
-    bloc_notes_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-bloc-notes.idml")
-    shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-edito.idml"), edito_idml_filename)
-    shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml"), courrier_idml_filename)
-    shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-bloc-notes.idml"), bloc_notes_idml_filename)
-
     >>> edito_idml_file = IDMLPackage("magazineA-edito.idml")
     >>> courrier_idml_file = IDMLPackage("magazineA-courrier-des-lecteurs.idml")
     >>> bloc_notes_idml_file = IDMLPackage("magazineA-bloc-notes.idml")
