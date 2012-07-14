@@ -122,24 +122,93 @@ to avoid reference collisions.
         <description XMLContent="mainu139" Self="maindi2i3i4"/>
       </article>
       <article XMLContent="mainudb" Self="maindi2i4"/>
-      <article Self="maindi2i5"/>
-      <module XMLContent="article1u1db" Self="article1di3i12">
-        <main_picture XMLContent="article1u182" Self="article1di3i12i1"/>
-        <headline XMLContent="article1u188" Self="article1di3i12i2"/>
-        <Story XMLContent="article1u19f" Self="article1di3i12i3">
-          <article Self="article1di3i12i3i2"/>
-          <informations Self="article1di3i12i3i1"/>
-        </Story>
-      </module>
+      <article Self="maindi2i5">
+        <module XMLContent="article1u1db" Self="article1di3i12">
+          <main_picture XMLContent="article1u182" Self="article1di3i12i1"/>
+          <headline XMLContent="article1u188" Self="article1di3i12i2"/>
+          <Story XMLContent="article1u19f" Self="article1di3i12i3">
+            <article Self="article1di3i12i3i2"/>
+            <informations Self="article1di3i12i3i1"/>
+          </Story>
+        </module>
+      </article>
       <advertise XMLContent="mainudf" Self="maindi2i6"/>
     </Root>
 
 
+Combine pages
+'''''''''''''
 
-Add pages
-'''''''''
+You may need to gather pages from severals documents into a single one::
 
-*Still in progress*
+    >>> edito_idml_file = IDMLPackage("magazineA-edito.idml")
+    >>> courrier_idml_file = IDMLPackage("magazineA-courrier-des-lecteurs.idml")
+
+    >>> # Always start by prefixing packages to avoid collision.
+    >>> edito_idml_file = edito_idml_file.prefix("edito")
+    >>> courrier_idml_file = courrier_idml_file.prefix("courrier")
+    >>> len(edito_idml_file.pages)
+    2
+
+    >>> new_idml = edito_idml_file.add_page_from_idml(courrier_idml_file,
+    ...                                               page_number=1,
+    ...                                               at="/Root",
+    ...                                               only="/Root/page[1]")
+    >>> len(new_idml.pages)
+    3
+
+    # The XML Structure has integrated the new file.
+    >>> print etree.tostring(new_idml.XMLStructure.dom, pretty_print=True)
+    <Root Self="editodi2">
+      <page Self="editodi2ib">
+        <article Self="editodi2ibif">
+          <Story XMLContent="editoue4" Self="editodi2ibifi1f">
+            <title Self="editodi2ibifi1fi1"/>
+            <subtitle Self="editodi2ibifi1fi2"/>
+          </Story>
+          <content XMLContent="editou11b" Self="editodi2ibifi1e"/>
+        </article>
+      </page>
+      <page Self="editodi2i10">
+        <advertise XMLContent="editou1de" Self="editodi2i10i23"/>
+      </page>
+      <page Self="courrierdi2ib">
+        <title XMLContent="courrieru1b2" Self="courrierdi2ibi34"/>
+        <article XMLContent="courrieru1c9" Self="courrierdi2ibi33"/>
+        <article XMLContent="courrieru1e0" Self="courrierdi2ibi32"/>
+        <article XMLContent="courrieru1fb" Self="courrierdi2ibi31"/>
+        <article XMLContent="courrieru212" Self="courrierdi2ibi30"/>
+      </page>
+    </Root>
+
+
+There is a convenient method to add several pages at once::
+
+    edito_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-edito.idml")
+    courrier_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-courrier-des-lecteurs.idml")
+    bloc_notes_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-bloc-notes.idml")
+    shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-edito.idml"), edito_idml_filename)
+    shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml"), courrier_idml_filename)
+    shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-bloc-notes.idml"), bloc_notes_idml_filename)
+
+    >>> edito_idml_file = IDMLPackage("magazineA-edito.idml")
+    >>> courrier_idml_file = IDMLPackage("magazineA-courrier-des-lecteurs.idml")
+    >>> bloc_notes_idml_file = IDMLPackage("magazineA-bloc-notes.idml")
+
+    >>> edito_idml_file = edito_idml_file.prefix("edito")
+    >>> courrier_idml_file = courrier_idml_file.prefix("courrier")
+    >>> bloc_notes_idml_file = bloc_notes_idml_file.prefix("blocnotes")
+
+    >>> packages_to_add = [
+    ...     (courrier_idml_file, 1, "/Root", "/Root/page[1]"),
+    ...     (bloc_notes_idml_file, 1, "/Root", "/Root/page[1]"),
+    ... ]
+
+    >>> new_idml = edito_idml_file.add_pages_from_idml(packages_to_add)
+    >>> len(new_idml.pages)
+    4
+    >>> new_idml.spreads
+    ['Spreads/Spread_editoub6.xml', 'Spreads/Spread_editoubc.xml', 'Spreads/Spread_editoubd.xml']
 
 
 Installation
