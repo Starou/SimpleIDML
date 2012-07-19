@@ -46,7 +46,6 @@ excluded_tags_for_prefix = [
     "ABullet",
     "Assignment",
     "XMLTag",
-    "Page", # or update designmap.xml: <Section Self="uc9" Length="4" Name="" ... PageStart="ubb" SectionPrefix=""> ?
     "MasterSpread",
 ]
 
@@ -237,6 +236,11 @@ class IDMLPackage(zipfile.ZipFile):
                 new_name = os.path.join(os.path.dirname(old_name), new_basename)
                 os.rename(old_name, new_name)
 
+        # Update designmap.xml.
+        designmap = Designmap(self, working_copy_path=working_copy_path)
+        designmap.prefix_page_start(prefix)
+        designmap.synchronize()
+
         return self
 
     @use_working_copy
@@ -423,6 +427,7 @@ class IDMLPackage(zipfile.ZipFile):
             story_cp.close()
 
         # Update designmap.xml.
+        # TODO: use Designmap instance.
         designmap_abs_filename = os.path.join(working_copy_path, "designmap.xml")
         designmap = open(designmap_abs_filename, mode="r")
         designmap_doc = XMLDocument(designmap)
@@ -775,10 +780,12 @@ class Spread(IDMLXMLFile):
 class Designmap(IDMLXMLFile):
     name = "designmap.xml"
     doctype = u'<?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="7.5(142)" ?>'
+    page_start_attr = "PageStart"
 
     def __init__(self, idml_package, working_copy_path):
         super(Designmap, self).__init__(idml_package, working_copy_path)
         self._spread_nodes = None
+        self._section_node = None
 
     @property
     def spread_nodes(self):
@@ -787,11 +794,23 @@ class Designmap(IDMLXMLFile):
             self._spread_nodes = nodes
         return self._spread_nodes
 
+    @property
+    def section_node(self):
+        if self._section_node is None:
+            nodes = self.dom.find("Section")
+            self._section_node = nodes
+        return self._section_node
+
     def add_spread(self, spread):
         if self.spread_nodes:
             self.spread_nodes[-1].addnext(
                 etree.Element("{%s}Spread" % IdPkgNS, src=spread.name)
             )
+
+    def prefix_page_start(self, prefix):
+        section_node = self.section_node
+        current_page_start = section_node.get(self.page_start_attr)
+        section_node.set(self.page_start_attr, "%s%s" % (prefix, current_page_start))
 
 
 class Page(object):

@@ -113,7 +113,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
                                              'Spreads/Spread_FOOuc3.xml'])
         spread = etree.fromstring(idml_file.open("Spreads/Spread_FOOub6.xml").read())
         self.assertEqual(spread.xpath(".//Spread[1]")[0].get("Self"), "FOOub6")
-        self.assertEqual(spread.xpath(".//Spread[1]/Page[1]")[0].get("Self"), "ubb")
+        self.assertEqual(spread.xpath(".//Spread[1]/Page[1]")[0].get("Self"), "FOOubb")
         self.assertEqual(spread.xpath(".//Spread[1]/TextFrame[1]")[0].get("Self"), "FOOud8")
         self.assertEqual(spread.xpath(".//Spread[1]/TextFrame[1]")[0].get("ParentStory"), "FOOu102")
 
