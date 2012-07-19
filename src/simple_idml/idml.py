@@ -16,14 +16,19 @@ BACKINGSTORY = "XML/BackingStory.xml"
 TAGS = "XML/Tags.xml"
 FONTS = "Resources/Fonts.xml"
 STYLES = "Resources/Styles.xml"
+STORIES_DIRNAME = "Stories"
+SPREADS_DIRNAME = "Spreads"
 
 IdPkgNS = "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"
 
 xmltag_prefix = "XMLTag/"
 rx_contentfile = re.compile(r"^(Story_|Spread_)(.+\.xml)$")
-rx_contentfile2 = re.compile(r"^(Stories/Story_|Spreads/Spread_)(.+\.xml)$")
+rx_contentfile2 = re.compile(r"^(%(stories_dirname)s/Story_|%(spreads_dirname)s/Spread_)(.+\.xml)$" % {
+    "stories_dirname": STORIES_DIRNAME,
+    "spreads_dirname": SPREADS_DIRNAME,
+})
 
-rx_story_id = re.compile(r"Stories/Story_([\w]+)\.xml")
+rx_story_id = re.compile(r"%s/Story_([\w]+)\.xml" % STORIES_DIRNAME)
 rx_node_name_from_xml_name = re.compile(r"[\w]+/[\w]+_([\w]+)\.xml")
 
 excluded_tags_for_prefix = [
@@ -190,7 +195,7 @@ class IDMLPackage(zipfile.ZipFile):
     @property
     def stories(self):
         if self._stories is None:
-            stories = [elt for elt in self.namelist() if re.match(ur"^Stories/*", elt)]
+            stories = [elt for elt in self.namelist() if re.match(ur"^%s/*" % STORIES_DIRNAME, elt)]
             self._stories = stories
         return self._stories
             
@@ -406,7 +411,12 @@ class IDMLPackage(zipfile.ZipFile):
 
         story_dest_doc.overwrite_and_close(ref_doctype=None)
 
-        # Stories files are added. TODO: add only the stories required.
+        # Stories files are added.
+        # `Stories' directory may not be present in the destination package.
+        stories_dirname = os.path.join(working_copy_path, STORIES_DIRNAME)
+        if not os.path.exists(stories_dirname):
+            os.mkdir(stories_dirname)
+        # TODO: add only the stories required.
         for filename in idml_package.stories:
             story_cp = open(os.path.join(working_copy_path, filename), mode="w+")
             story_cp.write(idml_package.open(filename, mode="r").read())
@@ -469,7 +479,6 @@ class IDMLPackage(zipfile.ZipFile):
 
         # The spread synchronization is done outside.
         return new_spread
-
 
     def get_spread_by_xpath(self, xpath):
         """ Search for the spread file having the element identified by the XMLContent attribute
