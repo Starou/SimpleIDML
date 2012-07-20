@@ -88,6 +88,20 @@ class IDMLPackage(zipfile.ZipFile):
         self._stories = None
         self._story_ids = None
 
+    def namelist(self):
+        if not self.working_copy_path:
+            return zipfile.ZipFile.namelist(self)
+        else:
+            trailing_slash_wc = "%s/" % self.working_copy_path
+            namelist = []
+            for root, dirs, filenames in os.walk(self.working_copy_path):
+                trailing_slash_root = "%s/" % root
+                rel_root = trailing_slash_root.replace(trailing_slash_wc, "")
+                for filename in filenames:
+                    namelist.append("%s%s" % (rel_root, filename))
+            return namelist
+
+
     @property
     def XMLStructure(self):
         """ Discover the XML structure from the story files.
@@ -440,8 +454,8 @@ class IDMLPackage(zipfile.ZipFile):
     @use_working_copy
     def add_pages_from_idml(self, idml_packages, working_copy_path=None):
         for package, page_number, at, only in idml_packages:
-            self.add_page_from_idml(package, page_number, at, only,
-                                    working_copy_path=working_copy_path)
+            self = self.add_page_from_idml(package, page_number, at, only,
+                                           working_copy_path=working_copy_path)
         return self
 
     @use_working_copy
@@ -452,6 +466,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         page = idml_package.pages[page_number-1]
         last_spread.add_page(page)
+        self.init_lazy_references()
         last_spread.synchronize()
 
         self._add_stories_from_idml(idml_package, at, only, working_copy_path=working_copy_path)

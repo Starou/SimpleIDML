@@ -6,7 +6,9 @@ import unittest
 import codecs
 import StringIO
 from decimal import Decimal
+from tempfile import mkdtemp 
 from lxml import etree
+
 from simple_idml.idml import IDMLPackage
 from simple_idml.idml import XMLDocument
 from simple_idml.idml import Spread
@@ -99,6 +101,23 @@ class SimpleIDMLTestCase(unittest.TestCase):
   </page>
 </Root>
 """)
+
+    def test_namelist(self):
+        # The namelist can be inherited from ZipFile or computed from the working copy.
+        idml_file = os.path.join(IDMLFILES_DIR, "4-pages.idml")
+        idml_file = IDMLPackage(idml_file)
+        zipfile_namelist = idml_file.namelist()
+
+        idml_working_copy = mkdtemp()
+        idml_file.extractall(idml_working_copy)
+        idml_file.working_copy_path = idml_working_copy
+        idml_file.init_lazy_references()
+
+        working_copy_namelist = idml_file.namelist()
+        self.assertEqual(set(zipfile_namelist), set(working_copy_namelist))
+
+        shutil.rmtree(idml_working_copy)
+
 
     def test_prefix(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"), 
@@ -290,6 +309,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
         edito_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-edito.idml")
         courrier_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-courrier-des-lecteurs.idml")
         bloc_notes_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-bloc-notes.idml")
+        bloc_notes2_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-bloc-notes2.idml")
         shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-edito.idml"), edito_idml_filename)
         shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml"), courrier_idml_filename)
         shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-bloc-notes.idml"), bloc_notes_idml_filename)
@@ -350,7 +370,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
         os.unlink(courrier_idml_filename)
         os.unlink(bloc_notes_idml_filename)
 
-        self.assertEqual(len(magazineA_idml_file.pages), 3)
+        self.assertEqual(len(magazineA_idml_file.pages), 4)
         self.assertEqual(magazineA_idml_file.spreads, ['Spreads/Spread_magub6.xml', 'Spreads/Spread_magub7.xml'])
 
 class XMLDocumentTestCase(unittest.TestCase):
