@@ -12,6 +12,7 @@ from lxml import etree
 from simple_idml.idml import IDMLPackage
 from simple_idml.idml import XMLDocument
 from simple_idml.idml import Spread
+from simple_idml.idml import RECTO, VERSO
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "simpleIDML_files")
@@ -437,6 +438,10 @@ class PageTestCase(unittest.TestCase):
             'Oval',
             'Rectangle',
         ])
+        
+        # test the setter
+        page2.page_items = ["foo", "bar"]
+        self.assertEqual(page2.page_items, ["foo", "bar"])
 
     def test_coordinates(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml"), mode="r")
@@ -469,6 +474,15 @@ class PageTestCase(unittest.TestCase):
         page3 = spread2.pages[1]
         self.assertFalse(page2.is_recto)
         self.assertTrue(page3.is_recto)
+
+    def test_set_face(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml"), mode="r")
+        spread2 = Spread(idml_file, idml_file.spreads[1])
+        page2 = spread2.pages[0]
+        self.assertEqual(page2.face, VERSO)
+        
+        page2.set_face(RECTO)
+        self.assertEqual(page2.face, RECTO)
 
 
 def suite():

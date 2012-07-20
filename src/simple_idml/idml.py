@@ -12,6 +12,9 @@ from xml.dom.minidom import parseString
 from simple_idml.decorators import use_working_copy
 from simple_idml.utils import increment_filename
 
+RECTO = "recto"
+VERSO = "verso"
+
 BACKINGSTORY = "XML/BackingStory.xml"
 TAGS = "XML/Tags.xml"
 FONTS = "Resources/Fonts.xml"
@@ -770,15 +773,31 @@ class Spread(IDMLXMLFile):
         return self._node
 
     def add_page(self, page):
+        """ Spread only manage 2 pages. """
         if self.pages:
+            # the last page is also the first (and only) one here and is a verso (front).
+            face_required = RECTO 
             last_page = self.pages[-1]
             last_page.node.addnext(copy.deepcopy(page.node))
         else:
+            face_required = VERSO 
             self.node.append(copy.deepcopy(page.node))
         # TODO: attributes (layer, masterSpread, ...)
         for item in page.page_items:
             self.node.append(copy.deepcopy(item))
         self._pages = None
+
+        # Correct the position of the new page in the Spread.
+        last_page = self.pages[-1]
+
+        # At this level, because the last_page may not be in a correct position
+        # into the Spread, a call to last_page.page_items may also return 
+        # the page items of the other page of the Spread.
+        # So we force the setting from the inserted page and use those references
+        # to move the items if the face has to be changed.
+        items_references = [item.get("Self") for item in page.page_items]
+        last_page.page_items = [item for item in last_page.page_items if item.get("Self") in items_references] 
+        last_page.set_face(face_required)
 
     def clear(self):
         items = self.node.items()
@@ -857,6 +876,10 @@ class Page(object):
             self._page_items = page_items
         return self._page_items
 
+    @page_items.setter
+    def page_items(self, items):
+        self._page_items = items
+
     @property
     def is_recto(self):
         if self._is_recto is None:
@@ -867,10 +890,33 @@ class Page(object):
         return self._is_recto
 
     @property
+    def face(self):
+        if self.is_recto:
+            return RECTO
+        else:
+            return VERSO
+
+    @property
+    def geometric_bounds(self):
+        return [Decimal(c) for c in self.node.get("GeometricBounds").split(" ")]
+
+    @geometric_bounds.setter
+    def geometric_bounds(self, matrix):
+        self.node.set("GeometricBounds", " ".join([str(v) for v in matrix]))
+
+    @property
+    def item_transform(self):
+        return [Decimal(c) for c in self.node.get("ItemTransform").split(" ")]
+
+    @item_transform.setter
+    def item_transform(self, matrix):
+        self.node.set("ItemTransform", " ".join([str(v) for v in matrix]))
+
+    @property
     def coordinates(self):
         if self._coordinates is None:
-            geometric_bounds = [Decimal(c) for c in self.node.get("GeometricBounds").split(" ")]
-            item_transform = [Decimal(c) for c in self.node.get("ItemTransform").split(" ")]
+            geometric_bounds = self.geometric_bounds
+            item_transform = self.item_transform
             coordinates = {
                 "x1": geometric_bounds[1] + item_transform[4],
                 "y1": geometric_bounds[0] + item_transform[5],
@@ -900,3 +946,26 @@ class Page(object):
         else:
             return False
 
+    def set_face(self, face):
+        if self.face == face:
+            return
+        else:
+            item_transform = self.item_transform
+            item_transform_x_origin = item_transform[4]
+
+            if face == RECTO:
+                item_transform[4] = Decimal("0")
+            elif face == VERSO:
+                item_transform[4] = - self.geometric_bounds[3]
+            
+            item_transform_x = item_transform[4] - item_transform_x_origin
+            self.item_transform = item_transform
+
+            # All page items are moved according to item_transform_x.
+            for item in self.page_items:
+                item_transform = [Decimal(c) for c in item.get("ItemTransform").split(" ")]
+                item_transform[4] = item_transform[4] + item_transform_x
+                item.set("ItemTransform", " ".join([str(v) for v in item_transform]))
+
+            self._is_recto = None
+            self._coordinates = None
