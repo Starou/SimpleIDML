@@ -461,7 +461,7 @@ class IDMLPackage(zipfile.ZipFile):
     @use_working_copy
     def add_page_from_idml(self, idml_package, page_number, at, only, working_copy_path=None):
         last_spread = self.spreads_objects[-1]
-        if len(last_spread.pages) > 1:
+        if last_spread.pages[-1].is_recto:
             last_spread = self.add_new_spread(working_copy_path)
 
         page = idml_package.pages[page_number-1]
@@ -847,6 +847,7 @@ class Page(object):
         self.node = node
         self._page_items = None
         self._coordinates = None
+        self._is_recto = None
 
     @property
     def page_items(self):
@@ -855,6 +856,15 @@ class Page(object):
                           if not i.tag == "Page" and self.page_item_is_in_self(i)]
             self._page_items = page_items
         return self._page_items
+
+    @property
+    def is_recto(self):
+        if self._is_recto is None:
+            is_recto = False
+            if self.coordinates["x1"] >= Decimal("0"):
+                is_recto = True
+            self._is_recto = is_recto
+        return self._is_recto
 
     @property
     def coordinates(self):

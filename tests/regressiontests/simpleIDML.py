@@ -313,26 +313,31 @@ class SimpleIDMLTestCase(unittest.TestCase):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-edito.idml"), edito_idml_filename)
         shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml"), courrier_idml_filename)
         shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-bloc-notes.idml"), bloc_notes_idml_filename)
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-bloc-notes.idml"), bloc_notes2_idml_filename)
 
         edito_idml_file = IDMLPackage(edito_idml_filename)
         courrier_idml_file = IDMLPackage(courrier_idml_filename)
         bloc_notes_idml_file = IDMLPackage(bloc_notes_idml_filename)
+        bloc_notes2_idml_file = IDMLPackage(bloc_notes2_idml_filename)
 
         # Always start by prefixing packages to avoid collision.
         edito_idml_file = edito_idml_file.prefix("edito")
         courrier_idml_file = courrier_idml_file.prefix("courrier")
         bloc_notes_idml_file = bloc_notes_idml_file.prefix("blocnotes")
+        bloc_notes2_idml_file = bloc_notes2_idml_file.prefix("blocnotes2")
 
         packages_to_add = [
             (courrier_idml_file, 1, "/Root", "/Root/page[1]"),
             (bloc_notes_idml_file, 1, "/Root", "/Root/page[1]"),
+            (bloc_notes2_idml_file, 2, "/Root", "/Root/page[2]"),
         ]
 
         new_idml = edito_idml_file.add_pages_from_idml(packages_to_add)
         os.unlink(courrier_idml_filename)
         os.unlink(bloc_notes_idml_filename)
+        os.unlink(bloc_notes2_idml_filename)
 
-        self.assertEqual(len(new_idml.pages), 4)
+        self.assertEqual(len(new_idml.pages), 5)
         self.assertEqual(new_idml.spreads, ['Spreads/Spread_editoub6.xml',
                                             'Spreads/Spread_editoubc.xml', 
                                             'Spreads/Spread_editoubd.xml'])
@@ -437,21 +442,34 @@ class PageTestCase(unittest.TestCase):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml"), mode="r")
         spread = Spread(idml_file, idml_file.spreads[1])
 
-        page1 = spread.pages[0]
-        self.assertEqual(page1.coordinates, {
+        page2 = spread.pages[0]
+        self.assertEqual(page2.coordinates, {
             'x1': Decimal('-566.9291338582677'),
             'y1': Decimal('-379.8425196850394'),
             'x2': Decimal('0E-13'),
             'y2': Decimal('379.8425196850394')
         })
 
-        page2 = spread.pages[1]
-        self.assertEqual(page2.coordinates, {
+        page3 = spread.pages[1]
+        self.assertEqual(page3.coordinates, {
             'x1': Decimal('0'),
             'y1': Decimal('-379.8425196850394'),
             'x2': Decimal('566.9291338582677'),
             'y2': Decimal('379.8425196850394'),
         })
+
+    def test_is_recto(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml"), mode="r")
+        spread1 = Spread(idml_file, idml_file.spreads[0])
+        page1 = spread1.pages[0]
+        self.assertTrue(page1.is_recto)
+
+        spread2 = Spread(idml_file, idml_file.spreads[1])
+        page2 = spread2.pages[0]
+        page3 = spread2.pages[1]
+        self.assertFalse(page2.is_recto)
+        self.assertTrue(page3.is_recto)
+
 
 def suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(SimpleIDMLTestCase)
