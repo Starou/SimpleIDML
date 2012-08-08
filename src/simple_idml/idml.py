@@ -175,6 +175,7 @@ class IDMLPackage(zipfile.ZipFile):
             
     @property
     def style_groups(self):
+        """ Groups are `RootCharacterStyleGroup', `RootParagraphStyleGroup' etc. """
         if self._style_groups is None:
             style_groups_src = self.open(STYLES, mode="r")
             style_groups_doc = XMLDocument(style_groups_src)
@@ -293,7 +294,10 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def _add_styles_from_idml(self, idml_package, working_copy_path=None):
-        """Append styles to their groups in STYLES file. """
+        """Append styles to their groups or add the group in the STYLES file.
+        
+        The risk of collision is avoided by prefixing packages.
+        """
         styles_abs_filename = os.path.join(working_copy_path, STYLES)
         styles = open(styles_abs_filename, mode="r")
         styles_doc = XMLDocument(styles)
