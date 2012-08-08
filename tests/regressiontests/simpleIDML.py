@@ -427,6 +427,18 @@ class StoryTestCase(unittest.TestCase):
         story = Story(idml_file, stories[0])
         self.assertEqual(story.node.tag, "Story")
 
+    def test_get_element_by_id(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
+        story = idml_file.get_story_object_by_id("u11b")
+        elem = story.get_element_by_id("di2i3i2")
+        self.assertEqual(elem.get("MarkupTag"), "XMLTag/content")
+
+    def test_get_element_content_by_id(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
+        story = idml_file.get_story_object_by_id("u11b")
+        content = story.get_element_content_by_id("di2i3i2")
+        self.assertEqual(content, u'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\u2029Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?')
+
 class PageTestCase(unittest.TestCase):
     def test_page_items(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml"), mode="r")

@@ -527,6 +527,7 @@ class IDMLPackage(zipfile.ZipFile):
     def get_story_by_xpath(self, xpath):
         """Return the story (or BackingStory) filename containing the element selected by xpath string."""
 
+        # FIXME: Is it not possible to retrieve that from the XMLStructure XMLContent attribute ??
         #TODO: caching, unittest.
         result = None
         reference = self.XMLStructure.dom.xpath(xpath)[0].get("Self")
@@ -725,7 +726,15 @@ class IDMLXMLFile(object):
         fobj = open(os.path.join(self.working_copy_path, self.name), mode="w+")
         fobj.write(self.tostring())
         fobj.close()
-
+    
+    def get_element_by_id(self, value):
+        elem = self.dom.xpath("//XMLElement[@Self='%s']" % value)
+        # etree FutureWarning when trying to simply do: elem = len(elem) and elem[0] or None
+        if len(elem):
+            elem = elem[0]
+        else:
+            elem = None
+        return elem
 
 class Spread(IDMLXMLFile):
     """ 
@@ -813,6 +822,9 @@ class Spread(IDMLXMLFile):
     def get_node_name_from_xml_name(self):
         return rx_node_name_from_xml_name.match(self.name).groups()[0]
 
+XML_PARAGRAPH_SEP = u"\u2029"
+IDML_TAG_PARAGRAPH_SEP = "Br"
+
 class Story(IDMLXMLFile):
     def __init__(self, idml_package, story_name, working_copy_path=None):
         super(Story, self).__init__(idml_package, working_copy_path)
@@ -825,6 +837,18 @@ class Story(IDMLXMLFile):
             node = self.dom.find("Story")
             self._node = node
         return self._node
+
+    def get_element_content_by_id(self, value):
+        """ Return the content (if exists) of a XMLElement."""
+        node = self.get_element_by_id(value)
+        result = []
+        content_nodes = node.findall(".//Content")
+        for content in content_nodes:
+            sep = ""
+            if content.getnext() is not None and (content.getnext().tag == IDML_TAG_PARAGRAPH_SEP):
+                sep = XML_PARAGRAPH_SEP
+            result += [content.text, sep]
+        return "".join(result)
 
 class Designmap(IDMLXMLFile):
     name = "designmap.xml"
