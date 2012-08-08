@@ -11,7 +11,7 @@ from lxml import etree
 
 from simple_idml.idml import IDMLPackage
 from simple_idml.idml import XMLDocument
-from simple_idml.idml import Spread
+from simple_idml.idml import Spread, Story
 from simple_idml.idml import RECTO, VERSO
 
 CURRENT_DIR = os.path.dirname(__file__)
@@ -42,6 +42,8 @@ class SimpleIDMLTestCase(unittest.TestCase):
                                              u'Stories/Story_u11b.xml',
                                              u'Stories/Story_u102.xml',
                                              u'Stories/Story_ue4.xml'])
+        story = idml_file.get_story_object_by_id("u139")
+        self.assertEqual(story.node.tag, "Story")
 
         # Tags.
         self.assertEqual([etree.tostring(tag) for tag in idml_file.tags], 
@@ -417,6 +419,14 @@ class SpreadTestCase(unittest.TestCase):
         self.assertEqual(spread2_pages[0].node.tag, "Page")
         self.assertEqual(spread2_pages[1].node.tag, "Page")
 
+class StoryTestCase(unittest.TestCase):
+    def test_pages(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
+        stories = idml_file.stories
+
+        story = Story(idml_file, stories[0])
+        self.assertEqual(story.node.tag, "Story")
+
 class PageTestCase(unittest.TestCase):
     def test_page_items(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml"), mode="r")
@@ -489,5 +499,6 @@ def suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(SimpleIDMLTestCase)
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(XMLDocumentTestCase))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(SpreadTestCase))
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(StoryTestCase))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(PageTestCase))
     return suite

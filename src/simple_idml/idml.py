@@ -222,6 +222,9 @@ class IDMLPackage(zipfile.ZipFile):
             story_ids = [rx_story_id.match(elt).group(1) for elt in self.stories]
             self._story_ids = story_ids
         return self._story_ids
+
+    def get_story_object_by_id(self, story_id):
+        return Story(idml_package=self, story_name="%s/Story_%s.xml" % (STORIES_DIRNAME, story_id))
             
     @use_working_copy
     def prefix(self, prefix, working_copy_path=None):
@@ -810,6 +813,18 @@ class Spread(IDMLXMLFile):
     def get_node_name_from_xml_name(self):
         return rx_node_name_from_xml_name.match(self.name).groups()[0]
 
+class Story(IDMLXMLFile):
+    def __init__(self, idml_package, story_name, working_copy_path=None):
+        super(Story, self).__init__(idml_package, working_copy_path)
+        self.name = story_name
+        self._node = None
+
+    @property
+    def node(self):
+        if self._node is None:
+            node = self.dom.find("Story")
+            self._node = node
+        return self._node
 
 class Designmap(IDMLXMLFile):
     name = "designmap.xml"
