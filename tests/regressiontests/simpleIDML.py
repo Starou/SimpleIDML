@@ -121,6 +121,18 @@ class SimpleIDMLTestCase(unittest.TestCase):
 
         shutil.rmtree(idml_working_copy)
 
+    def test_export_xml(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
+        xml = idml_file.export_xml()
+        self.assertEqual(xml, 
+"""<Root>
+  <module>
+    <main_picture/>
+    <headline>THE HEADLINE HERE</headline>
+    <Story>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt.Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt.<article/><informations/></Story>
+  </module>
+</Root>
+""")
 
     def test_prefix(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"), 

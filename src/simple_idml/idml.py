@@ -227,6 +227,39 @@ class IDMLPackage(zipfile.ZipFile):
     def get_story_object_by_id(self, story_id):
         return Story(idml_package=self, story_name="%s/Story_%s.xml" % (STORIES_DIRNAME, story_id))
             
+    def export_xml(self, from_tag=None):
+        """ Reproduce the action «Export XML» on a XML Element in InDesign® Structure. """
+        if not from_tag:
+            export_from_node = self.XMLStructure.dom
+        else:
+            pass # TODO
+        dom = etree.Element(export_from_node.tag)
+
+        def append_content(source_node, destination_node):
+            # Retouver le node de la Story correspondant au node source_node.
+            # Si ce node contient une sous balise <content>, l'ajouter au contenu
+            # de la destination.
+            story_id = source_node.get("XMLContent")
+            if story_id:
+                story_object = self.get_story_object_by_id(story_id)
+                # Some XMLElement have a reference that does not point at a story file (i.e. pictures).
+                try:
+                    story_object.fobj
+                except KeyError:
+                    pass
+                else:
+                    story_content = story_object.get_element_content_by_id(source_node.get("Self"))
+                    if story_content:
+                        destination_node.text = story_content
+            #else: ? si une balise à du content, elle ne peut pas avoir d'enfants ?
+            for elt in source_node.iterchildren():
+                new_destination_node = etree.Element(elt.tag)
+                destination_node.append(new_destination_node)
+                append_content(elt, new_destination_node)
+
+        append_content(export_from_node, dom)
+        return etree.tostring(dom, pretty_print=True)
+
     @use_working_copy
     def prefix(self, prefix, working_copy_path=None):
         """Change references and filename by inserting `prefix_` everywhere. 
