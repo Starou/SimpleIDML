@@ -455,13 +455,13 @@ class IDMLPackage(zipfile.ZipFile):
         """
 
         xml_element_src = idml_package.XMLStructure.dom.xpath(only)[0]
-        story_src_filename = idml_package.get_story_by_xpath(only)
+        story_src_filename = idml_package.get_node_story_by_xpath(only)
         story_src = idml_package.open(story_src_filename, mode="r")
         story_src_doc = XMLDocument(story_src)
         story_src_elt = story_src_doc.dom.xpath("//XMLElement[@Self='%s']" % xml_element_src.get("Self"))[0]
 
         xml_element_dest = self.XMLStructure.dom.xpath(at)[0]
-        story_dest_filename = self.get_story_by_xpath(at)
+        story_dest_filename = self.get_node_story_by_xpath(at)
         story_dest_abs_filename = os.path.join(working_copy_path, story_dest_filename)
         story_dest = open(story_dest_abs_filename, mode="r")
         story_dest_doc = XMLDocument(story_dest)
@@ -561,7 +561,7 @@ class IDMLPackage(zipfile.ZipFile):
                 break
         return result
 
-    def get_story_by_xpath(self, xpath):
+    def get_node_story_by_xpath(self, xpath):
         """Return the story (or BackingStory) filename containing the element selected by xpath string."""
 
         # FIXME: Is it not possible to retrieve that from the XMLStructure XMLContent attribute ??

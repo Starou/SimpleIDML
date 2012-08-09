@@ -105,13 +105,13 @@ class SimpleIDMLTestCase(unittest.TestCase):
 </Root>
 """)
 
-    def test_get_story_by_xpath(self):
+    def test_get_node_story_by_xpath(self):
         idml_file = os.path.join(IDMLFILES_DIR, "4-pages.idml")
         idml_file = IDMLPackage(idml_file)
-        self.assertEqual(idml_file.get_story_by_xpath("/Root/article[1]"), "XML/BackingStory.xml")
-        self.assertEqual(idml_file.get_story_by_xpath("/Root/article[1]/Story"), "Stories/Story_u102.xml")
-        self.assertEqual(idml_file.get_story_by_xpath("/Root/article[1]/Story/title"), "Stories/Story_ue4.xml")
-        self.assertEqual(idml_file.get_story_by_xpath("/Root/article[1]/illustration"), "Stories/Story_u102.xml")
+        self.assertEqual(idml_file.get_node_story_by_xpath("/Root/article[1]"), "XML/BackingStory.xml")
+        self.assertEqual(idml_file.get_node_story_by_xpath("/Root/article[1]/Story"), "Stories/Story_u102.xml")
+        self.assertEqual(idml_file.get_node_story_by_xpath("/Root/article[1]/Story/title"), "Stories/Story_ue4.xml")
+        self.assertEqual(idml_file.get_node_story_by_xpath("/Root/article[1]/illustration"), "Stories/Story_u102.xml")
             
     def test_namelist(self):
         # The namelist can be inherited from ZipFile or computed from the working copy.
