@@ -562,21 +562,32 @@ class IDMLPackage(zipfile.ZipFile):
         return result
 
     def get_node_story_by_xpath(self, xpath):
-        """Return the story (or BackingStory) filename containing the element selected by xpath string."""
+        """Return the Story (or BackingStory) filename containing the element selected by xpath."""
 
-        # FIXME: Is it not possible to retrieve that from the XMLStructure XMLContent attribute ??
-        #TODO: caching, unittest.
-        result = None
-        reference = self.XMLStructure.dom.xpath(xpath)[0].get("Self")
-        for filename in [BACKINGSTORY]+self.stories:
-            story = self.open(filename, mode="r")
-            story_doc = XMLDocument(story)
-            if story_doc.dom.xpath("//*[@Self='%s']" % reference):
-                result = filename
-            story.close()
-            if result:
-                break
-        return result
+        node = self.XMLStructure.dom.xpath(xpath)[0]
+
+        def get_node_story_name(node):
+            story_id = node.get("XMLContent")
+            if story_id:
+                story_object = self.get_story_object_by_id(story_id)
+                # Some XMLElement have a reference that does not point at a story file (i.e. pictures).
+                # in that case we return the parent Story.
+                try:
+                    story_object.fobj
+                except KeyError: # TODO cas de la working_copy qui lève surement une autre exception.
+                    return get_node_story_name(node.getparent())
+                else:
+                    return story_object.name
+            # If there is not XMLContent attr, it may be the Root element or a node having its content
+            # declared inplace. 
+            else:
+                parent_node = node.getparent()
+                if parent_node is not None:
+                    return get_node_story_name(parent_node)
+                else:
+                    return BACKINGSTORY
+
+        return get_node_story_name(node)
 
     def get_spread_elem_by_xpath(self, xpath):
         """Return the spread etree.Element designed by XMLElement xpath. """
