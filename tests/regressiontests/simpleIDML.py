@@ -460,6 +460,34 @@ class StoryTestCase(unittest.TestCase):
         content = story.get_element_content_by_id("di2i3i2")
         self.assertEqual(content, u'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\u2029Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?')
 
+    def test_get_story_id_for_xml_structure_node(self):
+        from simple_idml.idml import get_story_id_for_xml_structure_node
+        dom = etree.fromstring(
+"""<Root Self="editodi2">
+  <page Self="editodi2ib">
+    <article Self="editodi2ibif">
+      <Story XMLContent="editoue4" Self="editodi2ibifi1f">
+        <title Self="editodi2ibifi1fi1"/>
+        <subtitle Self="editodi2ibifi1fi2"/>
+      </Story>
+      <content XMLContent="editou11b" Self="editodi2ibifi1e"/>
+    </article>
+  </page>
+  <page Self="editodi2i10">
+    <advertise XMLContent="editou1de" Self="editodi2i10i23"/>
+  </page>
+  <page Self="courrierdi2ib">
+    <title XMLContent="courrieru1b2" Self="courrierdi2ibi34"/>
+    <article XMLContent="courrieru1c9" Self="courrierdi2ibi33"/>
+    <article XMLContent="courrieru1e0" Self="courrierdi2ibi32"/>
+    <article XMLContent="courrieru1fb" Self="courrierdi2ibi31"/>
+    <article XMLContent="courrieru212" Self="courrierdi2ibi30"/>
+  </page>
+</Root>
+""")
+        self.assertEqual(get_story_id_for_xml_structure_node(dom.find(".//page/article/Story")), "editoue4")
+        self.assertEqual(get_story_id_for_xml_structure_node(dom.find(".//page/article/Story/title")), "editoue4")
+
 class PageTestCase(unittest.TestCase):
     def test_page_items(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml"), mode="r")

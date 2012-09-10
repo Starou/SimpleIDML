@@ -898,6 +898,15 @@ class Story(IDMLXMLFile):
             result += [content.text, sep]
         return "".join(result)
 
+STORY_REF_ATTR = "XMLContent"
+
+def get_story_id_for_xml_structure_node(node):
+    ref = node.get(STORY_REF_ATTR)
+    if ref:
+        return ref
+    else:
+        return get_story_id_for_xml_structure_node(node.getparent())
+
 class Designmap(IDMLXMLFile):
     name = "designmap.xml"
     doctype = u'<?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="7.5(142)" ?>'
