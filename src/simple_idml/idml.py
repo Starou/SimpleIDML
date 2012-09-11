@@ -223,8 +223,11 @@ class IDMLPackage(zipfile.ZipFile):
             story_ids = [rx_story_id.match(elt).group(1) for elt in self.stories]
             self._story_ids = story_ids
         return self._story_ids
-
+    
+    # TODO: get_story_object_by_xpath(self, xpath)
     def get_story_object_by_id(self, story_id):
+        if story_id == BACKINGSTORY:
+            return BackingStory(idml_package=self)
         return Story(idml_package=self, story_name="%s/Story_%s.xml" % (STORIES_DIRNAME, story_id))
             
     def export_xml(self, from_tag=None):
@@ -239,19 +242,17 @@ class IDMLPackage(zipfile.ZipFile):
             # Retouver le node de la Story correspondant au node source_node.
             # Si ce node contient une sous balise <content>, l'ajouter au contenu
             # de la destination.
-            story_id = source_node.get("XMLContent")
-            if story_id:
-                story_object = self.get_story_object_by_id(story_id)
-                # Some XMLElement have a reference that does not point at a story file (i.e. pictures).
-                try:
-                    story_object.fobj
-                except KeyError:
-                    pass
-                else:
-                    story_content = story_object.get_element_content_by_id(source_node.get("Self"))
-                    if story_content:
-                        destination_node.text = story_content
-            #else: ? si une balise à du content, elle ne peut pas avoir d'enfants ?
+            # story_id = source_node.get("XMLContent")
+
+            story = self.get_story_object_by_id(get_story_id_for_xml_structure_node(source_node))
+            try:
+                story.fobj
+            except KeyError:
+                pass
+            else:
+                story_content = story.get_element_content_by_id(source_node.get("Self"))
+                if story_content:
+                    destination_node.text = story_content
             for elt in source_node.iterchildren():
                 new_destination_node = etree.Element(elt.tag)
                 destination_node.append(new_destination_node)
@@ -877,12 +878,13 @@ class Story(IDMLXMLFile):
     def __init__(self, idml_package, story_name, working_copy_path=None):
         super(Story, self).__init__(idml_package, working_copy_path)
         self.name = story_name
+        self.node_name = "Story"
         self._node = None
 
     @property
     def node(self):
         if self._node is None:
-            node = self.dom.find("Story")
+            node = self.dom.find(self.node_name)
             self._node = node
         return self._node
 
@@ -898,6 +900,11 @@ class Story(IDMLXMLFile):
             result += [content.text, sep]
         return "".join(result)
 
+class BackingStory(Story):
+    def __init__(self, idml_package, story_name=BACKINGSTORY, working_copy_path=None):
+        super(BackingStory, self).__init__(idml_package, working_copy_path)
+        self.node_name = "XmlStory"
+
 STORY_REF_ATTR = "XMLContent"
 
 def get_story_id_for_xml_structure_node(node):
@@ -905,7 +912,12 @@ def get_story_id_for_xml_structure_node(node):
     if ref:
         return ref
     else:
-        return get_story_id_for_xml_structure_node(node.getparent())
+        parent = node.getparent()
+        if parent is not None:
+            return get_story_id_for_xml_structure_node(node.getparent())
+        else:
+            # TODO : test BackingStory
+            return BACKINGSTORY
 
 class Designmap(IDMLXMLFile):
     name = "designmap.xml"
