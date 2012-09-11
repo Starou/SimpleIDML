@@ -230,6 +230,50 @@ class IDMLPackage(zipfile.ZipFile):
             return BackingStory(idml_package=self)
         return Story(idml_package=self, story_name="%s/Story_%s.xml" % (STORIES_DIRNAME, story_id))
             
+    @use_working_copy
+    def import_xml(self, xml_file, at, working_copy_path=None):
+        """ Reproduce the action «Import XML» on a XML Element in InDesign® Structure. """
+
+        source_node = etree.fromstring(xml_file.read())
+        # destination_node is not the node in story file, but a representation from self.XMLStructure.
+        destination_node = self.XMLStructure.dom.xpath(at)[0]
+
+        def import_content(source_node, destination_node):
+            source_node_children = source_node.getchildren()
+            element_id = destination_node.get("Self")
+
+            if not len(source_node_children) and source_node.text:
+                story = self.get_story_object_by_id(get_story_id_for_xml_structure_node(destination_node))
+                story.working_copy_path = working_copy_path
+                story.set_element_content(element_id, source_node.text)
+                story.synchronize()
+            else:
+                source_node_children_tags = [n.tag for n in source_node_children]
+                destination_node_children = destination_node.getchildren()
+                destination_node_children_tags = [n.tag for n in destination_node_children]
+                if destination_node_children_tags == source_node_children_tags: 
+                    map(import_content, source_node_children, destination_node.iterchildren())
+                elif not destination_node_children:
+                    for i, child in enumerate(source_node.iter()):
+                        story = self.get_story_object_by_id(get_story_id_for_xml_structure_node(destination_node))
+                        story.working_copy_path = working_copy_path
+                        if i == 0:
+                            story.set_element_content(element_id, child.text)
+                            story.synchronize()
+                        else:
+                            new_xml_element = XMLElement(tag=child.tag)
+                            new_xml_element.add_content(child.text)
+                            story.add_element(element_id, new_xml_element.element)
+                            if child.tail:
+                                story.add_content_to_element(element_id, child.tail)
+                            story.synchronize()
+                
+                elif destination_node_children_tags != source_node_children_tags:
+                    raise NotImplementedError
+
+        import_content(source_node, destination_node)
+        return self
+
     def export_xml(self, from_tag=None):
         """ Reproduce the action «Export XML» on a XML Element in InDesign® Structure. """
         if not from_tag:
@@ -242,8 +286,6 @@ class IDMLPackage(zipfile.ZipFile):
             # Retouver le node de la Story correspondant au node source_node.
             # Si ce node contient une sous balise <content>, l'ajouter au contenu
             # de la destination.
-            # story_id = source_node.get("XMLContent")
-
             story = self.get_story_object_by_id(get_story_id_for_xml_structure_node(source_node))
             try:
                 story.fobj
@@ -720,7 +762,6 @@ def add_stories_to_designmap(dom, stories):
     for story in stories:
         elt.append(etree.Element("{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Story", src="Stories/Story_%s.xml" % story))
 
-
 class IDMLXMLFile(object):
     name = None
     doctype = None
@@ -892,13 +933,34 @@ class Story(IDMLXMLFile):
         """ Return the content (if exists) of a XMLElement."""
         node = self.get_element_by_id(value)
         result = []
-        content_nodes = node.xpath("./ParagraphStyleRange/CharacterStyleRange/Content | ./CharacterStyleRange/Content")
-        for content in content_nodes:
+        for content_node in self.get_element_content_nodes(node):
             sep = ""
-            if content.getnext() is not None and (content.getnext().tag == IDML_TAG_PARAGRAPH_SEP):
+            if content_node.getnext() is not None and (content_node.getnext().tag == IDML_TAG_PARAGRAPH_SEP):
                 sep = XML_PARAGRAPH_SEP
-            result += [content.text, sep]
+            result += [content_node.text or '', sep]
         return "".join(result)
+
+    def set_element_content(self, element_id, content):
+        self.clear_element_content(element_id)
+        element = self.get_element_by_id(element_id)
+        self.get_element_content_nodes(element)[0].text = content
+
+    def clear_element_content(self, element_id):
+        element = self.get_element_by_id(element_id)
+        for content_node in self.get_element_content_nodes(element):
+            content_node.text = ""
+
+    def get_element_content_nodes(self, element):
+        return element.xpath("./ParagraphStyleRange/CharacterStyleRange/Content | ./CharacterStyleRange/Content")
+
+    def add_element(self, element_destination_id, element):
+        node = self.get_element_by_id(element_destination_id)
+        node.append(element)
+
+    def add_content_to_element(self, element_id, content):
+        element = self.get_element_by_id(element_id)
+        xml_element = XMLElement(element=element)
+        xml_element.add_content(content)
 
 class BackingStory(Story):
     def __init__(self, idml_package, story_name=BACKINGSTORY, working_copy_path=None):
@@ -918,6 +980,22 @@ def get_story_id_for_xml_structure_node(node):
         else:
             # TODO : test BackingStory
             return BACKINGSTORY
+
+class XMLElement(object):
+    """A wrapper over the etree.Element to represent XMLElement nodes in Story files. """
+    def __init__(self, element=None, tag=None):
+        if element:
+            self.element = element
+        else:
+            self.element = etree.Element("XMLElement", MarkupTag="XMLTag/%s" % tag)
+
+    def add_content(self, content, style=None):
+        style = style or "CharacterStyle/$ID/[No character style]"
+        style_element = etree.Element("CharacterStyleRange", AppliedCharacterStyle=style)
+        content_element = etree.Element("Content")
+        content_element.text = content
+        style_element.append(content_element)
+        self.element.append(style_element)
 
 class Designmap(IDMLXMLFile):
     name = "designmap.xml"
