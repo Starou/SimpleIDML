@@ -890,7 +890,7 @@ class Story(IDMLXMLFile):
         """ Return the content (if exists) of a XMLElement."""
         node = self.get_element_by_id(value)
         result = []
-        content_nodes = node.findall(".//Content")
+        content_nodes = node.xpath("./ParagraphStyleRange/CharacterStyleRange/Content | ./CharacterStyleRange/Content")
         for content in content_nodes:
             sep = ""
             if content.getnext() is not None and (content.getnext().tag == IDML_TAG_PARAGRAPH_SEP):
