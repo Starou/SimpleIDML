@@ -10,7 +10,7 @@ from lxml import etree
 from xml.dom.minidom import parseString
 
 from simple_idml.decorators import use_working_copy
-from simple_idml.utils import increment_filename
+from simple_idml.utils import increment_filename, increment_xmltag_id
 
 RECTO = "recto"
 VERSO = "verso"
@@ -966,9 +966,24 @@ class Story(IDMLXMLFile):
     def get_element_content_nodes(self, element):
         return element.xpath("./ParagraphStyleRange/CharacterStyleRange/Content | ./CharacterStyleRange/Content")
 
+    def set_element_id(self, element):
+        ref_element = [e for e in element.itersiblings(tag="XMLElement", preceding=True)]
+        if ref_element:
+            ref_element = ref_element[0]
+            position = "sibling"
+        else:
+            ref_element = [e for e in element.iterancestors(tag="XMLElement")]
+            if ref_element:
+                ref_element = ref_element[0]
+            else:
+                raise NotImplementedError
+            position = "child"
+        element.set("Self", increment_xmltag_id(ref_element.get("Self"), position))
+
     def add_element(self, element_destination_id, element):
         node = self.get_element_by_id(element_destination_id)
         node.append(element)
+        self.set_element_id(element)
 
     def add_content_to_element(self, element_id, content):
         element = self.get_element_by_id(element_id)
@@ -997,7 +1012,7 @@ def get_story_id_for_xml_structure_node(node):
 class XMLElement(object):
     """A wrapper over the etree.Element to represent XMLElement nodes in Story files. """
     def __init__(self, element=None, tag=None):
-        if element:
+        if element is not None:
             self.element = element
         else:
             self.element = etree.Element("XMLElement", MarkupTag="XMLTag/%s" % tag)

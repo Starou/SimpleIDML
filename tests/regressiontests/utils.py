@@ -21,6 +21,14 @@ class UtilsTestCase(unittest.TestCase):
         filename = "/path/to/myfile-299.txt"
         self.assertEqual(increment_filename(filename), "/path/to/myfile-300.txt")
 
+    def test_increment_xmltag_id(self):
+        from simple_idml.utils import increment_xmltag_id
+        self.assertEqual(increment_xmltag_id("di3i4", "sibling"), "di3i5")
+        self.assertEqual(increment_xmltag_id("di3i4i10", "sibling"), "di3i4i11")
+
+        self.assertEqual(increment_xmltag_id("di3i4", "child"), "di3i4i1")
+        self.assertEqual(increment_xmltag_id("di3i4i10", "child"), "di3i4i10i1")
+
 def suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(UtilsTestCase)
     return suite

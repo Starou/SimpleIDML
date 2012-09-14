@@ -3,7 +3,7 @@
 import os, re
 
 rx_numbered = re.compile(r"(.*?)(\d+)")
-
+rx_xmltag_sibling_id = re.compile(r"(d.*i)(\d+)")
 
 def increment_filename(filename):
     dirname = os.path.dirname(filename)
@@ -29,3 +29,10 @@ def increment_filename(filename):
         result = "%s%s" % (root_start, root_end)
 
     return os.path.join(dirname, "%s%s" % (result, ext))
+
+def increment_xmltag_id(xmltag_id, position="sibling"):
+    if position == "sibling":
+        root, last_number = rx_xmltag_sibling_id.match(xmltag_id).groups()
+        return "%s%d" % (root, int(last_number)+1)
+    elif position == "child":
+        return "%si1" % xmltag_id
