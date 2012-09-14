@@ -263,7 +263,7 @@ class IDMLPackage(zipfile.ZipFile):
                             story.synchronize()
                         else:
                             new_xml_element = XMLElement(tag=child.tag)
-                            new_xml_element.add_content(child.text)
+                            new_xml_element.add_content(child.text, style=self.get_character_style_for_xml_tag(child.tag))
                             story.add_element(element_id, new_xml_element.element)
                             if child.tail:
                                 story.add_content_to_element(element_id, child.tail)
@@ -1003,7 +1003,8 @@ class XMLElement(object):
             self.element = etree.Element("XMLElement", MarkupTag="XMLTag/%s" % tag)
 
     def add_content(self, content, style=None):
-        style = style or "CharacterStyle/$ID/[No character style]"
+        style = style or "$ID/[No character style]"
+        style = "CharacterStyle/%s" % style
         style_element = etree.Element("CharacterStyleRange", AppliedCharacterStyle=style)
         content_element = etree.Element("Content")
         content_element.text = content
