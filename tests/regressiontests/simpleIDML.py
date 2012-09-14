@@ -405,6 +405,13 @@ class SimpleIDMLTestCase(unittest.TestCase):
         self.assertEqual(len(magazineA_idml_file.pages), 4)
         self.assertEqual(magazineA_idml_file.spreads, ['Spreads/Spread_magub6.xml', 'Spreads/Spread_magub7.xml'])
 
+    def test_get_character_style_for_xml_tag(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
+        # In this file, XML tags and styles have the same name.
+        self.assertEqual(idml_file.get_character_style_for_xml_tag("bold"), "bold")
+        self.assertEqual(idml_file.get_character_style_for_xml_tag("italique"), "italique")
+        self.assertEqual(idml_file.get_character_style_for_xml_tag("stuff"), None)
+
 class XMLDocumentTestCase(unittest.TestCase):
     def test_get_element_by_id(self):
         xml_file = open(os.path.join(IDMLFILES_DIR, "4-pages.idml Folder", "Stories", "Story_ue4.xml"), mode="r")

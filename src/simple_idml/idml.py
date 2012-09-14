@@ -17,6 +17,7 @@ VERSO = "verso"
 
 BACKINGSTORY = "XML/BackingStory.xml"
 TAGS = "XML/Tags.xml"
+MAPPING = "XML/Mapping.xml"
 FONTS = "Resources/Fonts.xml"
 STYLES = "Resources/Styles.xml"
 STORIES_DIRNAME = "Stories"
@@ -90,6 +91,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._pages = None
         self._stories = None
         self._story_ids = None
+        self._character_style_mapping = {}
 
     def namelist(self):
         if not self.working_copy_path:
@@ -103,7 +105,6 @@ class IDMLPackage(zipfile.ZipFile):
                 for filename in filenames:
                     namelist.append("%s%s" % (rel_root, filename))
             return namelist
-
 
     @property
     def XMLStructure(self):
@@ -659,6 +660,18 @@ class IDMLPackage(zipfile.ZipFile):
     def get_elem_translation(self, elem):
         item_transform = elem.get("ItemTransform").split(" ")
         return Decimal(item_transform[4]), Decimal(item_transform[5])
+
+    def get_character_style_for_xml_tag(self, xml_tag):
+        style_attr = "MappedStyle"
+        rx_style = re.compile("CharacterStyle/(.*)")
+        if xml_tag not in self._character_style_mapping:
+            mapping_dom = etree.fromstring(self.open(MAPPING, mode="r").read())
+            styles = [rx_style.match(node.get(style_attr)).group(1) \
+                      for node in mapping_dom.xpath("//XMLImportMap[@MarkupTag='XMLTag/%s']" %  xml_tag) \
+                      if rx_style.match(node.get(style_attr))]
+            if styles:
+                self._character_style_mapping[xml_tag] = styles[0]
+        return self._character_style_mapping.get(xml_tag)
 
 class XMLDocument(object):
     """An etree document wrapper to fit IDML XML Structure."""
