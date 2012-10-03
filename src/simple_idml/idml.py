@@ -287,19 +287,40 @@ class IDMLPackage(zipfile.ZipFile):
             # Retouver le node de la Story correspondant au node source_node.
             # Si ce node contient une sous balise <content>, l'ajouter au contenu
             # de la destination.
+            source_node_children = source_node.getchildren()
+
             story = self.get_story_object_by_id(get_story_id_for_xml_structure_node(source_node))
+            story_content_nodes = None
             try:
                 story.fobj
             except KeyError:
                 pass
             else:
-                story_content = story.get_element_content_by_id(source_node.get("Self"))
-                if story_content:
-                    destination_node.text = story_content
-            for elt in source_node.iterchildren():
-                new_destination_node = etree.Element(elt.tag)
-                destination_node.append(new_destination_node)
-                append_content(elt, new_destination_node)
+                story_node = story.get_element_by_id(source_node.get("Self"))
+                story_content_nodes = story.get_element_content_nodes(story_node)
+            if story_content_nodes and not source_node_children:
+                #TODO join() with XML_PARAGRAPH_SEP if getnext().tag == "Br"
+                # XML_PARAGRAPH_SEP = u"\u2029"
+                destination_node.text = "".join([c.text for c in story_content_nodes])
+            elif not story_content_nodes and source_node_children:
+                for elt in source_node_children:
+                    new_destination_node = etree.Element(elt.tag)
+                    destination_node.append(new_destination_node)
+                    append_content(elt, new_destination_node)
+            elif story_content_nodes and source_node_children:
+                last_child_inserted = None
+                for story_content_node in story_content_nodes:
+                    xml_element_for_content = story_content_node.iterancestors("XMLElement").next()
+                    if not source_node_children or (xml_element_for_content.get("Self") != source_node_children[0].get("Self")):
+                        if last_child_inserted is None:
+                            destination_node.text = story_content_node.text
+                        else:
+                            last_child_inserted.tail = (last_child_inserted.tail or "") + story_content_node.text
+                    else:
+                        xml_element_child = source_node_children.pop(0)
+                        last_child_inserted = etree.Element(xml_element_child.tag)
+                        destination_node.append(last_child_inserted)
+                        append_content(xml_element_child, last_child_inserted)
 
         append_content(export_from_node, dom)
         return etree.tostring(dom, pretty_print=True)
@@ -925,9 +946,6 @@ class Spread(IDMLXMLFile):
     def get_node_name_from_xml_name(self):
         return rx_node_name_from_xml_name.match(self.name).groups()[0]
 
-XML_PARAGRAPH_SEP = u"\u2029"
-IDML_TAG_PARAGRAPH_SEP = "Br"
-
 class Story(IDMLXMLFile):
     def __init__(self, idml_package, story_name, working_copy_path=None):
         super(Story, self).__init__(idml_package, working_copy_path)
@@ -942,17 +960,6 @@ class Story(IDMLXMLFile):
             self._node = node
         return self._node
 
-    def get_element_content_by_id(self, value):
-        """ Return the content (if exists) of a XMLElement."""
-        node = self.get_element_by_id(value)
-        result = []
-        for content_node in self.get_element_content_nodes(node):
-            sep = ""
-            if content_node.getnext() is not None and (content_node.getnext().tag == IDML_TAG_PARAGRAPH_SEP):
-                sep = XML_PARAGRAPH_SEP
-            result += [content_node.text or '', sep]
-        return "".join(result)
-
     def set_element_content(self, element_id, content):
         self.clear_element_content(element_id)
         element = self.get_element_by_id(element_id)
@@ -964,7 +971,9 @@ class Story(IDMLXMLFile):
             content_node.text = ""
 
     def get_element_content_nodes(self, element):
-        return element.xpath("./ParagraphStyleRange/CharacterStyleRange/Content | ./CharacterStyleRange/Content")
+        return element.xpath(("./ParagraphStyleRange/CharacterStyleRange/Content | \
+                               ./CharacterStyleRange/Content | \
+                               ./XMLElement/CharacterStyleRange/Content"))
 
     def set_element_id(self, element):
         ref_element = [e for e in element.itersiblings(tag="XMLElement", preceding=True)]
@@ -992,7 +1001,7 @@ class Story(IDMLXMLFile):
 
 class BackingStory(Story):
     def __init__(self, idml_package, story_name=BACKINGSTORY, working_copy_path=None):
-        super(BackingStory, self).__init__(idml_package, working_copy_path)
+        super(BackingStory, self).__init__(idml_package, story_name, working_copy_path)
         self.node_name = "XmlStory"
 
 STORY_REF_ATTR = "XMLContent"
