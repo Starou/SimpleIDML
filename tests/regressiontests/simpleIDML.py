@@ -16,6 +16,7 @@ from simple_idml.idml import RECTO, VERSO
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "simpleIDML_files")
+XML_DIR = os.path.join(CURRENT_DIR, "XML")
 OUTPUT_DIR = os.path.join(CURRENT_DIR, "outputs", "simpleIDML")
 
 
@@ -131,6 +132,28 @@ class SimpleIDMLTestCase(unittest.TestCase):
         self.assertEqual(set(zipfile_namelist), set(working_copy_namelist))
 
         shutil.rmtree(idml_working_copy)
+
+    def test_import_xml(self):
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), 
+                     os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
+        idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
+        xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml.xml"), "r")
+        idml_file = idml_file.import_xml(xml_file, at="/Root/module[1]")
+        self.assertEqual(idml_file.export_xml(), 
+"""<Root>
+  <module>
+    <main_picture/>
+    <headline>The Life Aquatic with Steve Zissou</headline>
+    <Story>
+      <article>While oceanographer and documentarian <bold>Steve Zissou (Bill Murray) is working on his latest documentary at sea, his best friend Esteban du Plantier (Seymour Cassel)</bold> is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark's destruction.
+            The crew aboard Zissou's research vessel <italique>Belafonte</italique> includes <italique>Pel&#233; dos Santos (Seu Jorge)</italique>, a safety expert and Brazilian musician who sings David Bowie songs in Portuguese, and Klaus Daimler (Willem Dafoe), the German second-in-command who viewed Zissou and Esteban as father figures</article>
+      <informations>The Life Aquatic with Steve Zissou is an American comedy-drama film directed, written, and co-produced by Wes Anderson.</informations>
+    </Story>
+  </module>
+</Root>
+""")
+
+        xml_file.close()
 
     def test_export_xml(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))

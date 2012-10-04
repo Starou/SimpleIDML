@@ -301,7 +301,7 @@ class IDMLPackage(zipfile.ZipFile):
             if story_content_nodes and not source_node_children:
                 #TODO join() with XML_PARAGRAPH_SEP if getnext().tag == "Br"
                 # XML_PARAGRAPH_SEP = u"\u2029"
-                destination_node.text = "".join([c.text for c in story_content_nodes])
+                destination_node.text = "".join([c.text or "" for c in story_content_nodes])
             elif not story_content_nodes and source_node_children:
                 for elt in source_node_children:
                     new_destination_node = etree.Element(elt.tag)
@@ -313,7 +313,8 @@ class IDMLPackage(zipfile.ZipFile):
                     xml_element_for_content = story_content_node.iterancestors("XMLElement").next()
                     if not source_node_children or (xml_element_for_content.get("Self") != source_node_children[0].get("Self")):
                         if last_child_inserted is None:
-                            destination_node.text = story_content_node.text
+                            # There should be several <Content> nodes.
+                            destination_node.text = (destination_node.text or "") + (story_content_node.text or "")
                         else:
                             last_child_inserted.tail = (last_child_inserted.tail or "") + story_content_node.text
                     else:
