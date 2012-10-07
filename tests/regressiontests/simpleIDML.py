@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import os, sys, shutil
+import os
+import sys
+import shutil
 import glob
 import unittest
 import StringIO
-from tempfile import mkdtemp 
+from tempfile import mkdtemp
 from lxml import etree
 
 from simple_idml.idml import IDMLPackage
@@ -14,6 +16,7 @@ CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "simpleIDML_files")
 XML_DIR = os.path.join(CURRENT_DIR, "XML")
 OUTPUT_DIR = os.path.join(CURRENT_DIR, "outputs", "simpleIDML")
+
 
 class SimpleIDMLTestCase(unittest.TestCase):
     def setUp(self):
@@ -29,7 +32,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
     def test_idml_package(self):
         idml_file = os.path.join(IDMLFILES_DIR, "4-pages.idml")
         idml_file = IDMLPackage(idml_file)
-        
+
         # Spreads.
         self.assertEqual(idml_file.spreads, [u'Spreads/Spread_ub6.xml',
                                              u'Spreads/Spread_ubc.xml',
@@ -44,16 +47,16 @@ class SimpleIDMLTestCase(unittest.TestCase):
         self.assertEqual(story.node.tag, "Story")
 
         # Tags.
-        self.assertEqual([etree.tostring(tag) for tag in idml_file.tags], 
-                        ['<XMLTag Self="XMLTag/advertise" Name="advertise">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Green</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                         '<XMLTag Self="XMLTag/article" Name="article">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Red</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                         '<XMLTag Self="XMLTag/content" Name="content">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Magenta</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                         '<XMLTag Self="XMLTag/description" Name="description">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Gray</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                         '<XMLTag Self="XMLTag/illustration" Name="illustration">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Cyan</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t', 
-                         '<XMLTag Self="XMLTag/Root" Name="Root">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">LightBlue</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                         '<XMLTag Self="XMLTag/Story" Name="Story">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">BrickRed</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                         '<XMLTag Self="XMLTag/subtitle" Name="subtitle">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Yellow</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                         '<XMLTag Self="XMLTag/title" Name="title">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Blue</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n'])
+        self.assertEqual([etree.tostring(tag) for tag in idml_file.tags],
+                         ['<XMLTag Self="XMLTag/advertise" Name="advertise">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Green</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                          '<XMLTag Self="XMLTag/article" Name="article">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Red</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                          '<XMLTag Self="XMLTag/content" Name="content">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Magenta</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                          '<XMLTag Self="XMLTag/description" Name="description">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Gray</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                          '<XMLTag Self="XMLTag/illustration" Name="illustration">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Cyan</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                          '<XMLTag Self="XMLTag/Root" Name="Root">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">LightBlue</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                          '<XMLTag Self="XMLTag/Story" Name="Story">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">BrickRed</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                          '<XMLTag Self="XMLTag/subtitle" Name="subtitle">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Yellow</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                          '<XMLTag Self="XMLTag/title" Name="title">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Blue</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n'])
 
         # Styles.
         self.assertEqual([style.tag for style in idml_file.style_groups], ['RootCharacterStyleGroup',
@@ -88,7 +91,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
         idml_file = os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml")
         idml_file = IDMLPackage(idml_file)
         #print"\n", (etree.tostring(idml_file.XMLStructure.dom, pretty_print=True))
-        self.assertEqual(etree.tostring(idml_file.XMLStructure.dom, pretty_print=True), 
+        self.assertEqual(etree.tostring(idml_file.XMLStructure.dom, pretty_print=True),
 """<Root Self="di2">
   <page Self="di2ib">
     <title XMLContent="u1b2" Self="di2ibi34"/>
@@ -111,7 +114,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
         self.assertEqual(idml_file.get_node_story_by_xpath("/Root/article[1]/Story"), "Stories/Story_ue4.xml")
         self.assertEqual(idml_file.get_node_story_by_xpath("/Root/article[1]/Story/title"), "Stories/Story_ue4.xml")
         self.assertEqual(idml_file.get_node_story_by_xpath("/Root/article[1]/illustration"), "Stories/Story_u102.xml")
-            
+
     def test_namelist(self):
         # The namelist can be inherited from ZipFile or computed from the working copy.
         idml_file = os.path.join(IDMLFILES_DIR, "4-pages.idml")
@@ -129,12 +132,12 @@ class SimpleIDMLTestCase(unittest.TestCase):
         shutil.rmtree(idml_working_copy)
 
     def test_import_xml(self):
-        shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), 
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml.xml"), "r")
         idml_file = idml_file.import_xml(xml_file, at="/Root/module[1]")
-        self.assertEqual(idml_file.export_xml(), 
+        self.assertEqual(idml_file.export_xml(),
 """<Root>
   <module>
     <main_picture/>
@@ -153,7 +156,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
     def test_export_xml(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
         xml = idml_file.export_xml()
-        self.assertEqual(xml, 
+        self.assertEqual(xml,
 """<Root>
   <module>
     <main_picture/>
@@ -164,10 +167,10 @@ class SimpleIDMLTestCase(unittest.TestCase):
     </Story>
   </module>
 </Root>
-""")                         
+""")
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_imported-xml.idml"))
         xml = idml_file.export_xml()
-        self.assertEqual(xml, 
+        self.assertEqual(xml,
 """<Root>
   <module>
     <main_picture/>
@@ -178,10 +181,10 @@ class SimpleIDMLTestCase(unittest.TestCase):
     </Story>
   </module>
 </Root>
-""") 
+""")
 
     def test_prefix(self):
-        shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"), 
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                      os.path.join(OUTPUT_DIR, "4-pages.idml"))
 
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages.idml"))
@@ -227,17 +230,17 @@ class SimpleIDMLTestCase(unittest.TestCase):
         designmap = etree.fromstring(idml_file.open("designmap.xml").read())
         self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
                          "FOOue4 FOOu102 FOOu11b FOOu139 FOOu9c")
-        self.assertEqual(designmap.xpath(".//idPkg:Story", 
+        self.assertEqual(designmap.xpath(".//idPkg:Story",
                                   namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0].get("src"),
                         "Stories/Story_FOOu139.xml")
-        self.assertEqual(designmap.xpath(".//idPkg:Spread", 
+        self.assertEqual(designmap.xpath(".//idPkg:Spread",
                                   namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0].get("src"),
                         "Spreads/Spread_FOOub6.xml")
-                                   
+
     def test_insert_idml(self):
-        shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"), 
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                      os.path.join(OUTPUT_DIR, "4-pages.idml"))
-        shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo.idml"), 
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo.idml"))
 
         main_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages.idml"))
@@ -247,16 +250,16 @@ class SimpleIDMLTestCase(unittest.TestCase):
         main_idml_file = main_idml_file.prefix("main")
         article_idml_file = article_idml_file.prefix("article1")
 
-        main_idml_file = main_idml_file.insert_idml(article_idml_file, 
+        main_idml_file = main_idml_file.insert_idml(article_idml_file,
                                                     at="/Root/article[3]",
                                                     only="/Root/module[1]")
 
         # Stories.
         self.assertEqual(main_idml_file.stories, ['Stories/Story_article1u188.xml',
                                                   'Stories/Story_article1u19f.xml',
-                                                  'Stories/Story_article1u1db.xml', 
+                                                  'Stories/Story_article1u1db.xml',
                                                   'Stories/Story_mainu102.xml',
-                                                  'Stories/Story_mainu11b.xml', 
+                                                  'Stories/Story_mainu11b.xml',
                                                   'Stories/Story_mainu139.xml',
                                                   'Stories/Story_mainue4.xml'])
 
@@ -298,26 +301,27 @@ class SimpleIDMLTestCase(unittest.TestCase):
         # TODO Test Spread_mainub6.xml content.
 
         # Styles.
-        self.assertEqual([[style.get("Self") for style in style_group.iterchildren()] for style_group in main_idml_file.style_groups], 
-                         [['mainCharacterStyle/$ID/[No character style]',
-                           'article1CharacterStyle/$ID/[No character style]'],
-                          ['mainParagraphStyle/$ID/[No paragraph style]',
-                           'mainParagraphStyle/$ID/NormalParagraphStyle', 
-                           'article1ParagraphStyle/$ID/[No paragraph style]',
-                           'article1ParagraphStyle/$ID/NormalParagraphStyle'],
-                          ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
-                          ['mainTableStyle/$ID/[No table style]',
-                           'mainTableStyle/$ID/[Basic Table]', 
-                           'article1TableStyle/$ID/[No table style]',
-                           'article1TableStyle/$ID/[Basic Table]'],
-                          ['mainObjectStyle/$ID/[None]',
-                           'mainObjectStyle/$ID/[Normal Graphics Frame]',
-                           'mainObjectStyle/$ID/[Normal Text Frame]',
-                           'mainObjectStyle/$ID/[Normal Grid]', 
-                           'article1ObjectStyle/$ID/[None]', 
-                           'article1ObjectStyle/$ID/[Normal Graphics Frame]',
-                           'article1ObjectStyle/$ID/[Normal Text Frame]', 
-                           'article1ObjectStyle/$ID/[Normal Grid]']
+        self.assertEqual([[style.get("Self") for style in style_group.iterchildren()] for style_group in main_idml_file.style_groups],
+                         [
+                             ['mainCharacterStyle/$ID/[No character style]',
+                              'article1CharacterStyle/$ID/[No character style]'],
+                             ['mainParagraphStyle/$ID/[No paragraph style]',
+                              'mainParagraphStyle/$ID/NormalParagraphStyle',
+                              'article1ParagraphStyle/$ID/[No paragraph style]',
+                              'article1ParagraphStyle/$ID/NormalParagraphStyle'],
+                             ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
+                             ['mainTableStyle/$ID/[No table style]',
+                              'mainTableStyle/$ID/[Basic Table]',
+                              'article1TableStyle/$ID/[No table style]',
+                              'article1TableStyle/$ID/[Basic Table]'],
+                             ['mainObjectStyle/$ID/[None]',
+                              'mainObjectStyle/$ID/[Normal Graphics Frame]',
+                              'mainObjectStyle/$ID/[Normal Text Frame]',
+                              'mainObjectStyle/$ID/[Normal Grid]',
+                              'article1ObjectStyle/$ID/[None]',
+                              'article1ObjectStyle/$ID/[Normal Graphics Frame]',
+                              'article1ObjectStyle/$ID/[Normal Text Frame]',
+                              'article1ObjectStyle/$ID/[Normal Grid]']
                          ])
 
     def test_add_page_from_idml(self):
@@ -400,7 +404,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
 
         self.assertEqual(len(new_idml.pages), 5)
         self.assertEqual(new_idml.spreads, ['Spreads/Spread_editoub6.xml',
-                                            'Spreads/Spread_editoubc.xml', 
+                                            'Spreads/Spread_editoubc.xml',
                                             'Spreads/Spread_editoubd.xml'])
 
     def test_add_pages_from_idml_to_template(self):
@@ -446,6 +450,7 @@ class SimpleIDMLTestCase(unittest.TestCase):
         self.assertEqual(idml_file.get_character_style_for_xml_tag("italique"), "italique")
         self.assertEqual(idml_file.get_character_style_for_xml_tag("stuff"), None)
 
+
 class XMLDocumentTestCase(unittest.TestCase):
     def test_get_element_by_id(self):
         xml_file = open(os.path.join(IDMLFILES_DIR, "4-pages.idml Folder", "Stories", "Story_ue4.xml"), mode="r")
@@ -467,6 +472,7 @@ class XMLDocumentTestCase(unittest.TestCase):
 <?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="7.5(142)" ?>
 <document>This is a XML document with unicode : ₣.</document>
 """)
+
 
 def suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(SimpleIDMLTestCase)

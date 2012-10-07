@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import os, sys, shutil, tempfile
+import os
+import sys
+import shutil
+import tempfile
 import glob
 import unittest
 import json
@@ -30,7 +33,7 @@ class CreatePackageTestCase(unittest.TestCase):
         destination_filename = os.path.join(OUTPUT_DIR, "article-1photo_2.idml")
 
         args = [flat_package_filename, destination_filename]
-        os.popen(('export PYTHONPATH="../src":$PYTHONPATH && ' 
+        os.popen(('export PYTHONPATH="../src":$PYTHONPATH && '
                   'python ../src/scripts/simpleidml_create_package_from_dir.py %s' % " ".join(args)), "w")
 
         self.assertEqual(os.listdir(OUTPUT_DIR), ['article-1photo_2.idml'])

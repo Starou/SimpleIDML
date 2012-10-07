@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import os, sys, shutil
+import os
+import sys
+import shutil
 import unittest
 from decimal import Decimal
 from lxml import etree
@@ -11,6 +13,7 @@ from simple_idml.components import Spread, Story
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "simpleIDML_files")
+
 
 class SpreadTestCase(unittest.TestCase):
     def test_pages(self):
@@ -27,6 +30,7 @@ class SpreadTestCase(unittest.TestCase):
         self.assertEqual(len(spread2_pages), 2)
         self.assertEqual(spread2_pages[0].node.tag, "Page")
         self.assertEqual(spread2_pages[1].node.tag, "Page")
+
 
 class StoryTestCase(unittest.TestCase):
     def test_pages(self):
@@ -82,6 +86,7 @@ class StoryTestCase(unittest.TestCase):
         self.assertEqual(get_story_id_for_xml_structure_node(dom.find(".//page/article/Story")), "editoue4")
         self.assertEqual(get_story_id_for_xml_structure_node(dom.find(".//page/article/Story/title")), "editoue4")
 
+
 class PageTestCase(unittest.TestCase):
     def test_page_items(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml"), mode="r")
@@ -103,7 +108,7 @@ class PageTestCase(unittest.TestCase):
             'Oval',
             'Rectangle',
         ])
-        
+
         # test the setter
         page2.page_items = ["foo", "bar"]
         self.assertEqual(page2.page_items, ["foo", "bar"])
@@ -145,9 +150,10 @@ class PageTestCase(unittest.TestCase):
         spread2 = Spread(idml_file, idml_file.spreads[1])
         page2 = spread2.pages[0]
         self.assertEqual(page2.face, VERSO)
-        
+
         page2.set_face(RECTO)
         self.assertEqual(page2.face, RECTO)
+
 
 def suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(SpreadTestCase)

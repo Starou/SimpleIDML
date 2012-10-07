@@ -29,6 +29,7 @@ class UtilsTestCase(unittest.TestCase):
         self.assertEqual(increment_xmltag_id("di3i4", "child"), "di3i4i1")
         self.assertEqual(increment_xmltag_id("di3i4i10", "child"), "di3i4i10i1")
 
+
 def suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(UtilsTestCase)
     return suite
