@@ -9,12 +9,11 @@ setup(
     author='Stanislas Guerra',
     author_email='stanislas.guerra@gmail.com',
     description='',
-    long_description = '',
+    long_description='',
     package_dir={'': 'src'},
-    packages=['simple_idml', 
-    ],
+    packages=['simple_idml'],
     data_files=[],
-    scripts = [
+    scripts=[
         'src/scripts/simpleidml_create_package_from_dir.py',
     ],
 )
