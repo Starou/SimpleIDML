@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import os, shutil
+import os
+import shutil
+
 
 def simple_decorator(decorator):
     def new_decorator(f):
@@ -13,6 +15,7 @@ def simple_decorator(decorator):
     new_decorator.__doc__ = decorator.__doc__
     new_decorator.__dict__.update(decorator.__dict__)
     return new_decorator
+
 
 @simple_decorator
 def use_working_copy(view_func):
@@ -28,7 +31,7 @@ def use_working_copy(view_func):
         idml_package.init_lazy_references()
 
         kwargs["working_copy_path"] = tmp_filename
-        
+
         idml_package = view_func(idml_package, *args, **kwargs)
 
         from simple_idml.idml import IDMLPackage
