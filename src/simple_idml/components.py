@@ -14,6 +14,7 @@ VERSO = "verso"
 
 rx_node_name_from_xml_name = re.compile(r"[\w]+/[\w]+_([\w]+)\.xml")
 
+
 class IDMLXMLFile(object):
     """Abstract class for various XML files found in IDML Packages. """
     name = None
@@ -29,7 +30,8 @@ class IDMLXMLFile(object):
     def fobj(self):
         if self._fobj is None:
             if self.working_copy_path:
-                fobj = open(os.path.join(self.working_copy_path, self.name), mode="r+")
+                fobj = open(os.path.join(self.working_copy_path, self.name),
+                            mode="r+")
             else:
                 fobj = self.idml_package.open(self.name, mode="r")
             self._fobj = fobj
@@ -41,7 +43,7 @@ class IDMLXMLFile(object):
             dom = etree.fromstring(self.fobj.read())
             self._dom = dom
         return self._dom
-            
+
     def tostring(self):
         kwargs = {"xml_declaration": True,
                   "encoding": "UTF-8",
@@ -49,7 +51,7 @@ class IDMLXMLFile(object):
                   "pretty_print": True}
 
         if etree.LXML_VERSION < (2, 3):
-            s  = etree.tostring(self.dom, **kwargs)
+            s = etree.tostring(self.dom, **kwargs)
             if self.doctype:
                 lines = s.splitlines()
                 lines.insert(1, self.doctype)
@@ -58,7 +60,7 @@ class IDMLXMLFile(object):
                 s = s.encode("utf-8")
         else:
             kwargs["doctype"] = self.doctype
-            s  = etree.tostring(self.dom, **kwargs)
+            s = etree.tostring(self.dom, **kwargs)
         return s
 
     def synchronize(self):
@@ -69,7 +71,7 @@ class IDMLXMLFile(object):
         fobj = open(os.path.join(self.working_copy_path, self.name), mode="w+")
         fobj.write(self.tostring())
         fobj.close()
-    
+
     def get_element_by_id(self, value):
         elem = self.dom.xpath("//XMLElement[@Self='%s']" % value)
         # etree FutureWarning when trying to simply do: elem = len(elem) and elem[0] or None
@@ -79,47 +81,46 @@ class IDMLXMLFile(object):
             elem = None
         return elem
 
+
 class Spread(IDMLXMLFile):
-    """ 
+    """
 
         Spread coordinates system
         -------------------------
 
                         _ -Y
        _________________|__________________
-      |                 |                  |  
-      |                 |                  |  
-      |                 |                  |  
-      |                 |                  |  
-      |                 |                  |  
-   -X |                 | (0,0)            | +X 
-   |--|-----------------+-------------------->            
-      |                 |                  |  
-      |                 |                  |  
-      |                 |                  |  
-      |                 |                  |  
-      |                 |                  |  
-      |                 |                  |  
+      |                 |                  |
+      |                 |                  |
+      |                 |                  |
+      |                 |                  |
+      |                 |                  |
+   -X |                 | (0,0)            | +X
+   |--|-----------------+-------------------->
+      |                 |                  |
+      |                 |                  |
+      |                 |                  |
+      |                 |                  |
+      |                 |                  |
+      |                 |                  |
       |_________________|__________________|
                         |
                         ˇ +Y
-    
     """
-
 
     def __init__(self, idml_package, spread_name, working_copy_path=None):
         super(Spread, self).__init__(idml_package, working_copy_path)
         self.name = spread_name
         self._pages = None
         self._node = None
-    
+
     @property
     def pages(self):
         if self._pages is None:
             pages = [Page(self, node) for node in self.dom.findall("Spread/Page")]
             self._pages = pages
         return self._pages
-            
+
     @property
     def node(self):
         if self._node is None:
@@ -131,11 +132,11 @@ class Spread(IDMLXMLFile):
         """ Spread only manage 2 pages. """
         if self.pages:
             # the last page is also the first (and only) one here and is a verso (front).
-            face_required = RECTO 
+            face_required = RECTO
             last_page = self.pages[-1]
             last_page.node.addnext(copy.deepcopy(page.node))
         else:
-            face_required = VERSO 
+            face_required = VERSO
             self.node.append(copy.deepcopy(page.node))
         # TODO: attributes (layer, masterSpread, ...)
         for item in page.page_items:
@@ -146,12 +147,13 @@ class Spread(IDMLXMLFile):
         last_page = self.pages[-1]
 
         # At this level, because the last_page may not be in a correct position
-        # into the Spread, a call to last_page.page_items may also return 
+        # into the Spread, a call to last_page.page_items may also return
         # the page items of the other page of the Spread.
         # So we force the setting from the inserted page and use those references
         # to move the items if the face has to be changed.
         items_references = [item.get("Self") for item in page.page_items]
-        last_page.page_items = [item for item in last_page.page_items if item.get("Self") in items_references] 
+        last_page.page_items = [item for item in last_page.page_items
+                                if item.get("Self") in items_references]
         last_page.set_face(face_required)
 
     def clear(self):
@@ -164,6 +166,7 @@ class Spread(IDMLXMLFile):
 
     def get_node_name_from_xml_name(self):
         return rx_node_name_from_xml_name.match(self.name).groups()[0]
+
 
 class Story(IDMLXMLFile):
     def __init__(self, idml_package, story_name, working_copy_path=None):
@@ -218,10 +221,12 @@ class Story(IDMLXMLFile):
         xml_element = XMLElement(element=element)
         xml_element.add_content(content)
 
+
 class BackingStory(Story):
     def __init__(self, idml_package, story_name=BACKINGSTORY, working_copy_path=None):
         super(BackingStory, self).__init__(idml_package, story_name, working_copy_path)
         self.node_name = "XmlStory"
+
 
 class Designmap(IDMLXMLFile):
     name = "designmap.xml"
@@ -236,7 +241,7 @@ class Designmap(IDMLXMLFile):
     @property
     def spread_nodes(self):
         if self._spread_nodes is None:
-            nodes = self.dom.findall("idPkg:Spread", namespaces={'idPkg':IdPkgNS})
+            nodes = self.dom.findall("idPkg:Spread", namespaces={'idPkg': IdPkgNS})
             self._spread_nodes = nodes
         return self._spread_nodes
 
@@ -260,7 +265,7 @@ class Designmap(IDMLXMLFile):
 
 
 class Page(object):
-    """ 
+    """
         Coordinate system
         -----------------
 
@@ -272,7 +277,7 @@ class Page(object):
             - `ItemTransform' (a b c d x y) where x and y are the translation applied to the
                 Page into the Spread.
     """
-    
+
     def __init__(self, spread, node):
         self.spread = spread
         self.node = node
@@ -283,7 +288,7 @@ class Page(object):
     @property
     def page_items(self):
         if self._page_items is None:
-            page_items = [i for i in self.node.itersiblings() 
+            page_items = [i for i in self.node.itersiblings()
                           if not i.tag == "Page" and self.page_item_is_in_self(i)]
             self._page_items = page_items
         return self._page_items
@@ -339,8 +344,8 @@ class Page(object):
         return self._coordinates
 
     def page_item_is_in_self(self, page_item):
-        """The rule is «If the first `PathPointType' is in the page so is the page item.» 
-        
+        """The rule is «If the first `PathPointType' is in the page so is the page item.»
+
             A PathPointType is in the page if its X is in the X-axis range of the page
             because we assume that 2 pages (or more) of the same Spread are Y-aligned.
             There is not any D&D reference here.
@@ -369,7 +374,7 @@ class Page(object):
                 item_transform[4] = Decimal("0")
             elif face == VERSO:
                 item_transform[4] = - self.geometric_bounds[3]
-            
+
             item_transform_x = item_transform[4] - item_transform_x_origin
             self.item_transform = item_transform
 
@@ -399,4 +404,3 @@ class XMLElement(object):
         content_element.text = content
         style_element.append(content_element)
         self.element.append(style_element)
-
