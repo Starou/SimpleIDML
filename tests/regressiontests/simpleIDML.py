@@ -453,7 +453,34 @@ class SimpleIDMLTestCase(unittest.TestCase):
 
 class XMLDocumentTestCase(unittest.TestCase):
     def test_get_element_by_id(self):
-        xml_file = open(os.path.join(IDMLFILES_DIR, "4-pages.idml Folder", "Stories", "Story_ue4.xml"), mode="r")
+        xml_file = StringIO.StringIO("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
+            <Story Self="ue4" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+                <StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection"/>
+                <InCopyExportOption IncludeGraphicProxies="true" IncludeAllResources="false"/>
+                <XMLElement Self="di2i3i1" MarkupTag="XMLTag/Story" XMLContent="ue4">
+                    <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/NormalParagraphStyle" Justification="CenterJustified">
+                        <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Bold">
+                            <Properties>
+                                <AppliedFont type="string">Vollkorn</AppliedFont>
+                            </Properties>
+                            <XMLElement Self="di2i3i1i1" MarkupTag="XMLTag/title">
+                                <Content>My Main Article Title</Content>
+                            </XMLElement>
+                            <Br/>
+                        </CharacterStyleRange>
+                        <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Italic">
+                            <Properties>
+                                <AppliedFont type="string">Vollkorn</AppliedFont>
+                            </Properties>
+                            <XMLElement Self="di2i3i1i2" MarkupTag="XMLTag/subtitle">
+                                <Content>And a subtitle</Content>
+                            </XMLElement>
+                        </CharacterStyleRange>
+                    </ParagraphStyleRange>
+                </XMLElement>
+            </Story>
+        </idPkg:Story>""")
         doc = XMLDocument(xml_file)
         elt = doc.getElementById("di2i3i1")
         self.assertTrue(elt is not None)
