@@ -65,6 +65,9 @@ class SimpleIDMLTestCase(unittest.TestCase):
                                                                            'RootTableStyleGroup',
                                                                            'RootObjectStyleGroup'])
 
+        # Styles mapping.
+        self.assertEqual(idml_file.style_mapping.styles, {})
+
         # Fonts.
         self.assertEqual([font.get("Name") for font in idml_file.font_families], ['Minion Pro', 'Myriad Pro', 'Kozuka Mincho Pro', 'Vollkorn'])
 
@@ -323,6 +326,9 @@ class SimpleIDMLTestCase(unittest.TestCase):
                               'article1ObjectStyle/$ID/[Normal Text Frame]',
                               'article1ObjectStyle/$ID/[Normal Grid]']
                          ])
+
+        # Style mapping.
+        self.assertEqual(main_idml_file.style_mapping.styles, {})
 
     def test_add_page_from_idml(self):
         edito_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-edito.idml")

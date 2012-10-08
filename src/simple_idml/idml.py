@@ -10,7 +10,7 @@ from decimal import Decimal
 from lxml import etree
 from xml.dom.minidom import parseString
 
-from simple_idml.components import Designmap, Spread, Story, BackingStory, XMLElement
+from simple_idml.components import Designmap, Spread, Story, BackingStory, StyleMapping, XMLElement
 from simple_idml.decorators import use_working_copy
 from simple_idml.utils import increment_filename
 
@@ -85,6 +85,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._tags = None
         self._font_families = None
         self._style_groups = None
+        self._style_mapping = None
         self._spreads = None
         self._spreads_objects = None
         self._pages = None
@@ -187,6 +188,14 @@ class IDMLPackage(zipfile.ZipFile):
             self._style_groups = style_groups
             style_groups_src.close()
         return self._style_groups
+
+    @property
+    def style_mapping(self):
+        """The style mapping file may not be present in the archive and is created in that case. """
+        if self._style_mapping is None:
+            style_mapping = StyleMapping(self, self.working_copy_path)
+            self._style_mapping = style_mapping
+        return self._style_mapping
 
     @property
     def spreads(self):
@@ -381,6 +390,7 @@ class IDMLPackage(zipfile.ZipFile):
         t = self._get_item_translation_for_insert(idml_package, at, only)
         self._add_font_families_from_idml(idml_package, working_copy_path=working_copy_path)
         self._add_styles_from_idml(idml_package, working_copy_path=working_copy_path)
+        self._add_mapped_styles_from_idml(idml_package)
         self._add_tags_from_idml(idml_package, working_copy_path=working_copy_path)
         self._add_spread_elements_from_idml(idml_package, at, only, t, working_copy_path=working_copy_path)
         self._add_stories_from_idml(idml_package, at, only, working_copy_path=working_copy_path)
@@ -425,6 +435,12 @@ class IDMLPackage(zipfile.ZipFile):
 
         styles_doc.overwrite_and_close(ref_doctype=None)
         return self
+
+    def _add_mapped_styles_from_idml(self, idml_package):
+        for tag, style in idml_package.style_mapping.styles.items():
+            if tag not in self.style_mapping.styles:
+                self.style_mapping.add_style(tag, style)
+        self.style_mapping.synchronize()
 
     def _add_graphic_from_idml(self, idml_package):
         pass

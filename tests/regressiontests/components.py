@@ -9,7 +9,7 @@ from lxml import etree
 
 from simple_idml.idml import IDMLPackage
 from simple_idml.components import RECTO, VERSO
-from simple_idml.components import Spread, Story
+from simple_idml.components import Spread, Story, StyleMapping
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "simpleIDML_files")
@@ -143,8 +143,21 @@ class PageTestCase(unittest.TestCase):
         self.assertEqual(page2.face, RECTO)
 
 
+class StyleMappingTestCase(unittest.TestCase):
+    def test_styles(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), mode="r")
+        style_mapping = StyleMapping(idml_file)
+        self.assertEqual(style_mapping.styles, {'italique': 'italique', 'bold': 'bold'})
+
+        # The XML/Mapping.xml may not be present.
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
+        style_mapping = StyleMapping(idml_file)
+        self.assertEqual(style_mapping.styles, {})
+
+
 def suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(SpreadTestCase)
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(StoryTestCase))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(PageTestCase))
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(StyleMappingTestCase))
     return suite

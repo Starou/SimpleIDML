@@ -30,8 +30,8 @@ class IDMLXMLFile(object):
     def fobj(self):
         if self._fobj is None:
             if self.working_copy_path:
-                fobj = open(os.path.join(self.working_copy_path, self.name),
-                            mode="r+")
+                filename = os.path.join(self.working_copy_path, self.name)
+                fobj = open(filename, mode="r+")
             else:
                 fobj = self.idml_package.open(self.name, mode="r")
             self._fobj = fobj
@@ -64,6 +64,9 @@ class IDMLXMLFile(object):
         return s
 
     def synchronize(self):
+        # Explicit initialization of dom from self._fobj before reset
+        # because in tostring() we get the dom from this file if None.
+        self.dom
         self.fobj.close()
         self._fobj = None
 
@@ -266,6 +269,69 @@ class Designmap(IDMLXMLFile):
         section_node = self.section_node
         current_page_start = section_node.get(self.page_start_attr)
         section_node.set(self.page_start_attr, "%s%s" % (prefix, current_page_start))
+
+
+class StyleMapping(IDMLXMLFile):
+    name = "XML/Mapping.xml"
+    rx_style = re.compile("CharacterStyle/(.*)")
+    rx_tag = re.compile("XMLTag/(.*)")
+    initial_dom = ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\
+                   <idPkg:Mapping xmlns:idPkg=\"http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging\"\
+                   DOMVersion=\"7.5\">\
+                   </idPkg:Mapping>")
+
+    def __init__(self, idml_package, working_copy_path=None):
+        super(StyleMapping, self).__init__(idml_package, working_copy_path)
+        self._styles = None
+
+    @property
+    def fobj(self):
+        """Overriden because it may not exists in the package. """
+        try:
+            super(StyleMapping, self).fobj
+        except (KeyError, IOError):
+            if self.working_copy_path:
+                self._initialize_fobj()
+        return self._fobj
+
+    @property
+    def dom(self):
+        """Overriden because it may not exists in the package. """
+        try:
+            super(StyleMapping, self).dom
+        except AttributeError:
+            self._dom = etree.fromstring(self.initial_dom)
+        return self._dom
+
+    @property
+    def styles(self):
+        """Map XMLTag -> Style.
+
+        <XMLImportMap Self="did2" MarkupTag="XMLTag/bold" MappedStyle="CharacterStyle/bold"/>
+        """
+        if self._styles is None:
+            styles = {}
+            if self.dom is not None:
+                for n in self.dom.xpath("//XMLImportMap"):
+                    tag = self.rx_tag.match(n.get("MarkupTag")).group(1)
+                    style = self.rx_style.match(n.get("MappedStyle")).group(1)
+                    styles.setdefault(tag, style)
+            self._styles = styles
+        return self._styles
+
+    def _initialize_fobj(self):
+        filename = os.path.join(self.working_copy_path, self.name)
+        fobj = open(filename, mode="w+")
+        fobj.write(self.initial_dom)
+        fobj.seek(0)
+        self._fobj = fobj
+
+    def add_style(self, tag, style):
+        """Add the style in the DOM."""
+        self._styles[tag] = style
+        self._dom.append(etree.Element("XMLImportMap",
+                                       MarkupTag="XMLTag/%s" % tag,
+                                       MappedStyle="CharacterStyle/%s" % style))
 
 
 class Page(object):
