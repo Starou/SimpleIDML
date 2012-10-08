@@ -185,7 +185,10 @@ class Story(IDMLXMLFile):
     def set_element_content(self, element_id, content):
         self.clear_element_content(element_id)
         element = self.get_element_by_id(element_id)
-        self.get_element_content_nodes(element)[0].text = content
+        try:
+            self.get_element_content_nodes(element)[0].text = content
+        except IndexError as e:
+            raise IndexError(u"Story \"%s\", element \"%s\": %s" % (self.name, element_id, e))
 
     def clear_element_content(self, element_id):
         element = self.get_element_by_id(element_id)
@@ -195,7 +198,8 @@ class Story(IDMLXMLFile):
     def get_element_content_nodes(self, element):
         return element.xpath(("./ParagraphStyleRange/CharacterStyleRange/Content | \
                                ./CharacterStyleRange/Content | \
-                               ./XMLElement/CharacterStyleRange/Content"))
+                               ./XMLElement/CharacterStyleRange/Content | \
+                               ./Content"))
 
     def set_element_id(self, element):
         ref_element = [e for e in element.itersiblings(tag="XMLElement", preceding=True)]
