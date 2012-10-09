@@ -540,7 +540,7 @@ class IDMLPackage(zipfile.ZipFile):
                 <XMLElement Self="di2i3" MarkupTag="XMLTag/article" XMLContent="u102"/>
                 <XMLElement Self="di2i4" MarkupTag="XMLTag/article" XMLContent="udb"/>
                 <XMLElement Self="di2i5" MarkupTag="XMLTag/article"> (A)
-                    <XMLElement Self="prefixeddi2i3" MarkupTag="XMLTag/article" XMLContent="prefixedu102"/> (A)
+                    <XMLElement Self="prefixeddi2i3" MarkupTag="XMLTag/module" XMLContent="prefixedu102"/> (A)
                 </XMLElement>
                 <XMLElement Self="di2i6" MarkupTag="XMLTag/advertise" XMLContent="udf"/>
             </XMLElement>
@@ -565,7 +565,10 @@ class IDMLPackage(zipfile.ZipFile):
                                                   xml_element_dest.get("Self"))[0]
         if story_dest_elt.get("XMLContent"):
             story_dest_elt.attrib.pop("XMLContent")
-        story_dest_elt.append(copy.copy(story_src_elt))
+        story_src_elt_copy = copy.copy(story_src_elt)
+        for child in story_src_elt_copy.iterchildren():
+            story_src_elt_copy.remove(child)
+        story_dest_elt.append(story_src_elt_copy)
 
         story_dest_doc.overwrite_and_close(ref_doctype=None)
 
