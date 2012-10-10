@@ -3,3 +3,4 @@ Makefile
 .*\.pyc
 \.DS_Store
 build
+tests/regressiontests/outputs
