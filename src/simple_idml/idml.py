@@ -765,7 +765,7 @@ class XMLDocument(object):
         for elt in self.dom.iter():
             if elt.tag in excluded_tags_for_prefix:
                 continue
-            for attr in ("Self", "XMLContent", "ParentStory", "AppliedCharacterStyle"):
+            for attr in ("Self", "XMLContent", "ParentStory", "MappedStyle", "AppliedCharacterStyle"):
                 if elt.get(attr):
                     #TODO prefix_element_attr(attr, prefix)
                     elt.set(attr, "%s%s" % (prefix, elt.get(attr)))
