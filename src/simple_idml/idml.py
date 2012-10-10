@@ -566,8 +566,9 @@ class IDMLPackage(zipfile.ZipFile):
         if story_dest_elt.get("XMLContent"):
             story_dest_elt.attrib.pop("XMLContent")
         story_src_elt_copy = copy.copy(story_src_elt)
-        for child in story_src_elt_copy.iterchildren():
-            story_src_elt_copy.remove(child)
+        if story_src_elt_copy.get("XMLContent"):
+            for child in story_src_elt_copy.iterchildren():
+                story_src_elt_copy.remove(child)
         story_dest_elt.append(story_src_elt_copy)
 
         story_dest_doc.overwrite_and_close(ref_doctype=None)
