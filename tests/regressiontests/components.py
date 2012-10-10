@@ -42,37 +42,8 @@ class StoryTestCase(unittest.TestCase):
 
     def test_get_element_by_id(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
-        story = idml_file.get_story_object_by_id("u11b")
         elem = story.get_element_by_id("di2i3i2")
         self.assertEqual(elem.get("MarkupTag"), "XMLTag/content")
-
-    def test_get_story_id_for_xml_structure_node(self):
-        from simple_idml.idml import get_story_id_for_xml_structure_node
-        dom = etree.fromstring(
-"""<Root Self="editodi2">
-  <page Self="editodi2ib">
-    <article Self="editodi2ibif">
-      <Story XMLContent="editoue4" Self="editodi2ibifi1f">
-        <title Self="editodi2ibifi1fi1"/>
-        <subtitle Self="editodi2ibifi1fi2"/>
-      </Story>
-      <content XMLContent="editou11b" Self="editodi2ibifi1e"/>
-    </article>
-  </page>
-  <page Self="editodi2i10">
-    <advertise XMLContent="editou1de" Self="editodi2i10i23"/>
-  </page>
-  <page Self="courrierdi2ib">
-    <title XMLContent="courrieru1b2" Self="courrierdi2ibi34"/>
-    <article XMLContent="courrieru1c9" Self="courrierdi2ibi33"/>
-    <article XMLContent="courrieru1e0" Self="courrierdi2ibi32"/>
-    <article XMLContent="courrieru1fb" Self="courrierdi2ibi31"/>
-    <article XMLContent="courrieru212" Self="courrierdi2ibi30"/>
-  </page>
-</Root>
-""")
-        self.assertEqual(get_story_id_for_xml_structure_node(dom.find(".//page/article/Story")), "editoue4")
-        self.assertEqual(get_story_id_for_xml_structure_node(dom.find(".//page/article/Story/title")), "editoue4")
 
 
 class PageTestCase(unittest.TestCase):

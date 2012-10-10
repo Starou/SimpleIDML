@@ -43,8 +43,6 @@ class IdmlTestCase(unittest.TestCase):
                                              u'Stories/Story_u11b.xml',
                                              u'Stories/Story_u102.xml',
                                              u'Stories/Story_ue4.xml'])
-        story = idml_file.get_story_object_by_id("u139")
-        self.assertEqual(story.node.tag, "Story")
 
         # Tags.
         self.assertEqual([etree.tostring(tag) for tag in idml_file.tags],
@@ -134,6 +132,14 @@ class IdmlTestCase(unittest.TestCase):
         self.assertEqual(set(zipfile_namelist), set(working_copy_namelist))
 
         shutil.rmtree(idml_working_copy)
+
+    def test_get_xml_element_story(self):
+        idml_file = os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml")
+        idml_file = IDMLPackage(idml_file)
+        xml_element = idml_file.XMLStructure.dom
+        self.assertEqual(idml_file.get_xml_element_story(xml_element).name, "XML/BackingStory.xml")
+        self.assertEqual(idml_file.get_xml_element_story(xml_element.find("page")).name, "XML/BackingStory.xml")
+        self.assertEqual(idml_file.get_xml_element_story(xml_element.find("page/title")).name, "Stories/Story_u1b2.xml")
 
     def test_import_xml(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),

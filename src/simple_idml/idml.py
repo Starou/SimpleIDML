@@ -236,11 +236,33 @@ class IDMLPackage(zipfile.ZipFile):
             self._story_ids = story_ids
         return self._story_ids
 
-    # TODO: get_story_object_by_xpath(self, xpath)
-    def get_story_object_by_id(self, story_id):
-        if story_id == BACKINGSTORY:
-            return BackingStory(idml_package=self)
-        return Story(idml_package=self, story_name="%s/Story_%s.xml" % (STORIES_DIRNAME, story_id))
+    def get_xml_element_story(self, xml_element):
+        """xml_element is a structure element."""
+        STORY_REF_ATTR = "XMLContent"
+        def get_story_id(xml_element):
+            ref = xml_element.get(STORY_REF_ATTR)
+            if ref:
+                return ref
+            else:
+                parent = xml_element.getparent()
+                if parent is not None:
+                    return get_story_id(xml_element.getparent())
+                else:
+                    return BACKINGSTORY
+
+        story_id = get_story_id(xml_element)
+
+        # Some XMLElement store a reference which is not a Story.
+        # In that case, the Story it the parent's Story.
+        if (story_id not in self.story_ids) and (story_id is not BACKINGSTORY):
+            story = self.get_xml_element_story(xml_element.getparent())
+        else:
+            if story_id == BACKINGSTORY:
+                story = BackingStory(idml_package=self)
+            else:
+                story = Story(idml_package=self, 
+                              story_name="%s/Story_%s.xml" % (STORIES_DIRNAME, story_id))
+        return story
 
     @use_working_copy
     def import_xml(self, xml_file, at, working_copy_path=None):
@@ -255,8 +277,7 @@ class IDMLPackage(zipfile.ZipFile):
             element_id = destination_node.get("Self")
 
             if not len(source_node_children) and source_node.text:
-                story = self.get_story_object_by_id(
-                    get_story_id_for_xml_structure_node(destination_node))
+                story = self.get_xml_element_story(destination_node)
                 story.working_copy_path = working_copy_path
                 story.set_element_content(element_id, source_node.text)
                 story.synchronize()
@@ -268,8 +289,7 @@ class IDMLPackage(zipfile.ZipFile):
                     map(import_content, source_node_children, destination_node.iterchildren())
                 elif not destination_node_children:
                     for i, child in enumerate(source_node.iter()):
-                        story = self.get_story_object_by_id(
-                            get_story_id_for_xml_structure_node(destination_node))
+                        story = self.get_xml_element_story(destination_node)
                         story.working_copy_path = working_copy_path
                         if i == 0:
                             story.set_element_content(element_id, child.text)
@@ -305,7 +325,7 @@ class IDMLPackage(zipfile.ZipFile):
             # de la destination.
             source_node_children = source_node.getchildren()
 
-            story = self.get_story_object_by_id(get_story_id_for_xml_structure_node(source_node))
+            story = self.get_xml_element_story(source_node)
             story_content_nodes = None
             try:
                 story.fobj
@@ -672,33 +692,8 @@ class IDMLPackage(zipfile.ZipFile):
 
     def get_node_story_by_xpath(self, xpath):
         """Return the Story (or BackingStory) filename containing the element selected by xpath."""
-
         node = self.XMLStructure.dom.xpath(xpath)[0]
-
-        def get_node_story_name(node):
-            story_id = node.get("XMLContent")
-            if story_id:
-                story_object = self.get_story_object_by_id(story_id)
-                # Some XMLElement have a reference that does not point at
-                # a story file (i.e. pictures). In that case we return
-                # the parent Story.
-                try:
-                    story_object.fobj
-                # TODO cas de la working_copy qui lève surement une autre exception.
-                except KeyError:
-                    return get_node_story_name(node.getparent())
-                else:
-                    return story_object.name
-            # If there is not XMLContent attr, it may be the Root element
-            # or a node having its content declared inplace.
-            else:
-                parent_node = node.getparent()
-                if parent_node is not None:
-                    return get_node_story_name(parent_node)
-                else:
-                    return BACKINGSTORY
-
-        return get_node_story_name(node)
+        return self.get_xml_element_story(node).name
 
     def get_spread_elem_by_xpath(self, xpath):
         """Return the spread etree.Element designed by XMLElement xpath. """
@@ -851,17 +846,3 @@ def add_stories_to_designmap(dom, stories):
     for story in stories:
         elt.append(etree.Element("{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Story",
                                  src="Stories/Story_%s.xml" % story))
-STORY_REF_ATTR = "XMLContent"
-
-
-def get_story_id_for_xml_structure_node(node):
-    ref = node.get(STORY_REF_ATTR)
-    if ref:
-        return ref
-    else:
-        parent = node.getparent()
-        if parent is not None:
-            return get_story_id_for_xml_structure_node(node.getparent())
-        else:
-            # TODO : test BackingStory
-            return BACKINGSTORY
