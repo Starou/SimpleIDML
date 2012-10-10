@@ -147,12 +147,11 @@ class StyleMappingTestCase(unittest.TestCase):
     def test_styles(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), mode="r")
         style_mapping = StyleMapping(idml_file)
-        self.assertEqual(style_mapping.styles, {'italique': 'italique', 'bold': 'bold'})
+        self.assertEqual(style_mapping.tostring(), '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">\n\t<XMLImportMap Self="did2" MarkupTag="XMLTag/bold" MappedStyle="CharacterStyle/bold"/>\n\t<XMLImportMap Self="di13f" MarkupTag="XMLTag/italique" MappedStyle="CharacterStyle/italique"/>\n</idPkg:Mapping>\n')
 
         # The XML/Mapping.xml may not be present.
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
         style_mapping = StyleMapping(idml_file)
-        self.assertEqual(style_mapping.styles, {})
 
 
 def suite():

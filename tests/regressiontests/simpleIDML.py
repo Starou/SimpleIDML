@@ -66,7 +66,8 @@ class SimpleIDMLTestCase(unittest.TestCase):
                                                                            'RootObjectStyleGroup'])
 
         # Styles mapping.
-        self.assertEqual(idml_file.style_mapping.styles, {})
+        self.assertEqual(idml_file.style_mapping.tostring(), 
+                         '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">                   </idPkg:Mapping>\n')
 
         # Fonts.
         self.assertEqual([font.get("Name") for font in idml_file.font_families], ['Minion Pro', 'Myriad Pro', 'Kozuka Mincho Pro', 'Vollkorn'])
@@ -240,6 +241,15 @@ class SimpleIDMLTestCase(unittest.TestCase):
                                   namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0].get("src"),
                         "Spreads/Spread_FOOub6.xml")
 
+
+        # Prefix d'un fichier avec un mapping Style/Tag XML.
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
+                     os.path.join(OUTPUT_DIR, "article-1photo_import-xml-prefixed.idml"))
+
+        idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-prefixed.idml"))
+        idml_file = idml_file.prefix("FOO")
+
     def test_insert_idml(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                      os.path.join(OUTPUT_DIR, "4-pages.idml"))
@@ -329,7 +339,8 @@ class SimpleIDMLTestCase(unittest.TestCase):
              'article1ObjectStyle/$ID/[Normal Grid]']])
                          
         # Style mapping.
-        self.assertEqual(main_idml_file.style_mapping.styles, {})
+        self.assertEqual(main_idml_file.style_mapping.tostring(), 
+                        '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">                   <XMLImportMap Self="article1di206" MarkupTag="XMLTag/MyBoldTag" MappedStyle="article1CharacterStyle/MyBoldStyle"/>\n</idPkg:Mapping>\n')
 
     def test_add_page_from_idml(self):
         edito_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-edito.idml")

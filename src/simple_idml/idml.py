@@ -437,10 +437,16 @@ class IDMLPackage(zipfile.ZipFile):
         return self
 
     def _add_mapped_styles_from_idml(self, idml_package):
-        for tag, style in idml_package.style_mapping.styles.items():
-            if tag not in self.style_mapping.styles:
-                self.style_mapping.add_style(tag, style)
-        self.style_mapping.synchronize()
+        if idml_package.style_mapping:
+            for style_node in idml_package.style_mapping.iter_stylenode():
+                self.style_mapping.add_stylenode(style_node)
+            self.style_mapping.synchronize()
+
+        # Update designmap.xml because it may not reference the Mapping file.
+        designmap = Designmap(self, working_copy_path=self.working_copy_path)
+        if not designmap.style_mapping_node:
+            designmap.set_style_mapping_node()
+            designmap.synchronize()
 
     def _add_graphic_from_idml(self, idml_package):
         pass

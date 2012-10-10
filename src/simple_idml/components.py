@@ -243,6 +243,7 @@ class Designmap(IDMLXMLFile):
     def __init__(self, idml_package, working_copy_path):
         super(Designmap, self).__init__(idml_package, working_copy_path)
         self._spread_nodes = None
+        self._style_mapping_node = None
         self._section_node = None
 
     @property
@@ -259,6 +260,20 @@ class Designmap(IDMLXMLFile):
             self._section_node = nodes
         return self._section_node
 
+    @property
+    def style_mapping_node(self):
+        """<idPkg:Mapping src="XML/Mapping.xml"/>"""
+        if self._style_mapping_node is None:
+            node = self.dom.find("idPkg:Mapping", namespaces={'idPkg': IdPkgNS})
+            self._style_mapping_node = node
+        return self._style_mapping_node
+
+    def set_style_mapping_node(self):
+        """Do it only if self.style_mapping_node is None."""
+        self.dom.append(
+                etree.Element("{%s}Mapping" % IdPkgNS, src=StyleMapping.name)
+        )
+
     def add_spread(self, spread):
         if self.spread_nodes:
             self.spread_nodes[-1].addnext(
@@ -273,8 +288,6 @@ class Designmap(IDMLXMLFile):
 
 class StyleMapping(IDMLXMLFile):
     name = "XML/Mapping.xml"
-    rx_style = re.compile("CharacterStyle/(.*)")
-    rx_tag = re.compile("XMLTag/(.*)")
     initial_dom = ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\
                    <idPkg:Mapping xmlns:idPkg=\"http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging\"\
                    DOMVersion=\"7.5\">\
@@ -303,22 +316,6 @@ class StyleMapping(IDMLXMLFile):
             self._dom = etree.fromstring(self.initial_dom)
         return self._dom
 
-    @property
-    def styles(self):
-        """Map XMLTag -> Style.
-
-        <XMLImportMap Self="did2" MarkupTag="XMLTag/bold" MappedStyle="CharacterStyle/bold"/>
-        """
-        if self._styles is None:
-            styles = {}
-            if self.dom is not None:
-                for n in self.dom.xpath("//XMLImportMap"):
-                    tag = self.rx_tag.match(n.get("MarkupTag")).group(1)
-                    style = self.rx_style.match(n.get("MappedStyle")).group(1)
-                    styles.setdefault(tag, style)
-            self._styles = styles
-        return self._styles
-
     def _initialize_fobj(self):
         filename = os.path.join(self.working_copy_path, self.name)
         fobj = open(filename, mode="w+")
@@ -326,12 +323,12 @@ class StyleMapping(IDMLXMLFile):
         fobj.seek(0)
         self._fobj = fobj
 
-    def add_style(self, tag, style):
-        """Add the style in the DOM."""
-        self._styles[tag] = style
-        self._dom.append(etree.Element("XMLImportMap",
-                                       MarkupTag="XMLTag/%s" % tag,
-                                       MappedStyle="CharacterStyle/%s" % style))
+    def iter_stylenode(self):
+        for n in self.dom.xpath("//XMLImportMap"):
+            yield n
+
+    def add_stylenode(self, node):
+        self.dom.append(copy.deepcopy(node))
 
 
 class Page(object):
