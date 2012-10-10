@@ -18,9 +18,9 @@ XML_DIR = os.path.join(CURRENT_DIR, "XML")
 OUTPUT_DIR = os.path.join(CURRENT_DIR, "outputs", "simpleIDML")
 
 
-class SimpleIDMLTestCase(unittest.TestCase):
+class IdmlTestCase(unittest.TestCase):
     def setUp(self):
-        super(SimpleIDMLTestCase, self).setUp()
+        super(IdmlTestCase, self).setUp()
         for f in glob.glob(os.path.join(OUTPUT_DIR, "*")):
             if os.path.isdir(f):
                 shutil.rmtree(f)
@@ -520,6 +520,6 @@ class XMLDocumentTestCase(unittest.TestCase):
 
 
 def suite():
-    suite = unittest.TestLoader().loadTestsFromTestCase(SimpleIDMLTestCase)
+    suite = unittest.TestLoader().loadTestsFromTestCase(IdmlTestCase)
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(XMLDocumentTestCase))
     return suite
