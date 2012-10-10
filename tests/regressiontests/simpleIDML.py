@@ -304,29 +304,30 @@ class SimpleIDMLTestCase(unittest.TestCase):
         # TODO Test Spread_mainub6.xml content.
 
         # Styles.
-        self.assertEqual([[style.get("Self") for style in style_group.iterchildren()] for style_group in main_idml_file.style_groups],
-                         [
-                             ['mainCharacterStyle/$ID/[No character style]',
-                              'article1CharacterStyle/$ID/[No character style]'],
-                             ['mainParagraphStyle/$ID/[No paragraph style]',
-                              'mainParagraphStyle/$ID/NormalParagraphStyle',
-                              'article1ParagraphStyle/$ID/[No paragraph style]',
-                              'article1ParagraphStyle/$ID/NormalParagraphStyle'],
-                             ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
-                             ['mainTableStyle/$ID/[No table style]',
-                              'mainTableStyle/$ID/[Basic Table]',
-                              'article1TableStyle/$ID/[No table style]',
-                              'article1TableStyle/$ID/[Basic Table]'],
-                             ['mainObjectStyle/$ID/[None]',
-                              'mainObjectStyle/$ID/[Normal Graphics Frame]',
-                              'mainObjectStyle/$ID/[Normal Text Frame]',
-                              'mainObjectStyle/$ID/[Normal Grid]',
-                              'article1ObjectStyle/$ID/[None]',
-                              'article1ObjectStyle/$ID/[Normal Graphics Frame]',
-                              'article1ObjectStyle/$ID/[Normal Text Frame]',
-                              'article1ObjectStyle/$ID/[Normal Grid]']
-                         ])
-
+        styles = [[style.get("Self") for style in style_group.iterchildren()] 
+                  for style_group in main_idml_file.style_groups]
+        self.assertEqual(styles,[
+            ['mainCharacterStyle/$ID/[No character style]',
+             'article1CharacterStyle/$ID/[No character style]',
+             'article1CharacterStyle/MyBoldStyle'],
+            ['mainParagraphStyle/$ID/[No paragraph style]',
+             'mainParagraphStyle/$ID/NormalParagraphStyle',
+             'article1ParagraphStyle/$ID/[No paragraph style]',
+             'article1ParagraphStyle/$ID/NormalParagraphStyle'],
+            ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
+            ['mainTableStyle/$ID/[No table style]',
+             'mainTableStyle/$ID/[Basic Table]',
+             'article1TableStyle/$ID/[No table style]',
+             'article1TableStyle/$ID/[Basic Table]'],
+            ['mainObjectStyle/$ID/[None]',
+             'mainObjectStyle/$ID/[Normal Graphics Frame]',
+             'mainObjectStyle/$ID/[Normal Text Frame]',
+             'mainObjectStyle/$ID/[Normal Grid]',
+             'article1ObjectStyle/$ID/[None]',
+             'article1ObjectStyle/$ID/[Normal Graphics Frame]',
+             'article1ObjectStyle/$ID/[Normal Text Frame]',
+             'article1ObjectStyle/$ID/[Normal Grid]']])
+                         
         # Style mapping.
         self.assertEqual(main_idml_file.style_mapping.styles, {})
 
