@@ -2,6 +2,9 @@
 
 import os
 import re
+import new
+from types import MethodType
+
 
 rx_numbered = re.compile(r"(.*?)(\d+)")
 rx_xmltag_sibling_id = re.compile(r"(d.*i)(\d+)")
@@ -39,3 +42,16 @@ def increment_xmltag_id(xmltag_id, position="sibling"):
         return "%s%d" % (root, int(last_number) + 1)
     elif position == "child":
         return "%si1" % xmltag_id
+
+
+class Proxy(object):
+    def __init__(self, target):
+        self._target = target
+
+    def __getattr__(self, aname):
+        target = self._target
+        f = getattr(target, aname)
+        if isinstance(f, MethodType):
+            return new.instancemethod(f.im_func, self, target.__class__)
+        else:
+            return f

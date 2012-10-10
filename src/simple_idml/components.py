@@ -8,6 +8,7 @@ from decimal import Decimal
 
 from simple_idml import IdPkgNS, BACKINGSTORY
 from simple_idml.utils import increment_xmltag_id
+from simple_idml.utils import Proxy
 
 RECTO = "recto"
 VERSO = "verso"
@@ -82,7 +83,7 @@ class IDMLXMLFile(object):
             elem = elem[0]
         else:
             elem = None
-        return elem
+        return XMLElement(elem)
 
 
 class Spread(IDMLXMLFile):
@@ -455,13 +456,14 @@ class Page(object):
             self._coordinates = None
 
 
-class XMLElement(object):
-    """A wrapper over the etree.Element to represent XMLElement nodes in Story files. """
+class XMLElement(Proxy):
+    """A proxy over the etree.Element to represent XMLElement nodes in Story files. """
     def __init__(self, element=None, tag=None):
         if element is not None:
             self.element = element
         else:
             self.element = etree.Element("XMLElement", MarkupTag="XMLTag/%s" % tag)
+        super(XMLElement, self).__init__(target=self.element)
 
     def add_content(self, content, style=None):
         style = style or "$ID/[No character style]"
