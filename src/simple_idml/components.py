@@ -484,6 +484,10 @@ class XMLElement(Proxy):
         if len(attr_node):
             return attr_node[0]
 
+    def get_attributes(self):
+        return dict([(node.get("Name"), node.get("Value")) 
+                     for node in self.xpath("./XMLAttribute")])
+
     def set_attribute(self, name, value):
         attr_node = self._get_attribute_node(name)
         if attr_node is None:

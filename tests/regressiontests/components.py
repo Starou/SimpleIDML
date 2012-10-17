@@ -159,6 +159,10 @@ class XMLElementTestCase(unittest.TestCase):
         self.assertEqual(picture_elt.get_attribute("href"), "file:///piscine.jpg")
         self.assertEqual(picture_elt.get_attribute("bar"), "baz")
 
+        # Get all attributes (similar to Element.items()).
+        self.assertEqual(picture_elt.get_attributes(),
+                         {'href': 'file:///piscine.jpg', 'bar': 'baz'})
+
         # Setter.
         module_elt.set_attribute("foo", "bar")
         self.assertEqual(module_elt.get_attribute("foo"), "bar")
