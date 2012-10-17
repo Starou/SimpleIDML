@@ -12,7 +12,7 @@ from simple_idml.components import RECTO, VERSO
 from simple_idml.components import Spread, Story, StyleMapping, XMLElement
 
 CURRENT_DIR = os.path.dirname(__file__)
-IDMLFILES_DIR = os.path.join(CURRENT_DIR, "simpleIDML_files")
+IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 
 
 class SpreadTestCase(unittest.TestCase):

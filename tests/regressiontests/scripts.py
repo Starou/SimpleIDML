@@ -10,7 +10,7 @@ import json
 import re
 
 CURRENT_DIR = os.path.dirname(__file__)
-IDMLFILES_DIR = os.path.join(CURRENT_DIR, "simpleIDML_files")
+IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 OUTPUT_DIR = os.path.join(CURRENT_DIR, "outputs", "scripts")
 
 

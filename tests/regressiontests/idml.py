@@ -13,7 +13,7 @@ from simple_idml.idml import IDMLPackage
 from simple_idml.idml import XMLDocument
 
 CURRENT_DIR = os.path.dirname(__file__)
-IDMLFILES_DIR = os.path.join(CURRENT_DIR, "simpleIDML_files")
+IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 XML_DIR = os.path.join(CURRENT_DIR, "XML")
 OUTPUT_DIR = os.path.join(CURRENT_DIR, "outputs", "simpleIDML")
 
