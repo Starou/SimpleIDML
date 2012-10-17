@@ -147,10 +147,12 @@ class IdmlTestCase(unittest.TestCase):
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml.xml"), "r")
         idml_file = idml_file.import_xml(xml_file, at="/Root/module[1]")
-        self.assertEqual(idml_file.export_xml(),
+        xml = idml_file.export_xml()
+        #print"\n", (etree.tostring(etree.fromstring(xml), pretty_print=True))
+        self.assertEqual(xml,
 """<Root>
   <module>
-    <main_picture/>
+    <main_picture href="file:///steve.jpg"/>
     <headline>The Life Aquatic with Steve Zissou</headline>
     <Story>
       <article>While oceanographer and documentarian <bold>Steve Zissou (Bill Murray) is working on his latest documentary at sea, his best friend Esteban du Plantier (Seymour Cassel)</bold> is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark's destruction.
@@ -160,7 +162,6 @@ class IdmlTestCase(unittest.TestCase):
   </module>
 </Root>
 """)
-
         xml_file.close()
 
     def test_export_xml(self):

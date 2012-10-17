@@ -186,6 +186,10 @@ class Story(IDMLXMLFile):
             self._node = node
         return self._node
 
+    def set_element_attributes(self, element_id, attrs):
+        element = self.get_element_by_id(element_id)
+        element.set_attributes(attrs)
+
     def set_element_content(self, element_id, content):
         self.clear_element_content(element_id)
         element = self.get_element_by_id(element_id)

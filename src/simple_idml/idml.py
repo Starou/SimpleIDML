@@ -276,6 +276,13 @@ class IDMLPackage(zipfile.ZipFile):
             source_node_children = source_node.getchildren()
             element_id = destination_node.get("Self")
 
+            attrs = source_node.items()
+            if attrs:
+                story = self.get_xml_element_story(destination_node)
+                story.working_copy_path = working_copy_path
+                story.set_element_attributes(element_id, dict(attrs))
+                story.synchronize()
+            
             if not len(source_node_children) and source_node.text:
                 story = self.get_xml_element_story(destination_node)
                 story.working_copy_path = working_copy_path
