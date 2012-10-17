@@ -36,12 +36,13 @@ class StoryTestCase(unittest.TestCase):
     def test_pages(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
         stories = idml_file.stories
-
         story = Story(idml_file, stories[0])
         self.assertEqual(story.node.tag, "Story")
 
     def test_get_element_by_id(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
+        stories = idml_file.stories
+        story = Story(idml_file, stories[1])  # u11b
         elem = story.get_element_by_id("di2i3i2")
         self.assertEqual(elem.get("MarkupTag"), "XMLTag/content")
 

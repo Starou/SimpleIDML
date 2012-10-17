@@ -80,10 +80,10 @@ class IDMLXMLFile(object):
         elem = self.dom.xpath("//XMLElement[@Self='%s']" % value)
         # etree FutureWarning when trying to simply do: elem = len(elem) and elem[0] or None
         if len(elem):
-            elem = elem[0]
+            elem = XMLElement(elem[0])
         else:
             elem = None
-        return XMLElement(elem)
+        return elem
 
 
 class Spread(IDMLXMLFile):
