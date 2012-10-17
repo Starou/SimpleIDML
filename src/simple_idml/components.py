@@ -473,3 +473,25 @@ class XMLElement(Proxy):
         content_element.text = content
         style_element.append(content_element)
         self.element.append(style_element)
+
+    def get_attribute(self, name):
+        attr_node = self._get_attribute_node(name)
+        return (attr_node is not None and
+                attr_node.get("Value") or None)
+
+    def _get_attribute_node(self, name):
+        attr_node = self.xpath("./XMLAttribute[@Name='%s']" % name)
+        if len(attr_node):
+            return attr_node[0]
+
+    def set_attribute(self, name, value):
+        attr_node = self._get_attribute_node(name)
+        if attr_node is None:
+            attr_node = etree.Element("XMLAttribute", Name=name,
+                                      Self="%sXMLAttributen%s" % (self.get("Self"), name))
+            self.append(attr_node)
+        attr_node.set("Value", value)
+
+    def set_attributes(self, attributes):
+        for name, value in attributes.items():
+            self.set_attribute(name, value)

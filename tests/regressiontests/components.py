@@ -9,7 +9,7 @@ from lxml import etree
 
 from simple_idml.idml import IDMLPackage
 from simple_idml.components import RECTO, VERSO
-from simple_idml.components import Spread, Story, StyleMapping
+from simple_idml.components import Spread, Story, StyleMapping, XMLElement
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "simpleIDML_files")
@@ -125,9 +125,59 @@ class StyleMappingTestCase(unittest.TestCase):
         style_mapping = StyleMapping(idml_file)
 
 
+class XMLElementTestCase(unittest.TestCase):
+    def test_attributes(self):
+        dom = etree.fromstring("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
+                <Story Self="u10d">
+                    <XMLElement Self="di3i4" MarkupTag="XMLTag/module" XMLContent="u10d">
+                        <ParagraphStyleRange>
+                            <CharacterStyleRange>
+                                <XMLElement Self="di3i4i1" MarkupTag="XMLTag/main_picture" XMLContent="u143">
+                                    <XMLAttribute Self="di3i4i1XMLAttributenhref" Name="href" Value="file:///piscine.jpg"/>
+                                    <XMLAttribute Self="di3i4i1XMLAttributenbar" Name="bar" Value="baz"/>
+                                </XMLElement>
+                                <XMLElement Self="di3i4i2" MarkupTag="XMLTag/headline" XMLContent="ue1"/>
+                                <XMLElement Self="di3i4i3" MarkupTag="XMLTag/Story" XMLContent="uf7"/>
+                            </CharacterStyleRange>
+                        </ParagraphStyleRange>
+                    </XMLElement>
+                </Story>
+            </idPkg:Story>""")
+
+        # Getter.
+        module_node = dom.xpath(".//XMLElement[@Self='di3i4']")[0]
+        module_elt = XMLElement(module_node)
+        self.assertEqual(module_elt.get_attribute("foo"), None)
+        self.assertEqual(module_elt.get_attribute("href"), None)
+        self.assertEqual(module_elt.get_attribute("bar"), None)
+
+        picture_node = dom.xpath(".//XMLElement[@Self='di3i4i1']")[0]
+        picture_elt = XMLElement(picture_node)
+        self.assertEqual(picture_elt.get_attribute("foo"), None)
+        self.assertEqual(picture_elt.get_attribute("href"), "file:///piscine.jpg")
+        self.assertEqual(picture_elt.get_attribute("bar"), "baz")
+
+        # Setter.
+        module_elt.set_attribute("foo", "bar")
+        self.assertEqual(module_elt.get_attribute("foo"), "bar")
+
+        picture_elt.set_attribute("href", "file:///jardin.jpg")
+        self.assertEqual(picture_elt.get_attribute("href"), "file:///jardin.jpg")
+        picture_elt.set_attribute("bar", "hello")
+        self.assertEqual(picture_elt.get_attribute("bar"), "hello")
+
+        # Set multiples attributes at once.
+        picture_elt.set_attributes({"href": "file:///maison.jpg", 
+                                    "style": "fancy"})
+        self.assertEqual(picture_elt.get_attribute("href"), "file:///maison.jpg")
+        self.assertEqual(picture_elt.get_attribute("style"), "fancy")
+
+
 def suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(SpreadTestCase)
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(StoryTestCase))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(PageTestCase))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(StyleMappingTestCase))
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(XMLElementTestCase))
     return suite
