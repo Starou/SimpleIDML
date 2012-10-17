@@ -178,6 +178,7 @@ class IdmlTestCase(unittest.TestCase):
   </module>
 </Root>
 """)
+
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_imported-xml.idml"))
         xml = idml_file.export_xml()
         self.assertEqual(xml,
@@ -192,6 +193,23 @@ class IdmlTestCase(unittest.TestCase):
   </module>
 </Root>
 """)
+
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo-with-attributes.idml"))
+        xml = idml_file.export_xml()
+        #print"\n", (etree.tostring(etree.fromstring(xml), pretty_print=True))
+        self.assertEqual(xml,
+"""<Root>
+  <module>
+    <main_picture style="fancy" foo="bar"/>
+    <headline>THE HEADLINE HERE</headline>
+    <Story>
+      <article>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt.</article>
+      <informations bar="baz">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt.</informations>
+    </Story>
+  </module>
+</Root>
+""")
+
 
     def test_prefix(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),

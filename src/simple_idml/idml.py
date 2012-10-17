@@ -333,6 +333,8 @@ class IDMLPackage(zipfile.ZipFile):
                 pass
             else:
                 story_node = story.get_element_by_id(source_node.get("Self"))
+                for attr, value in story_node.get_attributes().items():
+                    destination_node.set(attr, value)
                 story_content_nodes = story.get_element_content_nodes(story_node)
             if story_content_nodes and not source_node_children:
                 #TODO join() with XML_PARAGRAPH_SEP if getnext().tag == "Br"
