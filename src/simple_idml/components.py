@@ -300,7 +300,7 @@ class StyleMapping(IDMLXMLFile):
 
     def __init__(self, idml_package, working_copy_path=None):
         super(StyleMapping, self).__init__(idml_package, working_copy_path)
-        self._styles = None
+        self._character_style_mapping = None
 
     @property
     def fobj(self):
@@ -321,6 +321,17 @@ class StyleMapping(IDMLXMLFile):
             self._dom = etree.fromstring(self.initial_dom)
         return self._dom
 
+    @property
+    def character_style_mapping(self):
+        if self._character_style_mapping is None:
+            mapping = {}
+            for node in self.iter_stylenode():
+                tag = node.get("MarkupTag").replace("XMLTag/", "")
+                style = node.get("MappedStyle").replace("CharacterStyle/", "")
+                mapping[tag] = style
+            self._character_style_mapping = mapping
+        return self._character_style_mapping
+
     def _initialize_fobj(self):
         filename = os.path.join(self.working_copy_path, self.name)
         fobj = open(filename, mode="w+")
@@ -334,6 +345,7 @@ class StyleMapping(IDMLXMLFile):
 
     def add_stylenode(self, node):
         self.dom.append(copy.deepcopy(node))
+        self._character_style_mapping = None
 
 
 class Page(object):
