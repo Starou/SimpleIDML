@@ -307,11 +307,10 @@ class IDMLPackage(zipfile.ZipFile):
                             destination_node_child = next(destination_node_children, None)
                         # Only mapped style tags are added.
                         elif source_child.tag in self.style_mapping.character_style_mapping.keys():
+                            style = self.style_mapping.character_style_mapping[source_child.tag]
                             story = self.get_xml_element_story(destination_node)
                             new_xml_element = XMLElement(tag=source_child.tag)
-                            new_xml_element.add_content(source_child.text,
-                                                        style=self.get_character_style_for_xml_tag(
-                                                            source_child.tag))
+                            new_xml_element.add_content(source_child.text, style=style)
                             story.add_element(element_id, new_xml_element.element)
                             if source_child.tail:
                                 story.add_content_to_element(element_id, source_child.tail)
@@ -734,19 +733,6 @@ class IDMLPackage(zipfile.ZipFile):
     def get_elem_translation(self, elem):
         item_transform = elem.get("ItemTransform").split(" ")
         return Decimal(item_transform[4]), Decimal(item_transform[5])
-
-    def get_character_style_for_xml_tag(self, xml_tag):
-        style_attr = "MappedStyle"
-        rx_style = re.compile("CharacterStyle/(.*)")
-        if xml_tag not in self._character_style_mapping:
-            mapping_dom = etree.fromstring(self.open(MAPPING, mode="r").read())
-            styles = [rx_style.match(node.get(style_attr)).group(1)
-                      for node in mapping_dom.xpath(
-                          "//XMLImportMap[@MarkupTag='XMLTag/%s']" % xml_tag)
-                      if rx_style.match(node.get(style_attr))]
-            if styles:
-                self._character_style_mapping[xml_tag] = styles[0]
-        return self._character_style_mapping.get(xml_tag)
 
 
 class XMLDocument(object):
