@@ -262,6 +262,7 @@ class IDMLPackage(zipfile.ZipFile):
             else:
                 story = Story(idml_package=self, 
                               story_name="%s/Story_%s.xml" % (STORIES_DIRNAME, story_id))
+        story.working_copy_path = self.working_copy_path
         return story
 
     @use_working_copy
@@ -275,7 +276,6 @@ class IDMLPackage(zipfile.ZipFile):
         def set_destination_node_content(destination_node, content):
             element_id = destination_node.get("Self")
             story = self.get_xml_element_story(destination_node)
-            story.working_copy_path = working_copy_path
             story.set_element_content(element_id, content)
             story.synchronize()
 
@@ -285,7 +285,6 @@ class IDMLPackage(zipfile.ZipFile):
 
             if source_node.items():
                 story = self.get_xml_element_story(destination_node)
-                story.working_copy_path = working_copy_path
                 story.set_element_attributes(element_id, dict(source_node.items()))
                 story.synchronize()
 
@@ -309,7 +308,6 @@ class IDMLPackage(zipfile.ZipFile):
                         # Only mapped style tags are added.
                         elif source_child.tag in self.style_mapping.character_style_mapping.keys():
                             story = self.get_xml_element_story(destination_node)
-                            story.working_copy_path = working_copy_path
                             new_xml_element = XMLElement(tag=source_child.tag)
                             new_xml_element.add_content(source_child.text,
                                                         style=self.get_character_style_for_xml_tag(
