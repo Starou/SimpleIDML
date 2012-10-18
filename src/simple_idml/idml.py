@@ -272,6 +272,13 @@ class IDMLPackage(zipfile.ZipFile):
         # destination_node is not the node in story file, but a representation from self.XMLStructure.
         destination_node = self.XMLStructure.dom.xpath(at)[0]
 
+        def set_destination_node_content(destination_node, content):
+            element_id = destination_node.get("Self")
+            story = self.get_xml_element_story(destination_node)
+            story.working_copy_path = working_copy_path
+            story.set_element_content(element_id, content)
+            story.synchronize()
+
         def import_content(source_node, destination_node):
             source_node_children = source_node.getchildren()
             element_id = destination_node.get("Self")
@@ -284,10 +291,7 @@ class IDMLPackage(zipfile.ZipFile):
                 story.synchronize()
             # i.e: source_node = <title>Hello world!</title> 
             if not len(source_node_children) and source_node.text:
-                story = self.get_xml_element_story(destination_node)
-                story.working_copy_path = working_copy_path
-                story.set_element_content(element_id, source_node.text)
-                story.synchronize()
+                set_destination_node_content(destination_node, source_node.text)
             else:
                 source_node_children_tags = [n.tag for n in source_node_children]
                 destination_node_children = destination_node.iterchildren()
@@ -299,10 +303,7 @@ class IDMLPackage(zipfile.ZipFile):
                     destination_node_child = next(destination_node_children, None)
 
                     if source_node.text.strip() != "":
-                        story = self.get_xml_element_story(destination_node)
-                        story.working_copy_path = working_copy_path
-                        story.set_element_content(element_id, source_node.text)
-                        story.synchronize()
+                        set_destination_node_content(destination_node, source_node.text)
 
                     for i, source_child in enumerate(source_node_children):
                         # Source and destination match.
