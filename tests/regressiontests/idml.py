@@ -164,6 +164,30 @@ class IdmlTestCase(unittest.TestCase):
 """)
         xml_file.close()
 
+    def test_import_xml_with_ignored_tags(self):
+        # Idem with a xml file having extra tags to be ignored.
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
+                     os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes.idml"))
+        idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes.idml"))
+        xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-with-extra-nodes.xml"), "r")
+        idml_file = idml_file.import_xml(xml_file, at="/Root/module[1]")
+        xml = idml_file.export_xml()
+        #print"\n", (etree.tostring(etree.fromstring(xml), pretty_print=True))
+        self.assertEqual(xml,
+"""<Root>
+  <module>
+    <main_picture href="file:///steve.jpg"/>
+    <headline>The Life Aquatic with Steve Zissou</headline>
+    <Story>
+      <article>While oceanographer and documentarian <bold>Steve Zissou (Bill Murray) is working on his latest documentary at sea, his best friend Esteban du Plantier (Seymour Cassel)</bold> is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark's destruction.
+            The crew aboard Zissou's research vessel <italique>Belafonte</italique> includes <italique>Pel&#233; dos Santos (Seu Jorge)</italique>, a safety expert and Brazilian musician who sings David Bowie songs in Portuguese, and Klaus Daimler (Willem Dafoe), the German second-in-command who viewed Zissou and Esteban as father figures</article>
+      <informations>The Life Aquatic with Steve Zissou is an American comedy-drama film directed, written, and co-produced by Wes Anderson.</informations>
+    </Story>
+  </module>
+</Root>
+""")
+        xml_file.close()
+
     def test_export_xml(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
         xml = idml_file.export_xml()

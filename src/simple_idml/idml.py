@@ -282,7 +282,7 @@ class IDMLPackage(zipfile.ZipFile):
                 story.working_copy_path = working_copy_path
                 story.set_element_attributes(element_id, dict(attrs))
                 story.synchronize()
-            
+            # i.e: source_node = <title>Hello world!</title> 
             if not len(source_node_children) and source_node.text:
                 story = self.get_xml_element_story(destination_node)
                 story.working_copy_path = working_copy_path
@@ -290,29 +290,37 @@ class IDMLPackage(zipfile.ZipFile):
                 story.synchronize()
             else:
                 source_node_children_tags = [n.tag for n in source_node_children]
-                destination_node_children = destination_node.getchildren()
-                destination_node_children_tags = [n.tag for n in destination_node_children]
+                destination_node_children = destination_node.iterchildren()
+                destination_node_children_tags = [n.tag for n in destination_node.iterchildren()]
+                # FIXME: what if source_node.text exists ?
                 if destination_node_children_tags == source_node_children_tags:
                     map(import_content, source_node_children, destination_node.iterchildren())
-                elif not destination_node_children:
-                    for i, child in enumerate(source_node.iter()):
+                else:
+                    destination_node_child = next(destination_node_children, None)
+
+                    if source_node.text.strip() != "":
                         story = self.get_xml_element_story(destination_node)
                         story.working_copy_path = working_copy_path
-                        if i == 0:
-                            story.set_element_content(element_id, child.text)
-                            story.synchronize()
-                        else:
-                            new_xml_element = XMLElement(tag=child.tag)
-                            new_xml_element.add_content(child.text,
-                                                        style=self.get_character_style_for_xml_tag(
-                                                            child.tag))
-                            story.add_element(element_id, new_xml_element.element)
-                            if child.tail:
-                                story.add_content_to_element(element_id, child.tail)
-                            story.synchronize()
+                        story.set_element_content(element_id, source_node.text)
+                        story.synchronize()
 
-                elif destination_node_children_tags != source_node_children_tags:
-                    raise NotImplementedError
+                    for i, source_child in enumerate(source_node_children):
+                        # Source and destination match.
+                        if destination_node_child is not None and source_child.tag == destination_node_child.tag:
+                            import_content(source_child, destination_node_child)
+                            destination_node_child = next(destination_node_children, None)
+                        # Only mapped style tags are added.
+                        elif source_child.tag in self.style_mapping.character_style_mapping.keys():
+                            story = self.get_xml_element_story(destination_node)
+                            story.working_copy_path = working_copy_path
+                            new_xml_element = XMLElement(tag=source_child.tag)
+                            new_xml_element.add_content(source_child.text,
+                                                        style=self.get_character_style_for_xml_tag(
+                                                            source_child.tag))
+                            story.add_element(element_id, new_xml_element.element)
+                            if source_child.tail:
+                                story.add_content_to_element(element_id, source_child.tail)
+                            story.synchronize()
 
         import_content(source_node, destination_node)
         return self
