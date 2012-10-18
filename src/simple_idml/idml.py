@@ -283,16 +283,16 @@ class IDMLPackage(zipfile.ZipFile):
             source_node_children = source_node.getchildren()
             element_id = destination_node.get("Self")
 
-            attrs = source_node.items()
-            if attrs:
+            if source_node.items():
                 story = self.get_xml_element_story(destination_node)
                 story.working_copy_path = working_copy_path
-                story.set_element_attributes(element_id, dict(attrs))
+                story.set_element_attributes(element_id, dict(source_node.items()))
                 story.synchronize()
-            # i.e: source_node = <title>Hello world!</title> 
-            if not len(source_node_children) and source_node.text:
+
+            if source_node.text and (source_node.text.strip() != ""):
                 set_destination_node_content(destination_node, source_node.text)
-            else:
+
+            if len(source_node_children):
                 source_node_children_tags = [n.tag for n in source_node_children]
                 destination_node_children = destination_node.iterchildren()
                 destination_node_children_tags = [n.tag for n in destination_node.iterchildren()]
@@ -301,10 +301,6 @@ class IDMLPackage(zipfile.ZipFile):
                     map(import_content, source_node_children, destination_node.iterchildren())
                 else:
                     destination_node_child = next(destination_node_children, None)
-
-                    if source_node.text.strip() != "":
-                        set_destination_node_content(destination_node, source_node.text)
-
                     for i, source_child in enumerate(source_node_children):
                         # Source and destination match.
                         if destination_node_child is not None and source_child.tag == destination_node_child.tag:
