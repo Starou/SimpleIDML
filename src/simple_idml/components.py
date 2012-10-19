@@ -196,7 +196,7 @@ class Story(IDMLXMLFile):
         try:
             self.get_element_content_nodes(element)[0].text = content
         except IndexError as e:
-            raise IndexError(u"Story \"%s\", element \"%s\": %s" % (self.name, element_id, e))
+            pass
 
     def clear_element_content(self, element_id):
         element = self.get_element_by_id(element_id)
