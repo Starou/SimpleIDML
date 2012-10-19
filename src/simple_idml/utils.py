@@ -7,7 +7,7 @@ from types import MethodType
 
 
 rx_numbered = re.compile(r"(.*?)(\d+)")
-rx_xmltag_sibling_id = re.compile(r"(d.*i)(\d+)")
+rx_xmltag_sibling_id = re.compile(r"(.*?d.*i)(\d+)")
 
 
 def increment_filename(filename):

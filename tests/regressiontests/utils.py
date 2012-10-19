@@ -26,8 +26,14 @@ class UtilsTestCase(unittest.TestCase):
         self.assertEqual(increment_xmltag_id("di3i4", "sibling"), "di3i5")
         self.assertEqual(increment_xmltag_id("di3i4i10", "sibling"), "di3i4i11")
 
+        self.assertEqual(increment_xmltag_id("MyL33tPrefixdi3i4", "sibling"), "MyL33tPrefixdi3i5")
+        self.assertEqual(increment_xmltag_id("MyL33tPrefixdi3i4i10", "sibling"), "MyL33tPrefixdi3i4i11")
+
         self.assertEqual(increment_xmltag_id("di3i4", "child"), "di3i4i1")
         self.assertEqual(increment_xmltag_id("di3i4i10", "child"), "di3i4i10i1")
+
+        self.assertEqual(increment_xmltag_id("MyL33tPrefixdi3i4", "child"), "MyL33tPrefixdi3i4i1")
+        self.assertEqual(increment_xmltag_id("MyL33tPrefixdi3i4i10", "child"), "MyL33tPrefixdi3i4i10i1")
 
 
 def suite():
