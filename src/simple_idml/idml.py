@@ -289,8 +289,6 @@ class IDMLPackage(zipfile.ZipFile):
                 story.synchronize()
 
             set_destination_node_content(destination_node, source_node.text or "")
-            #if source_node.text and (source_node.text.strip() != ""):
-            #    set_destination_node_content(destination_node, source_node.text)
 
             if len(source_node_children):
                 source_node_children_tags = [n.tag for n in source_node_children]
