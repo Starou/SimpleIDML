@@ -10,7 +10,7 @@ from decimal import Decimal
 from lxml import etree
 from xml.dom.minidom import parseString
 
-from simple_idml.components import Designmap, Spread, Story, BackingStory, StyleMapping, XMLElement
+from simple_idml.components import Designmap, Spread, Story, BackingStory, Style, StyleMapping, XMLElement
 from simple_idml.decorators import use_working_copy
 from simple_idml.utils import increment_filename
 
@@ -85,6 +85,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._tags = None
         self._font_families = None
         self._style_groups = None
+        self._style = None
         self._style_mapping = None
         self._spreads = None
         self._spreads_objects = None
@@ -175,6 +176,7 @@ class IDMLPackage(zipfile.ZipFile):
             font_families_src.close()
         return self._font_families
 
+    # TODO: use self.styles object.
     @property
     def style_groups(self):
         """ Groups are `RootCharacterStyleGroup', `RootParagraphStyleGroup' etc. """
@@ -188,6 +190,13 @@ class IDMLPackage(zipfile.ZipFile):
             self._style_groups = style_groups
             style_groups_src.close()
         return self._style_groups
+
+    @property
+    def style(self):
+        if self._style is None:
+            style = Style(self, self.working_copy_path)
+            self._style = style
+        return self._style
 
     @property
     def style_mapping(self):
@@ -306,13 +315,15 @@ class IDMLPackage(zipfile.ZipFile):
                             destination_node_child = next(destination_node_children, None)
                         # Only mapped style tags are added.
                         elif source_child.tag in self.style_mapping.character_style_mapping.keys():
-                            style = self.style_mapping.character_style_mapping[source_child.tag]
+                            style_name = self.style_mapping.character_style_mapping[source_child.tag]
+                            style_node = self.style.get_style_node_by_name(style_name)
                             story = self.get_xml_element_story(destination_node)
+                            parent = story.get_element_by_id(element_id)
                             new_xml_element = XMLElement(tag=source_child.tag)
-                            new_xml_element.add_content(source_child.text, style=style)
+                            new_xml_element.add_content(source_child.text, parent, style_node=style_node)
                             story.add_element(element_id, new_xml_element.element)
                             if source_child.tail:
-                                story.add_content_to_element(element_id, source_child.tail)
+                                story.add_content_to_element(element_id, source_child.tail, parent)
                             story.synchronize()
 
         import_content(source_node, destination_node)

@@ -228,10 +228,10 @@ class Story(IDMLXMLFile):
         node.append(element)
         self.set_element_id(element)
 
-    def add_content_to_element(self, element_id, content):
+    def add_content_to_element(self, element_id, content, parent=None):
         element = self.get_element_by_id(element_id)
         xml_element = XMLElement(element=element)
-        xml_element.add_content(content)
+        xml_element.add_content(content, parent)
 
 
 class BackingStory(Story):
@@ -289,6 +289,16 @@ class Designmap(IDMLXMLFile):
         section_node = self.section_node
         current_page_start = section_node.get(self.page_start_attr)
         section_node.set(self.page_start_attr, "%s%s" % (prefix, current_page_start))
+
+
+class Style(IDMLXMLFile):
+    name = "Resources/Styles.xml"
+
+    def __init__(self, idml_package, working_copy_path=None):
+        super(Style, self).__init__(idml_package, working_copy_path)
+
+    def get_style_node_by_name(self, style_name):
+        return self.dom.xpath(".//CharacterStyle[@Self='%s']" % style_name)[0]
 
 
 class StyleMapping(IDMLXMLFile):
@@ -482,13 +492,44 @@ class XMLElement(Proxy):
             self.element = etree.Element("XMLElement", MarkupTag="XMLTag/%s" % tag)
         super(XMLElement, self).__init__(target=self.element)
 
-    def add_content(self, content, style=None):
-        style = style or "CharacterStyle/$ID/[No character style]"
-        style_element = etree.Element("CharacterStyleRange", AppliedCharacterStyle=style)
+    def add_content(self, content, parent=None, style_node=None):
+        style_element = self._create_style_element(parent, style_node)
         content_element = etree.Element("Content")
         content_element.text = content
         style_element.append(content_element)
         self.element.append(style_element)
+
+    def _create_style_element(self, parent, style_node):
+        """
+            o style_node : etree.Element from Resources/Styles.xml.
+            o parent : the parent node to self to get access to `inline' style.
+        
+        """
+        style = (style_node is not None and
+                 style_node.get("Self") or
+                 "CharacterStyle/$ID/[No character style]")
+        style_element = etree.Element("CharacterStyleRange", AppliedCharacterStyle=style)
+        properties_element = etree.SubElement(style_element, "Properties")
+        # If the parent specify a font face, a font style or a font size and the style_node
+        # don't, it is added.
+        try:
+            parent_style_node = parent.xpath(("./ParagraphStyleRange/CharacterStyleRange | \
+                                              ./CharacterStyleRange"))[0]
+        # parent is None or has no inline style.
+        except (IndexError, AttributeError):
+            pass
+        else:
+            for attr in ("PointSize", "FontStyle"):
+                if parent_style_node.get(attr) is not None and (style_node is None or not style_node.get(attr)):
+                    style_element.set(attr, parent_style_node.get(attr))
+
+            # the font face is stored in <Properties> sub-element.
+            parent_font_node = parent_style_node.find("Properties/AppliedFont")
+            font_node = (style_node is not None and style_node.find("Properties/AppliedFont") is not None) or None
+            if font_node is None and parent_font_node is not None:
+                properties_element.append(copy.deepcopy(parent_font_node))
+
+        return style_element
 
     def get_attribute(self, name):
         attr_node = self._get_attribute_node(name)
