@@ -327,7 +327,8 @@ class StyleMapping(IDMLXMLFile):
             mapping = {}
             for node in self.iter_stylenode():
                 tag = node.get("MarkupTag").replace("XMLTag/", "")
-                style = node.get("MappedStyle").replace("CharacterStyle/", "")
+                style = node.get("MappedStyle")
+                #style = node.get("MappedStyle").replace("CharacterStyle/", "")
                 mapping[tag] = style
             self._character_style_mapping = mapping
         return self._character_style_mapping
@@ -482,8 +483,7 @@ class XMLElement(Proxy):
         super(XMLElement, self).__init__(target=self.element)
 
     def add_content(self, content, style=None):
-        style = style or "$ID/[No character style]"
-        style = "CharacterStyle/%s" % style
+        style = style or "CharacterStyle/$ID/[No character style]"
         style_element = etree.Element("CharacterStyleRange", AppliedCharacterStyle=style)
         content_element = etree.Element("Content")
         content_element.text = content

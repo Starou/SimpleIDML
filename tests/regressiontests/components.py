@@ -128,8 +128,8 @@ class StyleMappingTestCase(unittest.TestCase):
     def test_character_style_mapping(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), mode="r")
         style_mapping = StyleMapping(idml_file)
-        # This is a bad example since tags and styles share the same name...
-        self.assertEqual(style_mapping.character_style_mapping, {'italique': 'italique', 'bold': 'bold'})
+        self.assertEqual(style_mapping.character_style_mapping,
+                         {'italique': 'CharacterStyle/italique', 'bold': 'CharacterStyle/bold'})
 
 
 class XMLElementTestCase(unittest.TestCase):
