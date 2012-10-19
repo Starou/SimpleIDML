@@ -291,6 +291,16 @@ class Designmap(IDMLXMLFile):
         section_node.set(self.page_start_attr, "%s%s" % (prefix, current_page_start))
 
 
+class Style(IDMLXMLFile):
+    name = "Resources/Styles.xml"
+
+    def __init__(self, idml_package, working_copy_path=None):
+        super(Style, self).__init__(idml_package, working_copy_path)
+
+    def get_style_node_by_name(self, style_name):
+        return self.dom.xpath(".//CharacterStyle[@Self='%s']" % style_name)[0]
+
+
 class StyleMapping(IDMLXMLFile):
     name = "XML/Mapping.xml"
     initial_dom = ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\

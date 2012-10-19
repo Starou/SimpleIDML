@@ -9,7 +9,7 @@ from lxml import etree
 
 from simple_idml.idml import IDMLPackage
 from simple_idml.components import RECTO, VERSO
-from simple_idml.components import Spread, Story, StyleMapping, XMLElement
+from simple_idml.components import Spread, Story, Style, StyleMapping, XMLElement
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
@@ -115,6 +115,24 @@ class PageTestCase(unittest.TestCase):
         self.assertEqual(page2.face, RECTO)
 
 
+class StyleTestCase(unittest.TestCase):
+    def test_get_style_node_by_name(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), mode="r")
+        style = Style(idml_file)
+        style_node = style.get_style_node_by_name("CharacterStyle/bold")
+        #print(etree.tostring(style_node, pretty_print=True)).replace("\t"," ")
+        self.assertEqual(etree.tostring(style_node, pretty_print=True).replace("\t"," "),
+# Don't remove trailing space !
+"""<CharacterStyle xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" Self="CharacterStyle/bold" Imported="false" KeyboardShortcut="0 0" Name="bold" FontStyle="Bold">
+   <Properties>
+    <BasedOn type="string">$ID/[No character style]</BasedOn>
+    <PreviewColor type="enumeration">Nothing</PreviewColor>
+   </Properties>
+  </CharacterStyle>
+  
+""")
+
+
 class StyleMappingTestCase(unittest.TestCase):
     def test_styles(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), mode="r")
@@ -189,6 +207,7 @@ def suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(SpreadTestCase)
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(StoryTestCase))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(PageTestCase))
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(StyleTestCase))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(StyleMappingTestCase))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(XMLElementTestCase))
     return suite
