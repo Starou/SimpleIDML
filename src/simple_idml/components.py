@@ -492,13 +492,44 @@ class XMLElement(Proxy):
             self.element = etree.Element("XMLElement", MarkupTag="XMLTag/%s" % tag)
         super(XMLElement, self).__init__(target=self.element)
 
-    def add_content(self, content, style=None):
-        style = style or "CharacterStyle/$ID/[No character style]"
-        style_element = etree.Element("CharacterStyleRange", AppliedCharacterStyle=style)
+    def add_content(self, content, parent=None, style_node=None):
+        style_element = self._create_style_element(parent, style_node)
         content_element = etree.Element("Content")
         content_element.text = content
         style_element.append(content_element)
         self.element.append(style_element)
+
+    def _create_style_element(self, parent, style_node):
+        """
+            o style_node : etree.Element from Resources/Styles.xml.
+            o parent : the parent node to self to get access to `inline' style.
+        
+        """
+        style = (style_node is not None and
+                 style_node.get("Self") or
+                 "CharacterStyle/$ID/[No character style]")
+        style_element = etree.Element("CharacterStyleRange", AppliedCharacterStyle=style)
+        properties_element = etree.SubElement(style_element, "Properties")
+        # If the parent specify a font face, a font style or a font size and the style_node
+        # don't, it is added.
+        try:
+            parent_style_node = parent.xpath(("./ParagraphStyleRange/CharacterStyleRange | \
+                                              ./CharacterStyleRange"))[0]
+        # parent is None or has no inline style.
+        except (IndexError, AttributeError):
+            pass
+        else:
+            for attr in ("PointSize", "FontStyle"):
+                if not style_node.get(attr) and parent_style_node.get(attr):
+                    style_element.set(attr, parent_style_node.get(attr))
+
+            # the font face is stored in <Properties> sub-element.
+            parent_font_node = parent_style_node.find("Properties/AppliedFont")
+            font_node = style_node.find("Properties/AppliedFont")
+            if font_node is None and parent_font_node is not None:
+                properties_element.append(copy.deepcopy(parent_font_node))
+
+        return style_element
 
     def get_attribute(self, name):
         attr_node = self._get_attribute_node(name)

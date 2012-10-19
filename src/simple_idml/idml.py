@@ -315,10 +315,12 @@ class IDMLPackage(zipfile.ZipFile):
                             destination_node_child = next(destination_node_children, None)
                         # Only mapped style tags are added.
                         elif source_child.tag in self.style_mapping.character_style_mapping.keys():
-                            style = self.style_mapping.character_style_mapping[source_child.tag]
+                            style_name = self.style_mapping.character_style_mapping[source_child.tag]
+                            style_node = self.style.get_style_node_by_name(style_name)
                             story = self.get_xml_element_story(destination_node)
+                            parent = story.get_element_by_id(element_id)
                             new_xml_element = XMLElement(tag=source_child.tag)
-                            new_xml_element.add_content(source_child.text, style=style)
+                            new_xml_element.add_content(source_child.text, parent, style_node=style_node)
                             story.add_element(element_id, new_xml_element.element)
                             if source_child.tail:
                                 story.add_content_to_element(element_id, source_child.tail)
