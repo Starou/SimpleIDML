@@ -228,10 +228,10 @@ class Story(IDMLXMLFile):
         node.append(element)
         self.set_element_id(element)
 
-    def add_content_to_element(self, element_id, content):
+    def add_content_to_element(self, element_id, content, parent=None):
         element = self.get_element_by_id(element_id)
         xml_element = XMLElement(element=element)
-        xml_element.add_content(content)
+        xml_element.add_content(content, parent)
 
 
 class BackingStory(Story):
@@ -520,12 +520,12 @@ class XMLElement(Proxy):
             pass
         else:
             for attr in ("PointSize", "FontStyle"):
-                if not style_node.get(attr) and parent_style_node.get(attr):
+                if parent_style_node.get(attr) is not None and (style_node is None or not style_node.get(attr)):
                     style_element.set(attr, parent_style_node.get(attr))
 
             # the font face is stored in <Properties> sub-element.
             parent_font_node = parent_style_node.find("Properties/AppliedFont")
-            font_node = style_node.find("Properties/AppliedFont")
+            font_node = (style_node is not None and style_node.find("Properties/AppliedFont") is not None) or None
             if font_node is None and parent_font_node is not None:
                 properties_element.append(copy.deepcopy(parent_font_node))
 

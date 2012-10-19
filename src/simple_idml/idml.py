@@ -323,7 +323,7 @@ class IDMLPackage(zipfile.ZipFile):
                             new_xml_element.add_content(source_child.text, parent, style_node=style_node)
                             story.add_element(element_id, new_xml_element.element)
                             if source_child.tail:
-                                story.add_content_to_element(element_id, source_child.tail)
+                                story.add_content_to_element(element_id, source_child.tail, parent)
                             story.synchronize()
 
         import_content(source_node, destination_node)
