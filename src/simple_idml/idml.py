@@ -92,7 +92,6 @@ class IDMLPackage(zipfile.ZipFile):
         self._pages = None
         self._stories = None
         self._story_ids = None
-        self._character_style_mapping = {}
 
     def namelist(self):
         if not self.working_copy_path:
