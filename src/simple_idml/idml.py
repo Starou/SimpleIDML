@@ -505,7 +505,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         # Update designmap.xml because it may not reference the Mapping file.
         designmap = Designmap(self, working_copy_path=self.working_copy_path)
-        if not designmap.style_mapping_node:
+        if designmap.style_mapping_node is not None:
             designmap.set_style_mapping_node()
             designmap.synchronize()
 
