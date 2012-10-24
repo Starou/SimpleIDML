@@ -82,6 +82,7 @@ class IDMLPackage(zipfile.ZipFile):
 
     def init_lazy_references(self):
         self._XMLStructure = None
+        self._xml_structure_tree = None
         self._tags = None
         self._font_families = None
         self._style_groups = None
@@ -153,6 +154,13 @@ class IDMLPackage(zipfile.ZipFile):
             backing_story.close()
             self._XMLStructure = structure
         return self._XMLStructure
+
+    @property
+    def xml_structure_tree(self):
+        if self._xml_structure_tree is None:
+            xml_structure_tree = etree.ElementTree(self.XMLStructure.dom)
+            self._xml_structure_tree = xml_structure_tree
+        return self._xml_structure_tree
 
     @property
     def tags(self):
