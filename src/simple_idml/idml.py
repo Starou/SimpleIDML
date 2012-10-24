@@ -767,7 +767,7 @@ class XMLDocument(object):
     def getElementById(self, id, tag="XMLElement", attr="Self"):
         """ tag is by default XMLElement, the XML tag representing the InDesign XML structure
             inside IDML files."""
-        return self.dom.find("*/%s[@%s='%s']" % (tag, attr, id))
+        return self.dom.find("*//%s[@%s='%s']" % (tag, attr, id))
 
     def prefix_references(self, prefix):
         """Update references inside various XML files found in an IDML package
