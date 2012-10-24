@@ -76,11 +76,13 @@ class IDMLXMLFile(object):
         fobj.write(self.tostring())
         fobj.close()
 
-    def get_element_by_id(self, value):
-        elem = self.dom.xpath("//XMLElement[@Self='%s']" % value)
+    def get_element_by_id(self, value, tag="XMLElement"):
+        elem = self.dom.xpath("//%s[@Self='%s']" % (tag, value))
         # etree FutureWarning when trying to simply do: elem = len(elem) and elem[0] or None
         if len(elem):
-            elem = XMLElement(elem[0])
+            elem = elem[0]
+            if elem.tag == "XMLElement":
+                elem = XMLElement(elem)
         else:
             elem = None
         return elem

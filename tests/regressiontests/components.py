@@ -46,6 +46,9 @@ class StoryTestCase(unittest.TestCase):
         elem = story.get_element_by_id("di2i3i2")
         self.assertEqual(elem.get("MarkupTag"), "XMLTag/content")
 
+        elem = story.get_element_by_id("di2i3i2", tag="*")
+        self.assertEqual(elem.get("MarkupTag"), "XMLTag/content")
+
 
 class PageTestCase(unittest.TestCase):
     def test_page_items(self):
