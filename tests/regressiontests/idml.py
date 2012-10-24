@@ -141,6 +141,16 @@ class IdmlTestCase(unittest.TestCase):
         self.assertEqual(idml_file.get_xml_element_story(xml_element.find("page")).name, "XML/BackingStory.xml")
         self.assertEqual(idml_file.get_xml_element_story(xml_element.find("page/title")).name, "Stories/Story_u1b2.xml")
 
+    def test_get_spread_object_by_xpath(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
+        spread = idml_file.get_spread_object_by_xpath("/Root/module/main_picture")
+        self.assertEqual(spread.name, "Spreads/Spread_ud8.xml")
+
+    def test_get_element_content_id_by_xpath(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
+        element_id = idml_file.get_element_content_id_by_xpath("/Root/module/main_picture")
+        self.assertEqual(element_id, "udf")
+
     def test_import_xml(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))

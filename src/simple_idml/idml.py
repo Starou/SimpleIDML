@@ -300,8 +300,21 @@ class IDMLPackage(zipfile.ZipFile):
             element_id = destination_node.get("Self")
 
             if source_node.items():
+                items = dict(source_node.items())
                 story = self.get_xml_element_story(destination_node)
-                story.set_element_attributes(element_id, dict(source_node.items()))
+                story.set_element_attributes(element_id, items)
+                # image references must be updated in the page item in Spread or Story.
+                if "href" in items:
+                    xpath = self.xml_structure_tree.getpath(destination_node)
+                    element_content_id = self.get_element_content_id_by_xpath(xpath)
+                    resource_path = items.get("href")
+                    story.set_element_resource_path(element_content_id, resource_path)
+                    
+                    spread = self.get_spread_object_by_xpath(xpath)
+                    if spread:
+                        spread.set_element_resource_path(element_content_id,
+                                                         resource_path,
+                                                         synchronize=True)
                 story.synchronize()
 
             set_destination_node_content(destination_node, source_node.text or "")
@@ -718,11 +731,24 @@ class IDMLPackage(zipfile.ZipFile):
                 break
         return result
 
+    def get_spread_object_by_xpath(self, xpath):
+        out = None
+        filename = self.get_spread_by_xpath(xpath)
+        for spread in self.spreads_objects:
+            if filename == spread.name:
+                out = spread
+                break
+        return out
+
+    def get_element_content_id_by_xpath(self, xpath):
+        return self.XMLStructure.dom.xpath(xpath)[0].get("XMLContent")
+
     def get_node_story_by_xpath(self, xpath):
         """Return the Story (or BackingStory) filename containing the element selected by xpath."""
         node = self.XMLStructure.dom.xpath(xpath)[0]
         return self.get_xml_element_story(node).name
 
+    # TODO: use Spread.get_element_by_id(self.get_element_content_id_by_xpath(xpath)) instead.
     def get_spread_elem_by_xpath(self, xpath):
         """Return the spread etree.Element designed by XMLElement xpath. """
 
@@ -752,6 +778,7 @@ class IDMLPackage(zipfile.ZipFile):
         return Decimal(item_transform[4]), Decimal(item_transform[5])
 
 
+# TODO : this class should be replaced by components IDML subclasses.
 class XMLDocument(object):
     """An etree document wrapper to fit IDML XML Structure."""
 
