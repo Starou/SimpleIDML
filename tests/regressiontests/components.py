@@ -31,6 +31,9 @@ class SpreadTestCase(unittest.TestCase):
         self.assertEqual(spread2_pages[0].node.tag, "Page")
         self.assertEqual(spread2_pages[1].node.tag, "Page")
 
+    def test_set_element_resource_path(self):
+        pass
+
 
 class StoryTestCase(unittest.TestCase):
     def test_pages(self):

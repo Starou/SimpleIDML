@@ -87,6 +87,18 @@ class IDMLXMLFile(object):
             elem = None
         return elem
 
+    def set_element_resource_path(self, element_id, resource_path, synchronize=False):
+        """ For Spread and Story subclasses only (this comment is a call for a Mixin). """
+        # the element may not be an <XMLElement> (so tag="*").
+        elt = self.get_element_by_id(element_id, tag="*")
+        if elt is None:
+            return
+        link = elt.find("Link")
+        if link is not None:
+            link.set("LinkResourceURI", resource_path)
+            if synchronize:
+                self.synchronize()
+
 
 class Spread(IDMLXMLFile):
     """
