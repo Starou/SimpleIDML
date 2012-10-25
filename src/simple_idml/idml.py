@@ -799,7 +799,9 @@ class XMLDocument(object):
         "MappedStyle",
         "AppliedCharacterStyle",
         "AppliedParagraphStyle",
+        "AppliedObjectStyle",
         "FillColor",
+        "StrokeColor",
     )
 
     def __init__(self, xml_file=None, XMLElement=None):
