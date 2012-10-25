@@ -352,7 +352,6 @@ class StyleMapping(IDMLXMLFile):
             for node in self.iter_stylenode():
                 tag = node.get("MarkupTag").replace("XMLTag/", "")
                 style = node.get("MappedStyle")
-                #style = node.get("MappedStyle").replace("CharacterStyle/", "")
                 mapping[tag] = style
             self._character_style_mapping = mapping
         return self._character_style_mapping
@@ -371,6 +370,10 @@ class StyleMapping(IDMLXMLFile):
     def add_stylenode(self, node):
         self.dom.append(copy.deepcopy(node))
         self._character_style_mapping = None
+
+
+class Graphic(IDMLXMLFile):
+    name = "Resources/Graphic.xml"
 
 
 class Page(object):
