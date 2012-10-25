@@ -266,11 +266,12 @@ class XMLElementTestCase(unittest.TestCase):
         xml_element = XMLElement(tag="bold")
         style_element = xml_element._create_style_element(parent, style_node)
         self.assertEqual(etree.tostring(style_element, pretty_print=True),
-"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/bold" PointSize="9">
-  <Properties><AppliedFont type="string">Adobe Garamond</AppliedFont>
+"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/bold" PointSize="9" HorizontalScale="90" Tracking="-30">
+  <Properties><Leading type="unit">10</Leading>
+                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
                     </Properties>
 </CharacterStyleRange>
-""")
+""")                         
 
         # Style specify the font style and size : parent font-face is added.
         style_node = etree.fromstring("""
@@ -283,8 +284,9 @@ class XMLElementTestCase(unittest.TestCase):
         xml_element = XMLElement(tag="bold12")
         style_element = xml_element._create_style_element(parent, style_node)
         self.assertEqual(etree.tostring(style_element, pretty_print=True),
-"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/bold12">
-  <Properties><AppliedFont type="string">Adobe Garamond</AppliedFont>
+"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/bold12" HorizontalScale="90" Tracking="-30">
+  <Properties><Leading type="unit">10</Leading>
+                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
                     </Properties>
 </CharacterStyleRange>
 """)                         
@@ -301,8 +303,9 @@ class XMLElementTestCase(unittest.TestCase):
         xml_element = XMLElement(tag="CSBold11")
         style_element = xml_element._create_style_element(parent, style_node)
         self.assertEqual(etree.tostring(style_element, pretty_print=True),
-"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/CSBold11">
-  <Properties/>
+"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/CSBold11" HorizontalScale="90" Tracking="-30">
+  <Properties><Leading type="unit">10</Leading>
+                        </Properties>
 </CharacterStyleRange>
 """)                         
 
