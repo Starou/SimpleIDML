@@ -33,24 +33,6 @@ rx_contentfile2 = re.compile(r"^(%(stories_dirname)s/Story_|%(spreads_dirname)s/
 
 rx_story_id = re.compile(r"%s/Story_([\w]+)\.xml" % STORIES_DIRNAME)
 
-excluded_tags_for_prefix = [
-    "Document",
-    "Language",
-    "NumberingList",
-    "NamedGrid",
-    "TextVariable",
-    "Layer",
-    "Section",
-    "DocumentUser",
-    "CrossReferenceFormat",
-    "BuildingBlock",
-    "IndexingSortOption",
-    "ABullet",
-    "Assignment",
-    "XMLTag",
-    "MasterSpread",
-]
-
 doctypes = {
     'designmap.xml': u'<?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="7.5(142)" ?>',
 }
@@ -782,6 +764,33 @@ class IDMLPackage(zipfile.ZipFile):
 class XMLDocument(object):
     """An etree document wrapper to fit IDML XML Structure."""
 
+    excluded_tags_for_prefix = (
+        "Document",
+        "Language",
+        "NumberingList",
+        "NamedGrid",
+        "TextVariable",
+        "Layer",
+        "Section",
+        "DocumentUser",
+        "CrossReferenceFormat",
+        "BuildingBlock",
+        "IndexingSortOption",
+        "ABullet",
+        "Assignment",
+        "XMLTag",
+        "MasterSpread",
+    )
+    prefixable_attrs = (
+        "Self",
+        "XMLContent",
+        "ParentStory",
+        "MappedStyle",
+        "AppliedCharacterStyle",
+        "AppliedParagraphStyle",
+        "FillColor",
+    )
+
     def __init__(self, xml_file=None, XMLElement=None):
         if xml_file:
             self.xml_file = xml_file
@@ -806,11 +815,10 @@ class XMLDocument(object):
         # <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
         #  PointSize="10" />
         for elt in self.dom.iter():
-            if elt.tag in excluded_tags_for_prefix:
+            if elt.tag in self.excluded_tags_for_prefix:
                 continue
-            for attr in ("Self", "XMLContent", "ParentStory", "MappedStyle", "AppliedCharacterStyle"):
+            for attr in self.prefixable_attrs:
                 if elt.get(attr):
-                    #TODO prefix_element_attr(attr, prefix)
                     elt.set(attr, "%s%s" % (prefix, elt.get(attr)))
 
         # <idPkg:Spread src="Spreads/Spread_ub6.xml"/>

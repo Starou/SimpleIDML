@@ -536,7 +536,7 @@ class XMLElement(Proxy):
         except (IndexError, AttributeError):
             pass
         else:
-            for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking"):
+            for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization"):
                 if parent_style_node.get(attr) is not None and (style_node is None or not style_node.get(attr)):
                     style_element.set(attr, parent_style_node.get(attr))
 
