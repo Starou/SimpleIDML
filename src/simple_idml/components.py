@@ -533,15 +533,16 @@ class XMLElement(Proxy):
         except (IndexError, AttributeError):
             pass
         else:
-            for attr in ("PointSize", "FontStyle"):
+            for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking"):
                 if parent_style_node.get(attr) is not None and (style_node is None or not style_node.get(attr)):
                     style_element.set(attr, parent_style_node.get(attr))
 
-            # the font face is stored in <Properties> sub-element.
-            parent_font_node = parent_style_node.find("Properties/AppliedFont")
-            font_node = (style_node is not None and style_node.find("Properties/AppliedFont") is not None) or None
-            if font_node is None and parent_font_node is not None:
-                properties_element.append(copy.deepcopy(parent_font_node))
+            for attr in ("Leading", "AppliedFont"):
+                path = "Properties/%s" % attr
+                parent_attr_node = parent_style_node.find(path)
+                attr_node = (style_node is not None and style_node.find(path) is not None) or None
+                if attr_node is None and parent_attr_node is not None:
+                    properties_element.append(copy.deepcopy(parent_attr_node))
 
         return style_element
 
