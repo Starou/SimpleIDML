@@ -10,7 +10,8 @@ from decimal import Decimal
 from lxml import etree
 from xml.dom.minidom import parseString
 
-from simple_idml.components import Designmap, Spread, Story, BackingStory, Style, StyleMapping, XMLElement
+from simple_idml.components import (Designmap, Spread, Story, BackingStory, Style, StyleMapping,
+                                    Graphic, XMLElement)
 from simple_idml.decorators import use_working_copy
 from simple_idml.utils import increment_filename
 
@@ -70,6 +71,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._style_groups = None
         self._style = None
         self._style_mapping = None
+        self._graphic = None
         self._spreads = None
         self._spreads_objects = None
         self._pages = None
@@ -194,6 +196,13 @@ class IDMLPackage(zipfile.ZipFile):
             style_mapping = StyleMapping(self, self.working_copy_path)
             self._style_mapping = style_mapping
         return self._style_mapping
+
+    @property
+    def graphic(self):
+        if self._graphic is None:
+            graphic = Graphic(self, self.working_copy_path)
+            self._graphic = graphic
+        return self._graphic
 
     @property
     def spreads(self):
@@ -429,11 +438,11 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def insert_idml(self, idml_package, at, only, working_copy_path=None):
-        #self._add_graphic_from_idml(idml_package)
         t = self._get_item_translation_for_insert(idml_package, at, only)
         self._add_font_families_from_idml(idml_package, working_copy_path=working_copy_path)
         self._add_styles_from_idml(idml_package, working_copy_path=working_copy_path)
         self._add_mapped_styles_from_idml(idml_package)
+        self._add_graphics_from_idml(idml_package)
         self._add_tags_from_idml(idml_package, working_copy_path=working_copy_path)
         self._add_spread_elements_from_idml(idml_package, at, only, t, working_copy_path=working_copy_path)
         self._add_stories_from_idml(idml_package, at, only, working_copy_path=working_copy_path)
@@ -491,8 +500,10 @@ class IDMLPackage(zipfile.ZipFile):
             designmap.set_style_mapping_node()
             designmap.synchronize()
 
-    def _add_graphic_from_idml(self, idml_package):
-        pass
+    def _add_graphics_from_idml(self, idml_package):
+        for graphic_node in idml_package.graphic.dom.iterchildren():
+            self.graphic.dom.append(copy.deepcopy(graphic_node))
+        self.graphic.synchronize()
 
     @use_working_copy
     def _add_tags_from_idml(self, idml_package, working_copy_path=None):

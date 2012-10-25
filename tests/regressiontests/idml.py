@@ -414,8 +414,6 @@ class IdmlTestCase(unittest.TestCase):
         self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
                              namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})), 7)
 
-        # TODO Test Spread_mainub6.xml content.
-
         # Styles.
         styles = [[style.get("Self") for style in style_group.iterchildren()] 
                   for style_group in main_idml_file.style_groups]
@@ -444,6 +442,9 @@ class IdmlTestCase(unittest.TestCase):
         # Style mapping.
         self.assertEqual(main_idml_file.style_mapping.tostring(), 
                         '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">                   <XMLImportMap Self="article1di206" MarkupTag="XMLTag/MyBoldTag" MappedStyle="article1CharacterStyle/MyBoldStyle"/>\n</idPkg:Mapping>\n')
+
+        # Graphics.
+        self.assertTrue(main_idml_file.graphic.dom.xpath(".//Swatch[@Self='article1Swatch/None']"))
 
     def test_add_page_from_idml(self):
         edito_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-edito.idml")
