@@ -215,6 +215,7 @@ class Story(IDMLXMLFile):
     def clear_element_content(self, element_id):
         element = self.get_element_by_id(element_id)
         # We remove all `CharacterStyleRange' containers except the first.
+        # FIXME: This should handle ./ParagraphStyleRange/CharacterStyleRange too.
         childrens = element.xpath("./CharacterStyleRange")[1:]
         for c in childrens:
             element.remove(c)
