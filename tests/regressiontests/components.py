@@ -209,51 +209,69 @@ class XMLElementTestCase(unittest.TestCase):
         self.assertEqual(picture_elt.get_attribute("style"), "fancy")
 
     def test_create_style_element(self):
-        parent = etree.fromstring("""
+        parent = XMLElement(etree.fromstring("""
             <XMLElement Self="di3i4i1i2i2i2" MarkupTag="XMLTag/texte">
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Semibold" PointSize="9" HorizontalScale="90" Tracking="-30">
+                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
+                                  FontStyle="Semibold" PointSize="9" HorizontalScale="90" Tracking="-30">
                     <Properties>
                         <Leading type="unit">10</Leading>
                         <AppliedFont type="string">Adobe Garamond</AppliedFont>
                     </Properties>
-                    <Content>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </Content>
+                    <Content>Lorem ipsum dolor sit amet, consectetur adipisicing elit,
+                                  sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </Content>
                 </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
+                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
+                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
                     <Properties>
                         <Leading type="unit">10</Leading>
                         <AppliedFont type="string">Adobe Garamond</AppliedFont>
                     </Properties>
                     <Content>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum d</Content>
                 </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
+                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
+                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
                     <Properties>
                         <Leading type="unit">10</Leading>
                         <AppliedFont type="string">Adobe Garamond</AppliedFont>
                     </Properties>
                     <Content> nulla pariatur. Excepteur </Content>
                 </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
+                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
+                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
                     <Properties>
                         <Leading type="unit">10</Leading>
                         <AppliedFont type="string">Adobe Garamond</AppliedFont>
                     </Properties>
                     <Content> cupidatat </Content>
                 </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
+                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
+                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
                     <Properties>
                         <Leading type="unit">10</Leading>
                         <AppliedFont type="string">Adobe Garamond</AppliedFont>
                     </Properties>
                     <Content>, sunt in culpa qui officia dese</Content>
                 </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-10">
+                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
+                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-10">
                     <Properties>
                         <Leading type="unit">10</Leading>
                         <AppliedFont type="string">Adobe Garamond</AppliedFont>
                     </Properties>
                     <Br/>
                 </CharacterStyleRange>
-            </XMLElement>""")
+            </XMLElement>"""))
+
+        # No style provided > parent style used.
+        xml_element = XMLElement(tag="bold")
+        style_element = xml_element._create_style_element(parent, style_node=None)
+        self.assertEqual(etree.tostring(style_element, pretty_print=True),
+"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" PointSize="9" FontStyle="Semibold" HorizontalScale="90" Tracking="-30">
+  <Properties><Leading type="unit">10</Leading>
+                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
+                    </Properties>
+</CharacterStyleRange>
+""")
 
         # Style specify the font style only : parent font-face and size are added.
         style_node = etree.fromstring("""
@@ -308,6 +326,28 @@ class XMLElementTestCase(unittest.TestCase):
                         </Properties>
 </CharacterStyleRange>
 """)                         
+
+    def test_get_applied_character_style(self):
+        elt = XMLElement(etree.fromstring("""
+            <XMLElement Self="di3i4i1i2i2i2" MarkupTag="XMLTag/texte">
+                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/MyFancyStyle" 
+                                          FontStyle="Semibold" PointSize="9" HorizontalScale="90" Tracking="-30">
+                    <Properties>
+                        <Leading type="unit">10</Leading>
+                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
+                    </Properties>
+                    <Content>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </Content>
+                </CharacterStyleRange>
+                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" 
+                                          FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
+                    <Properties>
+                        <Leading type="unit">10</Leading>
+                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
+                    </Properties>
+                    <Content>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum d</Content>
+                </CharacterStyleRange>
+            </XMLElement>"""))
+        self.assertEqual(elt.get_applied_character_style(), "CharacterStyle/$ID/MyFancyStyle")
 
 
 def suite():
