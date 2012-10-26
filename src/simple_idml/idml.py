@@ -290,11 +290,11 @@ class IDMLPackage(zipfile.ZipFile):
             source_node_children = source_node.getchildren()
             element_id = destination_node.get("Self")
 
-            if source_node.items():
-                items = dict(source_node.items())
+            items = dict(source_node.items())
+            if items:
                 story = self.get_xml_element_story(destination_node)
                 story.set_element_attributes(element_id, items)
-                # image references must be updated in the page item in Spread or Story.
+                # Image references must be updated in the page item in Spread or Story.
                 if "href" in items:
                     xpath = self.xml_structure_tree.getpath(destination_node)
                     element_content_id = self.get_element_content_id_by_xpath(xpath)
@@ -308,7 +308,8 @@ class IDMLPackage(zipfile.ZipFile):
                                                          synchronize=True)
                 story.synchronize()
 
-            set_destination_node_content(destination_node, source_node.text or "")
+            if not (items.get("simpleidml-setcontent") == "false"):
+                set_destination_node_content(destination_node, source_node.text or "")
 
             if len(source_node_children):
                 source_node_children_tags = [n.tag for n in source_node_children]
@@ -800,6 +801,7 @@ class XMLDocument(object):
         "AppliedCharacterStyle",
         "AppliedParagraphStyle",
         "AppliedObjectStyle",
+        "NextStyle",
         "FillColor",
         "StrokeColor",
     )
