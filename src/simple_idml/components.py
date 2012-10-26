@@ -517,14 +517,12 @@ class XMLElement(Proxy):
         self.element.append(style_element)
 
     def _create_style_element(self, parent, style_node):
-        """
+        """ The style is inherited by the parent one and eventually overriden.
+
             o style_node : etree.Element from Resources/Styles.xml.
             o parent : the parent node to self to get access to `inline' style.
-        
         """
-        style = (style_node is not None and
-                 style_node.get("Self") or
-                 "CharacterStyle/$ID/[No character style]")
+        style = style_node is not None and style_node.get("Self") or parent.get_applied_character_style()
         style_element = etree.Element("CharacterStyleRange", AppliedCharacterStyle=style)
         properties_element = etree.SubElement(style_element, "Properties")
         # If the parent specify a font face, a font style or a font size and the style_node
@@ -574,3 +572,6 @@ class XMLElement(Proxy):
     def set_attributes(self, attributes):
         for name, value in attributes.items():
             self.set_attribute(name, value)
+
+    def get_applied_character_style(self):
+        return self.find("CharacterStyleRange").get("AppliedCharacterStyle")
