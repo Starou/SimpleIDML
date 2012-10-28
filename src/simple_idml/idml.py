@@ -75,6 +75,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._spreads = None
         self._spreads_objects = None
         self._pages = None
+        self._backing_story = None
         self._stories = None
         self._story_ids = None
 
@@ -226,6 +227,14 @@ class IDMLPackage(zipfile.ZipFile):
                 pages += spread.pages
             self._pages = pages
         return self._pages
+
+    @property
+    def backing_story(self):
+        """The style mapping file may not be present in the archive and is created in that case. """
+        if self._backing_story is None:
+            backing_story = BackingStory(self, working_copy_path=self.working_copy_path)
+            self._backing_story = backing_story
+        return self._backing_story
 
     @property
     def stories(self):
