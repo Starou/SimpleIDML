@@ -25,7 +25,6 @@ STORIES_DIRNAME = "Stories"
 SPREADS_DIRNAME = "Spreads"
 
 
-xmltag_prefix = "XMLTag/"
 rx_contentfile = re.compile(r"^(Story_|Spread_)(.+\.xml)$")
 rx_contentfile2 = re.compile(r"^(%(stories_dirname)s/Story_|%(spreads_dirname)s/Spread_)(.+\.xml)$" % {
     "stories_dirname": STORIES_DIRNAME,
@@ -96,16 +95,11 @@ class IDMLPackage(zipfile.ZipFile):
     def XMLStructure(self):
         """ Discover the XML structure from the story files.
 
-        Starting at BackingStory.xml where the root-element is expected (because unused).
-        Read a XML document and write another one in a parallel manner.
-        """
+        Starting at BackingStory.xml where the root-element is expected (because unused). """
 
         if self._XMLStructure is None:
-            backing_story = self.open(BACKINGSTORY, mode="r")
-            backing_story_doc = XMLDocument(xml_file=backing_story)
-
-            root_elt = backing_story_doc.dom.find("*//XMLElement")
-            structure = XMLDocument(XMLElement=root_elt)
+            source_node = self.backing_story.get_root()
+            structure = source_node.to_xml_structure_element()
 
             def append_childs(source_node, destination_node):
                 """Recursive function to discover node structure from a story to another. """
@@ -116,34 +110,31 @@ class IDMLPackage(zipfile.ZipFile):
                         continue
                     if not elt.get("MarkupTag"):
                         continue
-                    new_destination_node = XMLElementToElement(elt)
+                    elt = XMLElement(elt)
+                    new_destination_node = elt.to_xml_structure_element()
                     destination_node.append(new_destination_node)
                     if elt.get("XMLContent"):
                         xml_content_value = elt.get("XMLContent")
-                        story_filename = self.get_story_filename_by_xml_value(xml_content_value)
+                        story_name = "Stories/Story_%s.xml" % xml_content_value
+                        story = Story(self, story_name=story_name)
                         try:
-                            story = self.open(story_filename, mode="r")
+                            new_source_node = story.get_element_by_id(elt.get("Self"))
+                        # The story does not exists.
                         except KeyError:
                             continue
                         else:
-                            story_doc = XMLDocument(xml_file=story)
-                            # Prendre la valeur de cet attribut pour retrouver la Story.
-                            # Parser cette story.
-                            new_source_node = story_doc.getElementById(elt.get("Self"))
                             append_childs(new_source_node, new_destination_node)
-                            story.close()
                     else:
                         append_childs(elt, new_destination_node)
-            append_childs(root_elt, structure.dom)
 
-            backing_story.close()
+            append_childs(source_node, structure)
             self._XMLStructure = structure
         return self._XMLStructure
 
     @property
     def xml_structure_tree(self):
         if self._xml_structure_tree is None:
-            xml_structure_tree = etree.ElementTree(self.XMLStructure.dom)
+            xml_structure_tree = etree.ElementTree(self.XMLStructure)
             self._xml_structure_tree = xml_structure_tree
         return self._xml_structure_tree
 
@@ -287,7 +278,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         source_node = etree.fromstring(xml_file.read())
         # destination_node is not the node in story file, but a representation from self.XMLStructure.
-        destination_node = self.XMLStructure.dom.xpath(at)[0]
+        destination_node = self.XMLStructure.xpath(at)[0]
 
         def set_destination_node_content(destination_node, content):
             element_id = destination_node.get("Self")
@@ -353,7 +344,7 @@ class IDMLPackage(zipfile.ZipFile):
     def export_xml(self, from_tag=None):
         """ Reproduce the action «Export XML» on a XML Element in InDesign® Structure. """
         if not from_tag:
-            export_from_node = self.XMLStructure.dom
+            export_from_node = self.XMLStructure
         else:
             # TODO
             pass
@@ -619,14 +610,14 @@ class IDMLPackage(zipfile.ZipFile):
 
         """
 
-        xml_element_src = idml_package.XMLStructure.dom.xpath(only)[0]
+        xml_element_src = idml_package.XMLStructure.xpath(only)[0]
         story_src_filename = idml_package.get_node_story_by_xpath(only)
         story_src = idml_package.open(story_src_filename, mode="r")
         story_src_doc = XMLDocument(story_src)
         story_src_elt = story_src_doc.dom.xpath("//XMLElement[@Self='%s']" %
                                                 xml_element_src.get("Self"))[0]
 
-        xml_element_dest = self.XMLStructure.dom.xpath(at)[0]
+        xml_element_dest = self.XMLStructure.xpath(at)[0]
         story_dest_filename = self.get_node_story_by_xpath(at)
         story_dest_abs_filename = os.path.join(working_copy_path, story_dest_filename)
         story_dest = open(story_dest_abs_filename, mode="r")
@@ -720,7 +711,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         #TODO: caching.
         result = None
-        reference = self.XMLStructure.dom.xpath(xpath)[0].get("XMLContent")
+        reference = self.XMLStructure.xpath(xpath)[0].get("XMLContent")
         for filename in self.spreads:
             spread = self.open(filename, mode="r")
             spread_doc = XMLDocument(spread)
@@ -744,11 +735,11 @@ class IDMLPackage(zipfile.ZipFile):
         return out
 
     def get_element_content_id_by_xpath(self, xpath):
-        return self.XMLStructure.dom.xpath(xpath)[0].get("XMLContent")
+        return self.XMLStructure.xpath(xpath)[0].get("XMLContent")
 
     def get_node_story_by_xpath(self, xpath):
         """Return the Story (or BackingStory) filename containing the element selected by xpath."""
-        node = self.XMLStructure.dom.xpath(xpath)[0]
+        node = self.XMLStructure.xpath(xpath)[0]
         return self.get_xml_element_story(node).name
 
     # TODO: use Spread.get_element_by_id(self.get_element_content_id_by_xpath(xpath)) instead.
@@ -758,7 +749,7 @@ class IDMLPackage(zipfile.ZipFile):
         spread_filename = self.get_spread_by_xpath(xpath)
         spread_file = self.open(spread_filename, mode="r")
         spread_doc = XMLDocument(spread_file)
-        elt_id = self.XMLStructure.dom.xpath(xpath)[0].get("XMLContent")
+        elt_id = self.XMLStructure.xpath(xpath)[0].get("XMLContent")
         # etree FutureWarning when trying to simply do elt = X or Y.
         elt = spread_doc.getElementById(elt_id, tag="*")
         if elt is None:
@@ -766,10 +757,6 @@ class IDMLPackage(zipfile.ZipFile):
         spread_file.close()
 
         return elt
-
-    # TODO: rename in get_story_filename_by_reference ?
-    def get_story_filename_by_xml_value(self, xml_value):
-        return u"Stories/Story_%s.xml" % xml_value
 
     def get_elem_point_position(self, elem, point_index=0):
         point = elem.xpath("Properties/PathGeometry/GeometryPathType/PathPointArray/PathPointType")[point_index]
@@ -889,18 +876,6 @@ class XMLDocument(object):
         xml_file = open(filename, mode="w+")
         xml_file.write(new_xml)
         xml_file.close()
-
-
-def XMLElementToElement(XMLElement):
-    """ Extract data from a XMLElement tag to restore the tag as seen by the ID end-user.
-
-    CamelCase Capfirst function name to keep the track.
-      o XMLElement are XML tags inside IDML file to express the XML structure of the IDML
-        document as seen by the end-user (not the developpers).
-    """
-    attrs = dict(XMLElement.attrib)
-    name = attrs.pop("MarkupTag").replace(xmltag_prefix, "")
-    return etree.Element(name, **attrs)
 
 
 def prefix_content_filename(filename, prefix, rx):
