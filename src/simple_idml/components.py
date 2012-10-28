@@ -258,6 +258,9 @@ class BackingStory(Story):
         super(BackingStory, self).__init__(idml_package, story_name, working_copy_path)
         self.node_name = "XmlStory"
 
+    def get_root(self):
+        return XMLElement(self.dom.find("*//XMLElement"))
+
 
 class Designmap(IDMLXMLFile):
     name = "designmap.xml"
@@ -580,3 +583,9 @@ class XMLElement(Proxy):
 
     def get_applied_character_style(self):
         return self.find("CharacterStyleRange").get("AppliedCharacterStyle")
+
+    def to_xml_structure_element(self):
+        """Return the node as seen in the Structure panel of InDesign. """
+        attrs = dict(self.attrib)
+        name = attrs.pop("MarkupTag").replace("XMLTag/", "")
+        return etree.Element(name, **attrs)
