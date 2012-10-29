@@ -7,19 +7,49 @@ from lxml import etree
 from decimal import Decimal
 
 from simple_idml import IdPkgNS, BACKINGSTORY
-from simple_idml.utils import increment_xmltag_id
+from simple_idml.utils import increment_xmltag_id, prefix_content_filename
 from simple_idml.utils import Proxy
 
 RECTO = "recto"
 VERSO = "verso"
 
 rx_node_name_from_xml_name = re.compile(r"[\w]+/[\w]+_([\w]+)\.xml")
+rx_contentfile = re.compile(r"^(Stories/Story_|Spreads/Spread_)(.+\.xml)$")
 
 
 class IDMLXMLFile(object):
     """Abstract class for various XML files found in IDML Packages. """
     name = None
     doctype = None
+    excluded_tags_for_prefix = (
+        "Document",
+        "Language",
+        "NumberingList",
+        "NamedGrid",
+        "TextVariable",
+        "Layer",
+        "Section",
+        "DocumentUser",
+        "CrossReferenceFormat",
+        "BuildingBlock",
+        "IndexingSortOption",
+        "ABullet",
+        "Assignment",
+        "XMLTag",
+        "MasterSpread",
+    )
+    prefixable_attrs = (
+        "Self",
+        "XMLContent",
+        "ParentStory",
+        "MappedStyle",
+        "AppliedCharacterStyle",
+        "AppliedParagraphStyle",
+        "AppliedObjectStyle",
+        "NextStyle",
+        "FillColor",
+        "StrokeColor",
+    )
 
     def __init__(self, idml_package, working_copy_path=None):
         self.idml_package = idml_package
@@ -87,6 +117,37 @@ class IDMLXMLFile(object):
             elem = None
         return elem
 
+    def prefix_references(self, prefix):
+        """Update references inside various XML files found in an IDML package
+           after a call to prefix()."""
+
+        # <XMLElement Self="di2i3" MarkupTag="XMLTag/article" XMLContent="u102"/>
+        # <[Spread|Page|...] Self="ub6" FlattenerOverride="Default"
+        # <[TextFrame|...] Self="uca" ParentStory="u102" ...>
+        # <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
+        #  PointSize="10" />
+        for elt in self.dom.iter():
+            if elt.tag in self.excluded_tags_for_prefix:
+                continue
+            for attr in self.prefixable_attrs:
+                if elt.get(attr):
+                    elt.set(attr, "%s%s" % (prefix, elt.get(attr)))
+
+        # <idPkg:Spread src="Spreads/Spread_ub6.xml"/>
+        # <idPkg:Story src="Stories/Story_u139.xml"/>
+        for elt in self.dom.xpath(".//idPkg:Spread | .//idPkg:Story",
+                                  namespaces={'idPkg': IdPkgNS}):
+            if elt.get("src") and rx_contentfile.match(elt.get("src")):
+                elt.set("src", prefix_content_filename(elt.get("src"), prefix, rx_contentfile))
+
+        # <Document xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"...
+        # StoryList="ue4 u102 u11b u139 u9c"...>
+        elt = self.dom.xpath("/Document")
+        if elt and elt[0].get("StoryList"):
+            elt[0].set("StoryList", " ".join(["%s%s" % (prefix, s)
+                                              for s in elt[0].get("StoryList").split(" ")]))
+
+
     def set_element_resource_path(self, element_id, resource_path, synchronize=False):
         """ For Spread and Story subclasses only (this comment is a call for a Mixin). """
         # the element may not be an <XMLElement> (so tag="*").
@@ -98,6 +159,12 @@ class IDMLXMLFile(object):
             link.set("LinkResourceURI", resource_path)
             if synchronize:
                 self.synchronize()
+
+
+class MasterSpread(IDMLXMLFile):
+    def __init__(self, idml_package, name, working_copy_path=None):
+        super(MasterSpread, self).__init__(idml_package, working_copy_path)
+        self.name = name
 
 
 class Spread(IDMLXMLFile):
@@ -126,9 +193,9 @@ class Spread(IDMLXMLFile):
                         ˇ +Y
     """
 
-    def __init__(self, idml_package, spread_name, working_copy_path=None):
+    def __init__(self, idml_package, name, working_copy_path=None):
         super(Spread, self).__init__(idml_package, working_copy_path)
-        self.name = spread_name
+        self.name = name
         self._pages = None
         self._node = None
 
@@ -187,9 +254,9 @@ class Spread(IDMLXMLFile):
 
 
 class Story(IDMLXMLFile):
-    def __init__(self, idml_package, story_name, working_copy_path=None):
+    def __init__(self, idml_package, name, working_copy_path=None):
         super(Story, self).__init__(idml_package, working_copy_path)
-        self.name = story_name
+        self.name = name
         self.node_name = "Story"
         self._node = None
 
@@ -254,8 +321,8 @@ class Story(IDMLXMLFile):
 
 
 class BackingStory(Story):
-    def __init__(self, idml_package, story_name=BACKINGSTORY, working_copy_path=None):
-        super(BackingStory, self).__init__(idml_package, story_name, working_copy_path)
+    def __init__(self, idml_package, name=BACKINGSTORY, working_copy_path=None):
+        super(BackingStory, self).__init__(idml_package, name, working_copy_path)
         self.node_name = "XmlStory"
 
     def get_root(self):
@@ -390,6 +457,10 @@ class StyleMapping(IDMLXMLFile):
 
 class Graphic(IDMLXMLFile):
     name = "Resources/Graphic.xml"
+
+
+class Preferences(IDMLXMLFile):
+    name = "Resources/Preferences.xml"
 
 
 class Tags(IDMLXMLFile):
@@ -617,3 +688,40 @@ class XMLElement(Proxy):
         attrs = dict(self.attrib)
         name = attrs.pop("MarkupTag").replace("XMLTag/", "")
         return etree.Element(name, **attrs)
+
+
+def get_idml_xml_file_by_name(idml_package, name, working_copy_path=None):
+    kwargs = {"idml_package": idml_package, "name": name, "working_copy_path": working_copy_path}
+    dirname, basename = os.path.split(name)
+    if basename == "designmap.xml":
+        kwargs.pop("name")
+        klass = Designmap
+    elif dirname == "MasterSpreads":
+        klass = MasterSpread
+    elif dirname == "Spreads":
+        klass = Spread
+    elif dirname == "Stories":
+        klass = Story
+    elif name == "XML/BackingStory.xml":
+        kwargs.pop("name")
+        klass = BackingStory
+    elif name == "Resources/Fonts.xml":
+        kwargs.pop("name")
+        klass = Fonts
+    elif name == "Resources/Graphic.xml":
+        kwargs.pop("name")
+        klass = Graphic
+    elif name == "Resources/Preferences.xml":
+        kwargs.pop("name")
+        klass = Preferences
+    elif name == "Resources/Styles.xml":
+        kwargs.pop("name")
+        klass = Style
+    elif name == "XML/Tags.xml":
+        kwargs.pop("name")
+        klass = Tags
+    elif name == "XML/Mapping.xml":
+        kwargs.pop("name")
+        klass = StyleMapping
+
+    return klass(**kwargs)

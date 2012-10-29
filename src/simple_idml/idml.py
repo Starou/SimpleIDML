@@ -10,24 +10,18 @@ from decimal import Decimal
 from lxml import etree
 from xml.dom.minidom import parseString
 
-from simple_idml.components import (Designmap, Spread, Story, BackingStory, Style, StyleMapping,
-                                    Graphic, Tags, Fonts, XMLElement)
+from simple_idml.components import get_idml_xml_file_by_name
+from simple_idml.components import (Designmap, Spread, Story, BackingStory,
+                                    Style, StyleMapping, Graphic, Tags, Fonts, XMLElement)
 from simple_idml.decorators import use_working_copy
-from simple_idml.utils import increment_filename
+from simple_idml.utils import increment_filename, prefix_content_filename
 
 from simple_idml import IdPkgNS, BACKINGSTORY
 
 MAPPING = "XML/Mapping.xml"
 STORIES_DIRNAME = "Stories"
-SPREADS_DIRNAME = "Spreads"
-
 
 rx_contentfile = re.compile(r"^(Story_|Spread_)(.+\.xml)$")
-rx_contentfile2 = re.compile(r"^(%(stories_dirname)s/Story_|%(spreads_dirname)s/Spread_)(.+\.xml)$" % {
-    "stories_dirname": STORIES_DIRNAME,
-    "spreads_dirname": SPREADS_DIRNAME,
-})
-
 rx_story_id = re.compile(r"%s/Story_([\w]+)\.xml" % STORIES_DIRNAME)
 
 doctypes = {
@@ -113,7 +107,7 @@ class IDMLPackage(zipfile.ZipFile):
                     if elt.get("XMLContent"):
                         xml_content_value = elt.get("XMLContent")
                         story_name = "Stories/Story_%s.xml" % xml_content_value
-                        story = Story(self, story_name=story_name)
+                        story = Story(self, name=story_name)
                         try:
                             new_source_node = story.get_element_by_id(elt.get("Self"))
                         # The story does not exists.
@@ -250,7 +244,7 @@ class IDMLPackage(zipfile.ZipFile):
                 story = BackingStory(idml_package=self)
             else:
                 story = Story(idml_package=self, 
-                              story_name="%s/Story_%s.xml" % (STORIES_DIRNAME, story_id))
+                              name="%s/Story_%s.xml" % (STORIES_DIRNAME, story_id))
         story.working_copy_path = self.working_copy_path
         return story
 
@@ -390,17 +384,13 @@ class IDMLPackage(zipfile.ZipFile):
         """
 
         # Change the references inside the file.
-        for root, dirs, filenames in os.walk(working_copy_path):
-            if os.path.basename(root) in ["META-INF", ]:
+        for filename in self.namelist():
+            if (os.path.basename(filename) in ["container.xml", "metadata.xml"] or
+                os.path.splitext(filename)[1] != ".xml"):
                 continue
-            for filename in filenames:
-                if os.path.splitext(filename)[1] != ".xml":
-                    continue
-                abs_filename = os.path.join(root, filename)
-                xml_file = open(abs_filename, mode="r")
-                doc = XMLDocument(xml_file)
-                doc.prefix_references(prefix)
-                doc.overwrite_and_close(ref_doctype=filename)
+            idml_xml_file = get_idml_xml_file_by_name(self, filename, working_copy_path)
+            idml_xml_file.prefix_references(prefix)
+            idml_xml_file.synchronize()
 
         # Story and Spread XML files are "prefixed".
         for filename in self.namelist():
@@ -737,36 +727,6 @@ class IDMLPackage(zipfile.ZipFile):
 class XMLDocument(object):
     """An etree document wrapper to fit IDML XML Structure."""
 
-    excluded_tags_for_prefix = (
-        "Document",
-        "Language",
-        "NumberingList",
-        "NamedGrid",
-        "TextVariable",
-        "Layer",
-        "Section",
-        "DocumentUser",
-        "CrossReferenceFormat",
-        "BuildingBlock",
-        "IndexingSortOption",
-        "ABullet",
-        "Assignment",
-        "XMLTag",
-        "MasterSpread",
-    )
-    prefixable_attrs = (
-        "Self",
-        "XMLContent",
-        "ParentStory",
-        "MappedStyle",
-        "AppliedCharacterStyle",
-        "AppliedParagraphStyle",
-        "AppliedObjectStyle",
-        "NextStyle",
-        "FillColor",
-        "StrokeColor",
-    )
-
     def __init__(self, xml_file=None, XMLElement=None):
         if xml_file:
             self.xml_file = xml_file
@@ -780,36 +740,6 @@ class XMLDocument(object):
         """ tag is by default XMLElement, the XML tag representing the InDesign XML structure
             inside IDML files."""
         return self.dom.find("*//%s[@%s='%s']" % (tag, attr, id))
-
-    def prefix_references(self, prefix):
-        """Update references inside various XML files found in an IDML package
-           after a call to prefix()."""
-
-        # <XMLElement Self="di2i3" MarkupTag="XMLTag/article" XMLContent="u102"/>
-        # <[Spread|Page|...] Self="ub6" FlattenerOverride="Default"
-        # <[TextFrame|...] Self="uca" ParentStory="u102" ...>
-        # <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
-        #  PointSize="10" />
-        for elt in self.dom.iter():
-            if elt.tag in self.excluded_tags_for_prefix:
-                continue
-            for attr in self.prefixable_attrs:
-                if elt.get(attr):
-                    elt.set(attr, "%s%s" % (prefix, elt.get(attr)))
-
-        # <idPkg:Spread src="Spreads/Spread_ub6.xml"/>
-        # <idPkg:Story src="Stories/Story_u139.xml"/>
-        for elt in self.dom.xpath(".//idPkg:Spread | .//idPkg:Story",
-                                  namespaces={'idPkg': IdPkgNS}):
-            if elt.get("src") and rx_contentfile2.match(elt.get("src")):
-                elt.set("src", prefix_content_filename(elt.get("src"), prefix, rx_contentfile2))
-
-        # <Document xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"...
-        # StoryList="ue4 u102 u11b u139 u9c"...>
-        elt = self.dom.xpath("/Document")
-        if elt and elt[0].get("StoryList"):
-            elt[0].set("StoryList", " ".join(["%s%s" % (prefix, s)
-                                              for s in elt[0].get("StoryList").split(" ")]))
 
     # I'am not very happy with the «ref_doctype» choice. An explicit doctype looks better now.
     def tostring(self, ref_doctype=None):
@@ -841,11 +771,6 @@ class XMLDocument(object):
         xml_file = open(filename, mode="w+")
         xml_file.write(new_xml)
         xml_file.close()
-
-
-def prefix_content_filename(filename, prefix, rx):
-    start, end = rx.match(filename).groups()
-    return "%s%s%s" % (start, prefix, end)
 
 
 def add_stories_to_designmap(dom, stories):
