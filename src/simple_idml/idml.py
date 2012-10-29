@@ -513,23 +513,19 @@ class IDMLPackage(zipfile.ZipFile):
         """ Append idml_package spread elements into self.spread[0] <Spread> node. """
 
         # There should be only one spread in the idml_package.
-        spread_src = idml_package.open(idml_package.spreads[0], mode="r")
-        spread_src_doc = XMLDocument(spread_src)
-
+        spread_src = idml_package.spreads_objects[0]
         spread_dest_filename = self.get_spread_by_xpath(at)
-        spread_dest_abs_filename = os.path.join(working_copy_path, spread_dest_filename)
-        spread_dest = open(spread_dest_abs_filename, mode="r")
-        spread_dest_doc = XMLDocument(spread_dest)
-        spread_dest_elt = spread_dest_doc.dom.xpath("./Spread")[0]
+        spread_dest = Spread(self, spread_dest_filename, working_copy_path)
+        spread_dest_elt = spread_dest.dom.xpath("./Spread")[0]
 
-        for child in spread_src_doc.dom.xpath("./Spread")[0].iterchildren():
+        for child in spread_src.dom.xpath("./Spread")[0].iterchildren():
             if child.tag in ["Page", "FlattenerPreference"]:
                 continue
             child_copy = copy.deepcopy(child)
             self.apply_translation_to_element(child_copy, translation)
             spread_dest_elt.append(child_copy)
 
-        spread_dest_doc.overwrite_and_close(ref_doctype=None)
+        spread_dest.synchronize()
         return self
 
     @use_working_copy
