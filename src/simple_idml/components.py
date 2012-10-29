@@ -379,6 +379,16 @@ class Designmap(IDMLXMLFile):
         current_page_start = section_node.get(self.page_start_attr)
         section_node.set(self.page_start_attr, "%s%s" % (prefix, current_page_start))
 
+    def add_stories(self, stories):
+        # Add stories in StoryList.
+        elt = self.dom.xpath("/Document")[0]
+        current_stories = elt.get("StoryList").split(" ")
+        elt.set("StoryList", " ".join(current_stories + stories))
+
+        # Add <idPkg:Story src="Stories/Story_[name].xml"/> elements.
+        for story in stories:
+            elt.append(etree.Element("{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Story",
+                                     src="Stories/Story_%s.xml" % story))
 
 class Style(IDMLXMLFile):
     name = "Resources/Styles.xml"

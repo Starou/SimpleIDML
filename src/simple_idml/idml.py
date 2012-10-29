@@ -18,15 +18,10 @@ from simple_idml.utils import increment_filename, prefix_content_filename
 
 from simple_idml import IdPkgNS, BACKINGSTORY
 
-MAPPING = "XML/Mapping.xml"
 STORIES_DIRNAME = "Stories"
 
 rx_contentfile = re.compile(r"^(Story_|Spread_)(.+\.xml)$")
 rx_story_id = re.compile(r"%s/Story_([\w]+)\.xml" % STORIES_DIRNAME)
-
-doctypes = {
-    'designmap.xml': u'<?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="7.5(142)" ?>',
-}
 
 
 def create_idml_package_from_dir(dir_path, package_path=None):
@@ -569,20 +564,16 @@ class IDMLPackage(zipfile.ZipFile):
 
         """
 
-        xml_element_src = idml_package.XMLStructure.xpath(only)[0]
+        xml_element_src_id = idml_package.XMLStructure.xpath(only)[0].get("Self")
         story_src_filename = idml_package.get_node_story_by_xpath(only)
-        story_src = idml_package.open(story_src_filename, mode="r")
-        story_src_doc = XMLDocument(story_src)
-        story_src_elt = story_src_doc.dom.xpath("//XMLElement[@Self='%s']" %
-                                                xml_element_src.get("Self"))[0]
+        story_src = Story(idml_package, story_src_filename)
+        story_src_elt = story_src.get_element_by_id(xml_element_src_id).element
 
-        xml_element_dest = self.XMLStructure.xpath(at)[0]
+        xml_element_dest_id = self.XMLStructure.xpath(at)[0].get("Self")
         story_dest_filename = self.get_node_story_by_xpath(at)
-        story_dest_abs_filename = os.path.join(working_copy_path, story_dest_filename)
-        story_dest = open(story_dest_abs_filename, mode="r")
-        story_dest_doc = XMLDocument(story_dest)
-        story_dest_elt = story_dest_doc.dom.xpath("//XMLElement[@Self='%s']" %
-                                                  xml_element_dest.get("Self"))[0]
+        story_dest = Story(self, story_dest_filename, working_copy_path)
+        story_dest_elt = story_dest.get_element_by_id(xml_element_dest_id)
+
         if story_dest_elt.get("XMLContent"):
             story_dest_elt.attrib.pop("XMLContent")
         story_src_elt_copy = copy.copy(story_src_elt)
@@ -590,8 +581,7 @@ class IDMLPackage(zipfile.ZipFile):
             for child in story_src_elt_copy.iterchildren():
                 story_src_elt_copy.remove(child)
         story_dest_elt.append(story_src_elt_copy)
-
-        story_dest_doc.overwrite_and_close(ref_doctype=None)
+        story_dest.synchronize()
 
         # Stories files are added.
         # `Stories' directory may not be present in the destination package.
@@ -605,12 +595,9 @@ class IDMLPackage(zipfile.ZipFile):
             story_cp.close()
 
         # Update designmap.xml.
-        # TODO: use Designmap instance.
-        designmap_abs_filename = os.path.join(working_copy_path, "designmap.xml")
-        designmap = open(designmap_abs_filename, mode="r")
-        designmap_doc = XMLDocument(designmap)
-        add_stories_to_designmap(designmap_doc.dom, idml_package.story_ids)
-        designmap_doc.overwrite_and_close(ref_doctype="designmap.xml")
+        designmap = Designmap(self, working_copy_path=working_copy_path)
+        designmap.add_stories(idml_package.story_ids)
+        designmap.synchronize()
 
         return self
         # BackingStory.xml ??
@@ -717,67 +704,3 @@ class IDMLPackage(zipfile.ZipFile):
     def get_elem_translation(self, elem):
         item_transform = elem.get("ItemTransform").split(" ")
         return Decimal(item_transform[4]), Decimal(item_transform[5])
-
-
-# TODO : this class should be replaced by components IDML subclasses.
-class XMLDocument(object):
-    """An etree document wrapper to fit IDML XML Structure."""
-
-    def __init__(self, xml_file=None, XMLElement=None):
-        if xml_file:
-            self.xml_file = xml_file
-            self.dom = etree.fromstring(xml_file.read())
-        elif XMLElement is not None:
-            self.dom = XMLElementToElement(XMLElement)
-        else:
-            raise BaseException("You must provide either a xml file or a name.")
-
-    def getElementById(self, id, tag="XMLElement", attr="Self"):
-        """ tag is by default XMLElement, the XML tag representing the InDesign XML structure
-            inside IDML files."""
-        return self.dom.find("*//%s[@%s='%s']" % (tag, attr, id))
-
-    # I'am not very happy with the «ref_doctype» choice. An explicit doctype looks better now.
-    def tostring(self, ref_doctype=None):
-        doctype = doctypes.get(ref_doctype, None)
-        kwargs = {"xml_declaration": True,
-                  "encoding": "UTF-8",
-                  "standalone": True,
-                  "pretty_print": True}
-
-        if etree.LXML_VERSION < (2, 3):
-            s = etree.tostring(self.dom, **kwargs)
-            if doctype:
-                lines = s.splitlines()
-                lines.insert(1, doctype)
-                s = "\n".join(line.decode("utf-8") for line in lines)
-                s += "\n"
-                s = s.encode("utf-8")
-
-        else:
-            kwargs["doctype"] = doctype
-            s = etree.tostring(self.dom, **kwargs)
-
-        return s
-
-    def overwrite_and_close(self, ref_doctype=None):
-        new_xml = self.tostring(ref_doctype)
-        filename = self.xml_file.name
-        self.xml_file.close()
-        xml_file = open(filename, mode="w+")
-        xml_file.write(new_xml)
-        xml_file.close()
-
-
-def add_stories_to_designmap(dom, stories):
-    """This function is outside IDMLPackage because of readonly limitations of ZipFile. """
-
-    # Add stories in StoryList.
-    elt = dom.xpath("/Document")[0]
-    current_stories = elt.get("StoryList").split(" ")
-    elt.set("StoryList", " ".join(current_stories + stories))
-
-    # Add <idPkg:Story src="Stories/Story_[name].xml"/> elements.
-    for story in stories:
-        elt.append(etree.Element("{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Story",
-                                 src="Stories/Story_%s.xml" % story))
