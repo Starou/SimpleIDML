@@ -394,6 +394,16 @@ class Tags(IDMLXMLFile):
         return self.dom.xpath("/idPkg:Tags", namespaces={'idPkg': IdPkgNS})[0]
 
 
+class Fonts(IDMLXMLFile):
+    name = "Resources/Fonts.xml"
+
+    def fonts(self):
+        return self.dom.xpath("//FontFamily")
+
+    def get_root(self):
+        return self.dom.xpath("/idPkg:Fonts", namespaces={'idPkg': IdPkgNS})[0]
+
+
 class Page(object):
     """
         Coordinate system

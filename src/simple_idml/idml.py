@@ -11,15 +11,13 @@ from lxml import etree
 from xml.dom.minidom import parseString
 
 from simple_idml.components import (Designmap, Spread, Story, BackingStory, Style, StyleMapping,
-                                    Graphic, Tags, XMLElement)
+                                    Graphic, Tags, Fonts, XMLElement)
 from simple_idml.decorators import use_working_copy
 from simple_idml.utils import increment_filename
 
 from simple_idml import IdPkgNS, BACKINGSTORY
 
-TAGS = "XML/Tags.xml"
 MAPPING = "XML/Mapping.xml"
-FONTS = "Resources/Fonts.xml"
 STYLES = "Resources/Styles.xml"
 STORIES_DIRNAME = "Stories"
 SPREADS_DIRNAME = "Spreads"
@@ -148,12 +146,8 @@ class IDMLPackage(zipfile.ZipFile):
     @property
     def font_families(self):
         if self._font_families is None:
-            font_families_src = self.open(FONTS, mode="r")
-            font_families_doc = XMLDocument(font_families_src)
-            font_families = [copy.deepcopy(elt)
-                             for elt in font_families_doc.dom.xpath("//FontFamily")]
+            font_families = [copy.deepcopy(elt) for elt in Fonts(self).fonts()]
             self._font_families = font_families
-            font_families_src.close()
         return self._font_families
 
     # TODO: use self.styles object.
@@ -449,18 +443,15 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def _add_font_families_from_idml(self, idml_package, working_copy_path=None):
-        # TODO test.
         # TODO Optimization. There is a linear expansion of the Fonts.xml size
         #      as packages are merged. Do something cleaver to prune or reuse
         #      fonts already here.
-        fonts_abs_filename = os.path.join(working_copy_path, FONTS)
-        fonts = open(fonts_abs_filename, mode="r")
-        fonts_doc = XMLDocument(fonts)
-        fonts_root_elt = fonts_doc.dom.xpath("/idPkg:Fonts", namespaces={'idPkg': IdPkgNS})[0]
+        fonts = Fonts(self)
+        fonts.working_copy_path = working_copy_path
+        fonts_root_elt = fonts.get_root()
         for font_family in idml_package.font_families:
             fonts_root_elt.append(copy.deepcopy(font_family))
-
-        fonts_doc.overwrite_and_close(ref_doctype=None)
+        fonts.synchronize()
         return self
 
     @use_working_copy
