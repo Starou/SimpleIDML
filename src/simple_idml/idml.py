@@ -682,18 +682,14 @@ class IDMLPackage(zipfile.ZipFile):
         """ Search for the spread file having the element identified by the XMLContent attribute
         of the XMLElement pointed by xpath value."""
 
-        #TODO: caching.
         result = None
         reference = self.XMLStructure.xpath(xpath)[0].get("XMLContent")
-        for filename in self.spreads:
-            spread = self.open(filename, mode="r")
-            spread_doc = XMLDocument(spread)
+        for spread in self.spreads_objects:
             if (
-                spread_doc.getElementById(reference, tag="*") is not None or
-                spread_doc.getElementById(reference, tag="*", attr="ParentStory") is not None
+                spread.get_element_by_id(reference, tag="*") is not None or
+                spread.get_element_by_id(reference, tag="*", attr="ParentStory") is not None
             ):
-                result = filename
-            spread.close()
+                result = spread.name
             if result:
                 break
         return result
