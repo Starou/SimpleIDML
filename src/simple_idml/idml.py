@@ -407,34 +407,32 @@ class IDMLPackage(zipfile.ZipFile):
     @use_working_copy
     def insert_idml(self, idml_package, at, only, working_copy_path=None):
         t = self._get_item_translation_for_insert(idml_package, at, only)
-        self._add_font_families_from_idml(idml_package, working_copy_path=working_copy_path)
-        self._add_styles_from_idml(idml_package, working_copy_path=working_copy_path)
+        self._add_font_families_from_idml(idml_package)
+        self._add_styles_from_idml(idml_package)
         self._add_mapped_styles_from_idml(idml_package)
         self._add_graphics_from_idml(idml_package)
-        self._add_tags_from_idml(idml_package, working_copy_path=working_copy_path)
-        self._add_spread_elements_from_idml(idml_package, at, only, t, working_copy_path=working_copy_path)
-        self._add_stories_from_idml(idml_package, at, only, working_copy_path=working_copy_path)
+        self._add_tags_from_idml(idml_package)
+        self._add_spread_elements_from_idml(idml_package, at, only, t)
+        self._add_stories_from_idml(idml_package, at, only)
         self._XMLStructure = None
         return self
 
-    @use_working_copy
-    def _add_font_families_from_idml(self, idml_package, working_copy_path=None):
+    def _add_font_families_from_idml(self, idml_package):
         # TODO Optimization. There is a linear expansion of the Fonts.xml size
         #      as packages are merged. Do something cleaver to prune or reuse
         #      fonts already here.
         fonts = Fonts(self)
-        fonts.working_copy_path = working_copy_path
+        fonts.working_copy_path = self.working_copy_path
         fonts_root_elt = fonts.get_root()
         for font_family in idml_package.font_families:
             fonts_root_elt.append(copy.deepcopy(font_family))
         fonts.synchronize()
         return self
 
-    @use_working_copy
-    def _add_styles_from_idml(self, idml_package, working_copy_path=None):
+    def _add_styles_from_idml(self, idml_package):
         """Append styles to their groups or add the group in the Styles file. """
         styles = Style(self)
-        styles.working_copy_path = working_copy_path
+        styles.working_copy_path = self.working_copy_path
         styles_root_elt = styles.get_root()
         for group_to_insert in idml_package.style_groups:
             group_host = styles_root_elt.xpath(group_to_insert.tag)
@@ -466,10 +464,9 @@ class IDMLPackage(zipfile.ZipFile):
             self.graphic.dom.append(copy.deepcopy(graphic_node))
         self.graphic.synchronize()
 
-    @use_working_copy
-    def _add_tags_from_idml(self, idml_package, working_copy_path=None):
+    def _add_tags_from_idml(self, idml_package):
         tags = Tags(self)
-        tags.working_copy_path = working_copy_path
+        tags.working_copy_path = self.working_copy_path
         tags_root_elt = tags.get_root()
         for tag in idml_package.tags:
             if not tags_root_elt.xpath("//XMLTag[@Self='%s']" % (tag.get("Self"))):
@@ -502,15 +499,13 @@ class IDMLPackage(zipfile.ZipFile):
         item_transform[5] = str(Decimal(item_transform[5]) + translation_y)
         element.set("ItemTransform", " ".join(item_transform))
 
-    @use_working_copy
-    def _add_spread_elements_from_idml(self, idml_package, at, only, translation,
-                                       working_copy_path=None):
+    def _add_spread_elements_from_idml(self, idml_package, at, only, translation):
         """ Append idml_package spread elements into self.spread[0] <Spread> node. """
 
         # There should be only one spread in the idml_package.
         spread_src = idml_package.spreads_objects[0]
         spread_dest_filename = self.get_spread_by_xpath(at)
-        spread_dest = Spread(self, spread_dest_filename, working_copy_path)
+        spread_dest = Spread(self, spread_dest_filename, self.working_copy_path)
         spread_dest_elt = spread_dest.dom.xpath("./Spread")[0]
 
         for child in spread_src.dom.xpath("./Spread")[0].iterchildren():
@@ -523,8 +518,7 @@ class IDMLPackage(zipfile.ZipFile):
         spread_dest.synchronize()
         return self
 
-    @use_working_copy
-    def _add_stories_from_idml(self, idml_package, at, only, working_copy_path=None):
+    def _add_stories_from_idml(self, idml_package, at, only):
         """Add all idml_package stories and insert `only' refence at `at' position in self.
 
         What we have:
@@ -571,7 +565,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         xml_element_dest_id = self.XMLStructure.xpath(at)[0].get("Self")
         story_dest_filename = self.get_node_story_by_xpath(at)
-        story_dest = Story(self, story_dest_filename, working_copy_path)
+        story_dest = Story(self, story_dest_filename, self.working_copy_path)
         story_dest_elt = story_dest.get_element_by_id(xml_element_dest_id)
 
         if story_dest_elt.get("XMLContent"):
@@ -585,17 +579,17 @@ class IDMLPackage(zipfile.ZipFile):
 
         # Stories files are added.
         # `Stories' directory may not be present in the destination package.
-        stories_dirname = os.path.join(working_copy_path, STORIES_DIRNAME)
+        stories_dirname = os.path.join(self.working_copy_path, STORIES_DIRNAME)
         if not os.path.exists(stories_dirname):
             os.mkdir(stories_dirname)
         # TODO: add only the stories required.
         for filename in idml_package.stories:
-            story_cp = open(os.path.join(working_copy_path, filename), mode="w+")
+            story_cp = open(os.path.join(self.working_copy_path, filename), mode="w+")
             story_cp.write(idml_package.open(filename, mode="r").read())
             story_cp.close()
 
         # Update designmap.xml.
-        designmap = Designmap(self, working_copy_path=working_copy_path)
+        designmap = Designmap(self, working_copy_path=self.working_copy_path)
         designmap.add_stories(idml_package.story_ids)
         designmap.synchronize()
 
@@ -620,10 +614,10 @@ class IDMLPackage(zipfile.ZipFile):
         self.init_lazy_references()
         last_spread.synchronize()
 
-        self._add_stories_from_idml(idml_package, at, only, working_copy_path=working_copy_path)
-        self._add_font_families_from_idml(idml_package, working_copy_path=working_copy_path)
-        self._add_styles_from_idml(idml_package, working_copy_path=working_copy_path)
-        self._add_tags_from_idml(idml_package, working_copy_path=working_copy_path)
+        self._add_stories_from_idml(idml_package, at, only)
+        self._add_font_families_from_idml(idml_package)
+        self._add_styles_from_idml(idml_package)
+        self._add_tags_from_idml(idml_package)
 
         return self
 
