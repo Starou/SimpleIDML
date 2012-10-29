@@ -427,7 +427,6 @@ class IDMLPackage(zipfile.ZipFile):
         for font_family in idml_package.font_families:
             fonts_root_elt.append(copy.deepcopy(font_family))
         fonts.synchronize()
-        return self
 
     def _add_styles_from_idml(self, idml_package):
         """Append styles to their groups or add the group in the Styles file. """
@@ -443,9 +442,7 @@ class IDMLPackage(zipfile.ZipFile):
             # or not.
             else:
                 styles_root_elt.append(copy.deepcopy(group_to_insert))
-
         styles.synchronize()
-        return self
 
     def _add_mapped_styles_from_idml(self, idml_package):
         if idml_package.style_mapping:
@@ -472,7 +469,6 @@ class IDMLPackage(zipfile.ZipFile):
             if not tags_root_elt.xpath("//XMLTag[@Self='%s']" % (tag.get("Self"))):
                 tags_root_elt.append(copy.deepcopy(tag))
         tags.synchronize()
-        return self
 
     def _get_item_translation_for_insert(self, idml_package, at, only):
         """ Compute the ItemTransform shift to apply to the elements in idml_package to insert. """
@@ -514,9 +510,7 @@ class IDMLPackage(zipfile.ZipFile):
             child_copy = copy.deepcopy(child)
             self.apply_translation_to_element(child_copy, translation)
             spread_dest_elt.append(child_copy)
-
         spread_dest.synchronize()
-        return self
 
     def _add_stories_from_idml(self, idml_package, at, only):
         """Add all idml_package stories and insert `only' refence at `at' position in self.
@@ -592,8 +586,6 @@ class IDMLPackage(zipfile.ZipFile):
         designmap = Designmap(self, working_copy_path=self.working_copy_path)
         designmap.add_stories(idml_package.story_ids)
         designmap.synchronize()
-
-        return self
         # BackingStory.xml ??
 
     @use_working_copy
