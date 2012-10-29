@@ -384,6 +384,16 @@ class Graphic(IDMLXMLFile):
     name = "Resources/Graphic.xml"
 
 
+class Tags(IDMLXMLFile):
+    name = "XML/Tags.xml"
+
+    def tags(self):
+        return self.dom.xpath("//XMLTag")
+
+    def get_root(self):
+        return self.dom.xpath("/idPkg:Tags", namespaces={'idPkg': IdPkgNS})[0]
+
+
 class Page(object):
     """
         Coordinate system

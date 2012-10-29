@@ -11,7 +11,7 @@ from lxml import etree
 from xml.dom.minidom import parseString
 
 from simple_idml.components import (Designmap, Spread, Story, BackingStory, Style, StyleMapping,
-                                    Graphic, XMLElement)
+                                    Graphic, Tags, XMLElement)
 from simple_idml.decorators import use_working_copy
 from simple_idml.utils import increment_filename
 
@@ -141,11 +141,8 @@ class IDMLPackage(zipfile.ZipFile):
     @property
     def tags(self):
         if self._tags is None:
-            tags_src = self.open(TAGS, mode="r")
-            tags_doc = XMLDocument(tags_src)
-            tags = [copy.deepcopy(elt) for elt in tags_doc.dom.xpath("//XMLTag")]
+            tags = [copy.deepcopy(elt) for elt in Tags(self).tags()]
             self._tags = tags
-            tags_src.close()
         return self._tags
 
     @property
@@ -508,15 +505,13 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def _add_tags_from_idml(self, idml_package, working_copy_path=None):
-        tags_abs_filename = os.path.join(working_copy_path, TAGS)
-        tags = open(tags_abs_filename, mode="r")
-        tags_doc = XMLDocument(tags)
-        tags_root_elt = tags_doc.dom.xpath("/idPkg:Tags", namespaces={'idPkg': IdPkgNS})[0]
+        tags = Tags(self)
+        tags.working_copy_path = working_copy_path
+        tags_root_elt = tags.get_root()
         for tag in idml_package.tags:
             if not tags_root_elt.xpath("//XMLTag[@Self='%s']" % (tag.get("Self"))):
                 tags_root_elt.append(copy.deepcopy(tag))
-
-        tags_doc.overwrite_and_close(ref_doctype=None)
+        tags.synchronize()
         return self
 
     def _get_item_translation_for_insert(self, idml_package, at, only):
