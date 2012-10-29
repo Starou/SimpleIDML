@@ -36,6 +36,11 @@ def increment_filename(filename):
     return os.path.join(dirname, "%s%s" % (result, ext))
 
 
+def prefix_content_filename(filename, prefix, rx):
+    start, end = rx.match(filename).groups()
+    return "%s%s%s" % (start, prefix, end)
+
+
 def increment_xmltag_id(xmltag_id, position="sibling"):
     if position == "sibling":
         root, last_number = rx_xmltag_sibling_id.match(xmltag_id).groups()

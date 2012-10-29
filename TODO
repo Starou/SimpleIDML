@@ -4,3 +4,12 @@
     to the working copy.
 + idml.XMLDocument is shit. Should be replace by IDMLXMLFile and subclasses like Spread etc.
 + In insert_idml() and add_page(), only add mandatory Stories, not all of them.
+
+
+tests
+-----
+
+BackingStory.get_root()
+Tags()
+Fonts()
+Style.style_groups()

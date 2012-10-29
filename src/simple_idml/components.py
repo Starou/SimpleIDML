@@ -7,19 +7,49 @@ from lxml import etree
 from decimal import Decimal
 
 from simple_idml import IdPkgNS, BACKINGSTORY
-from simple_idml.utils import increment_xmltag_id
+from simple_idml.utils import increment_xmltag_id, prefix_content_filename
 from simple_idml.utils import Proxy
 
 RECTO = "recto"
 VERSO = "verso"
 
 rx_node_name_from_xml_name = re.compile(r"[\w]+/[\w]+_([\w]+)\.xml")
+rx_contentfile = re.compile(r"^(Stories/Story_|Spreads/Spread_)(.+\.xml)$")
 
 
 class IDMLXMLFile(object):
     """Abstract class for various XML files found in IDML Packages. """
     name = None
     doctype = None
+    excluded_tags_for_prefix = (
+        "Document",
+        "Language",
+        "NumberingList",
+        "NamedGrid",
+        "TextVariable",
+        "Layer",
+        "Section",
+        "DocumentUser",
+        "CrossReferenceFormat",
+        "BuildingBlock",
+        "IndexingSortOption",
+        "ABullet",
+        "Assignment",
+        "XMLTag",
+        "MasterSpread",
+    )
+    prefixable_attrs = (
+        "Self",
+        "XMLContent",
+        "ParentStory",
+        "MappedStyle",
+        "AppliedCharacterStyle",
+        "AppliedParagraphStyle",
+        "AppliedObjectStyle",
+        "NextStyle",
+        "FillColor",
+        "StrokeColor",
+    )
 
     def __init__(self, idml_package, working_copy_path=None):
         self.idml_package = idml_package
@@ -76,8 +106,8 @@ class IDMLXMLFile(object):
         fobj.write(self.tostring())
         fobj.close()
 
-    def get_element_by_id(self, value, tag="XMLElement"):
-        elem = self.dom.xpath("//%s[@Self='%s']" % (tag, value))
+    def get_element_by_id(self, value, tag="XMLElement", attr="Self"):
+        elem = self.dom.xpath("//%s[@%s='%s']" % (tag, attr, value))
         # etree FutureWarning when trying to simply do: elem = len(elem) and elem[0] or None
         if len(elem):
             elem = elem[0]
@@ -86,6 +116,37 @@ class IDMLXMLFile(object):
         else:
             elem = None
         return elem
+
+    def prefix_references(self, prefix):
+        """Update references inside various XML files found in an IDML package
+           after a call to prefix()."""
+
+        # <XMLElement Self="di2i3" MarkupTag="XMLTag/article" XMLContent="u102"/>
+        # <[Spread|Page|...] Self="ub6" FlattenerOverride="Default"
+        # <[TextFrame|...] Self="uca" ParentStory="u102" ...>
+        # <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
+        #  PointSize="10" />
+        for elt in self.dom.iter():
+            if elt.tag in self.excluded_tags_for_prefix:
+                continue
+            for attr in self.prefixable_attrs:
+                if elt.get(attr):
+                    elt.set(attr, "%s%s" % (prefix, elt.get(attr)))
+
+        # <idPkg:Spread src="Spreads/Spread_ub6.xml"/>
+        # <idPkg:Story src="Stories/Story_u139.xml"/>
+        for elt in self.dom.xpath(".//idPkg:Spread | .//idPkg:Story",
+                                  namespaces={'idPkg': IdPkgNS}):
+            if elt.get("src") and rx_contentfile.match(elt.get("src")):
+                elt.set("src", prefix_content_filename(elt.get("src"), prefix, rx_contentfile))
+
+        # <Document xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"...
+        # StoryList="ue4 u102 u11b u139 u9c"...>
+        elt = self.dom.xpath("/Document")
+        if elt and elt[0].get("StoryList"):
+            elt[0].set("StoryList", " ".join(["%s%s" % (prefix, s)
+                                              for s in elt[0].get("StoryList").split(" ")]))
+
 
     def set_element_resource_path(self, element_id, resource_path, synchronize=False):
         """ For Spread and Story subclasses only (this comment is a call for a Mixin). """
@@ -98,6 +159,12 @@ class IDMLXMLFile(object):
             link.set("LinkResourceURI", resource_path)
             if synchronize:
                 self.synchronize()
+
+
+class MasterSpread(IDMLXMLFile):
+    def __init__(self, idml_package, name, working_copy_path=None):
+        super(MasterSpread, self).__init__(idml_package, working_copy_path)
+        self.name = name
 
 
 class Spread(IDMLXMLFile):
@@ -126,9 +193,9 @@ class Spread(IDMLXMLFile):
                         ˇ +Y
     """
 
-    def __init__(self, idml_package, spread_name, working_copy_path=None):
+    def __init__(self, idml_package, name, working_copy_path=None):
         super(Spread, self).__init__(idml_package, working_copy_path)
-        self.name = spread_name
+        self.name = name
         self._pages = None
         self._node = None
 
@@ -187,9 +254,9 @@ class Spread(IDMLXMLFile):
 
 
 class Story(IDMLXMLFile):
-    def __init__(self, idml_package, story_name, working_copy_path=None):
+    def __init__(self, idml_package, name, working_copy_path=None):
         super(Story, self).__init__(idml_package, working_copy_path)
-        self.name = story_name
+        self.name = name
         self.node_name = "Story"
         self._node = None
 
@@ -214,6 +281,11 @@ class Story(IDMLXMLFile):
 
     def clear_element_content(self, element_id):
         element = self.get_element_by_id(element_id)
+        # We remove all `CharacterStyleRange' containers except the first.
+        # FIXME: This should handle ./ParagraphStyleRange/CharacterStyleRange too.
+        childrens = element.xpath("./CharacterStyleRange")[1:]
+        for c in childrens:
+            element.remove(c)
         for content_node in self.get_element_content_nodes(element):
             content_node.text = ""
 
@@ -249,9 +321,12 @@ class Story(IDMLXMLFile):
 
 
 class BackingStory(Story):
-    def __init__(self, idml_package, story_name=BACKINGSTORY, working_copy_path=None):
-        super(BackingStory, self).__init__(idml_package, story_name, working_copy_path)
+    def __init__(self, idml_package, name=BACKINGSTORY, working_copy_path=None):
+        super(BackingStory, self).__init__(idml_package, name, working_copy_path)
         self.node_name = "XmlStory"
+
+    def get_root(self):
+        return XMLElement(self.dom.find("*//XMLElement"))
 
 
 class Designmap(IDMLXMLFile):
@@ -304,6 +379,16 @@ class Designmap(IDMLXMLFile):
         current_page_start = section_node.get(self.page_start_attr)
         section_node.set(self.page_start_attr, "%s%s" % (prefix, current_page_start))
 
+    def add_stories(self, stories):
+        # Add stories in StoryList.
+        elt = self.dom.xpath("/Document")[0]
+        current_stories = elt.get("StoryList").split(" ")
+        elt.set("StoryList", " ".join(current_stories + stories))
+
+        # Add <idPkg:Story src="Stories/Story_[name].xml"/> elements.
+        for story in stories:
+            elt.append(etree.Element("{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Story",
+                                     src="Stories/Story_%s.xml" % story))
 
 class Style(IDMLXMLFile):
     name = "Resources/Styles.xml"
@@ -313,6 +398,14 @@ class Style(IDMLXMLFile):
 
     def get_style_node_by_name(self, style_name):
         return self.dom.xpath(".//CharacterStyle[@Self='%s']" % style_name)[0]
+
+    def style_groups(self):
+        """ Groups are `RootCharacterStyleGroup', `RootParagraphStyleGroup' etc. """
+        return [elt for elt in self.dom.xpath("/idPkg:Styles/*", namespaces={'idPkg':IdPkgNS})
+                if re.match(r"^.+Group$", elt.tag)]
+
+    def get_root(self):
+        return self.dom.xpath("/idPkg:Styles", namespaces={'idPkg': IdPkgNS})[0]
 
 
 class StyleMapping(IDMLXMLFile):
@@ -374,6 +467,30 @@ class StyleMapping(IDMLXMLFile):
 
 class Graphic(IDMLXMLFile):
     name = "Resources/Graphic.xml"
+
+
+class Preferences(IDMLXMLFile):
+    name = "Resources/Preferences.xml"
+
+
+class Tags(IDMLXMLFile):
+    name = "XML/Tags.xml"
+
+    def tags(self):
+        return self.dom.xpath("//XMLTag")
+
+    def get_root(self):
+        return self.dom.xpath("/idPkg:Tags", namespaces={'idPkg': IdPkgNS})[0]
+
+
+class Fonts(IDMLXMLFile):
+    name = "Resources/Fonts.xml"
+
+    def fonts(self):
+        return self.dom.xpath("//FontFamily")
+
+    def get_root(self):
+        return self.dom.xpath("/idPkg:Fonts", namespaces={'idPkg': IdPkgNS})[0]
 
 
 class Page(object):
@@ -575,3 +692,46 @@ class XMLElement(Proxy):
 
     def get_applied_character_style(self):
         return self.find("CharacterStyleRange").get("AppliedCharacterStyle")
+
+    def to_xml_structure_element(self):
+        """Return the node as seen in the Structure panel of InDesign. """
+        attrs = dict(self.attrib)
+        name = attrs.pop("MarkupTag").replace("XMLTag/", "")
+        return etree.Element(name, **attrs)
+
+
+def get_idml_xml_file_by_name(idml_package, name, working_copy_path=None):
+    kwargs = {"idml_package": idml_package, "name": name, "working_copy_path": working_copy_path}
+    dirname, basename = os.path.split(name)
+    if basename == "designmap.xml":
+        kwargs.pop("name")
+        klass = Designmap
+    elif dirname == "MasterSpreads":
+        klass = MasterSpread
+    elif dirname == "Spreads":
+        klass = Spread
+    elif dirname == "Stories":
+        klass = Story
+    elif name == "XML/BackingStory.xml":
+        kwargs.pop("name")
+        klass = BackingStory
+    elif name == "Resources/Fonts.xml":
+        kwargs.pop("name")
+        klass = Fonts
+    elif name == "Resources/Graphic.xml":
+        kwargs.pop("name")
+        klass = Graphic
+    elif name == "Resources/Preferences.xml":
+        kwargs.pop("name")
+        klass = Preferences
+    elif name == "Resources/Styles.xml":
+        kwargs.pop("name")
+        klass = Style
+    elif name == "XML/Tags.xml":
+        kwargs.pop("name")
+        klass = Tags
+    elif name == "XML/Mapping.xml":
+        kwargs.pop("name")
+        klass = StyleMapping
+
+    return klass(**kwargs)

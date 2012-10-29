@@ -10,33 +10,18 @@ from decimal import Decimal
 from lxml import etree
 from xml.dom.minidom import parseString
 
-from simple_idml.components import (Designmap, Spread, Story, BackingStory, Style, StyleMapping,
-                                    Graphic, XMLElement)
+from simple_idml.components import get_idml_xml_file_by_name
+from simple_idml.components import (Designmap, Spread, Story, BackingStory,
+                                    Style, StyleMapping, Graphic, Tags, Fonts, XMLElement)
 from simple_idml.decorators import use_working_copy
-from simple_idml.utils import increment_filename
+from simple_idml.utils import increment_filename, prefix_content_filename
 
 from simple_idml import IdPkgNS, BACKINGSTORY
 
-TAGS = "XML/Tags.xml"
-MAPPING = "XML/Mapping.xml"
-FONTS = "Resources/Fonts.xml"
-STYLES = "Resources/Styles.xml"
 STORIES_DIRNAME = "Stories"
-SPREADS_DIRNAME = "Spreads"
 
-
-xmltag_prefix = "XMLTag/"
 rx_contentfile = re.compile(r"^(Story_|Spread_)(.+\.xml)$")
-rx_contentfile2 = re.compile(r"^(%(stories_dirname)s/Story_|%(spreads_dirname)s/Spread_)(.+\.xml)$" % {
-    "stories_dirname": STORIES_DIRNAME,
-    "spreads_dirname": SPREADS_DIRNAME,
-})
-
 rx_story_id = re.compile(r"%s/Story_([\w]+)\.xml" % STORIES_DIRNAME)
-
-doctypes = {
-    'designmap.xml': u'<?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="7.5(142)" ?>',
-}
 
 
 def create_idml_package_from_dir(dir_path, package_path=None):
@@ -75,6 +60,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._spreads = None
         self._spreads_objects = None
         self._pages = None
+        self._backing_story = None
         self._stories = None
         self._story_ids = None
 
@@ -95,16 +81,11 @@ class IDMLPackage(zipfile.ZipFile):
     def XMLStructure(self):
         """ Discover the XML structure from the story files.
 
-        Starting at BackingStory.xml where the root-element is expected (because unused).
-        Read a XML document and write another one in a parallel manner.
-        """
+        Starting at BackingStory.xml where the root-element is expected (because unused). """
 
         if self._XMLStructure is None:
-            backing_story = self.open(BACKINGSTORY, mode="r")
-            backing_story_doc = XMLDocument(xml_file=backing_story)
-
-            root_elt = backing_story_doc.dom.find("*//XMLElement")
-            structure = XMLDocument(XMLElement=root_elt)
+            source_node = self.backing_story.get_root()
+            structure = source_node.to_xml_structure_element()
 
             def append_childs(source_node, destination_node):
                 """Recursive function to discover node structure from a story to another. """
@@ -115,71 +96,53 @@ class IDMLPackage(zipfile.ZipFile):
                         continue
                     if not elt.get("MarkupTag"):
                         continue
-                    new_destination_node = XMLElementToElement(elt)
+                    elt = XMLElement(elt)
+                    new_destination_node = elt.to_xml_structure_element()
                     destination_node.append(new_destination_node)
                     if elt.get("XMLContent"):
                         xml_content_value = elt.get("XMLContent")
-                        story_filename = self.get_story_filename_by_xml_value(xml_content_value)
+                        story_name = "Stories/Story_%s.xml" % xml_content_value
+                        story = Story(self, name=story_name)
                         try:
-                            story = self.open(story_filename, mode="r")
+                            new_source_node = story.get_element_by_id(elt.get("Self"))
+                        # The story does not exists.
                         except KeyError:
                             continue
                         else:
-                            story_doc = XMLDocument(xml_file=story)
-                            # Prendre la valeur de cet attribut pour retrouver la Story.
-                            # Parser cette story.
-                            new_source_node = story_doc.getElementById(elt.get("Self"))
                             append_childs(new_source_node, new_destination_node)
-                            story.close()
                     else:
                         append_childs(elt, new_destination_node)
-            append_childs(root_elt, structure.dom)
 
-            backing_story.close()
+            append_childs(source_node, structure)
             self._XMLStructure = structure
         return self._XMLStructure
 
     @property
     def xml_structure_tree(self):
         if self._xml_structure_tree is None:
-            xml_structure_tree = etree.ElementTree(self.XMLStructure.dom)
+            xml_structure_tree = etree.ElementTree(self.XMLStructure)
             self._xml_structure_tree = xml_structure_tree
         return self._xml_structure_tree
 
     @property
     def tags(self):
         if self._tags is None:
-            tags_src = self.open(TAGS, mode="r")
-            tags_doc = XMLDocument(tags_src)
-            tags = [copy.deepcopy(elt) for elt in tags_doc.dom.xpath("//XMLTag")]
+            tags = [copy.deepcopy(elt) for elt in Tags(self).tags()]
             self._tags = tags
-            tags_src.close()
         return self._tags
 
     @property
     def font_families(self):
         if self._font_families is None:
-            font_families_src = self.open(FONTS, mode="r")
-            font_families_doc = XMLDocument(font_families_src)
-            font_families = [copy.deepcopy(elt)
-                             for elt in font_families_doc.dom.xpath("//FontFamily")]
+            font_families = [copy.deepcopy(elt) for elt in Fonts(self).fonts()]
             self._font_families = font_families
-            font_families_src.close()
         return self._font_families
 
-    # TODO: use self.styles object.
     @property
     def style_groups(self):
-        """ Groups are `RootCharacterStyleGroup', `RootParagraphStyleGroup' etc. """
         if self._style_groups is None:
-            style_groups_src = self.open(STYLES, mode="r")
-            style_groups_doc = XMLDocument(style_groups_src)
-            style_groups = [copy.deepcopy(elt)
-                            for elt in style_groups_doc.dom.xpath("/idPkg:Styles/*",
-                                                                  namespaces={'idPkg':IdPkgNS})
-                            if re.match(r"^.+Group$", elt.tag)]
+            style_groups = [copy.deepcopy(elt) for elt in Style(self).style_groups()]
             self._style_groups = style_groups
-            style_groups_src.close()
         return self._style_groups
 
     @property
@@ -228,6 +191,14 @@ class IDMLPackage(zipfile.ZipFile):
         return self._pages
 
     @property
+    def backing_story(self):
+        """The style mapping file may not be present in the archive and is created in that case. """
+        if self._backing_story is None:
+            backing_story = BackingStory(self, working_copy_path=self.working_copy_path)
+            self._backing_story = backing_story
+        return self._backing_story
+
+    @property
     def stories(self):
         if self._stories is None:
             stories = [elt for elt in self.namelist()
@@ -268,7 +239,7 @@ class IDMLPackage(zipfile.ZipFile):
                 story = BackingStory(idml_package=self)
             else:
                 story = Story(idml_package=self, 
-                              story_name="%s/Story_%s.xml" % (STORIES_DIRNAME, story_id))
+                              name="%s/Story_%s.xml" % (STORIES_DIRNAME, story_id))
         story.working_copy_path = self.working_copy_path
         return story
 
@@ -278,7 +249,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         source_node = etree.fromstring(xml_file.read())
         # destination_node is not the node in story file, but a representation from self.XMLStructure.
-        destination_node = self.XMLStructure.dom.xpath(at)[0]
+        destination_node = self.XMLStructure.xpath(at)[0]
 
         def set_destination_node_content(destination_node, content):
             element_id = destination_node.get("Self")
@@ -344,7 +315,7 @@ class IDMLPackage(zipfile.ZipFile):
     def export_xml(self, from_tag=None):
         """ Reproduce the action «Export XML» on a XML Element in InDesign® Structure. """
         if not from_tag:
-            export_from_node = self.XMLStructure.dom
+            export_from_node = self.XMLStructure
         else:
             # TODO
             pass
@@ -408,17 +379,13 @@ class IDMLPackage(zipfile.ZipFile):
         """
 
         # Change the references inside the file.
-        for root, dirs, filenames in os.walk(working_copy_path):
-            if os.path.basename(root) in ["META-INF", ]:
+        for filename in self.namelist():
+            if (os.path.basename(filename) in ["container.xml", "metadata.xml"] or
+                os.path.splitext(filename)[1] != ".xml"):
                 continue
-            for filename in filenames:
-                if os.path.splitext(filename)[1] != ".xml":
-                    continue
-                abs_filename = os.path.join(root, filename)
-                xml_file = open(abs_filename, mode="r")
-                doc = XMLDocument(xml_file)
-                doc.prefix_references(prefix)
-                doc.overwrite_and_close(ref_doctype=filename)
+            idml_xml_file = get_idml_xml_file_by_name(self, filename, working_copy_path)
+            idml_xml_file.prefix_references(prefix)
+            idml_xml_file.synchronize()
 
         # Story and Spread XML files are "prefixed".
         for filename in self.namelist():
@@ -452,30 +419,23 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def _add_font_families_from_idml(self, idml_package, working_copy_path=None):
-        # TODO test.
         # TODO Optimization. There is a linear expansion of the Fonts.xml size
         #      as packages are merged. Do something cleaver to prune or reuse
         #      fonts already here.
-        fonts_abs_filename = os.path.join(working_copy_path, FONTS)
-        fonts = open(fonts_abs_filename, mode="r")
-        fonts_doc = XMLDocument(fonts)
-        fonts_root_elt = fonts_doc.dom.xpath("/idPkg:Fonts", namespaces={'idPkg': IdPkgNS})[0]
+        fonts = Fonts(self)
+        fonts.working_copy_path = working_copy_path
+        fonts_root_elt = fonts.get_root()
         for font_family in idml_package.font_families:
             fonts_root_elt.append(copy.deepcopy(font_family))
-
-        fonts_doc.overwrite_and_close(ref_doctype=None)
+        fonts.synchronize()
         return self
 
     @use_working_copy
     def _add_styles_from_idml(self, idml_package, working_copy_path=None):
-        """Append styles to their groups or add the group in the STYLES file.
-
-        The risk of collision is avoided by prefixing packages.
-        """
-        styles_abs_filename = os.path.join(working_copy_path, STYLES)
-        styles = open(styles_abs_filename, mode="r")
-        styles_doc = XMLDocument(styles)
-        styles_root_elt = styles_doc.dom.xpath("/idPkg:Styles", namespaces={'idPkg': IdPkgNS})[0]
+        """Append styles to their groups or add the group in the Styles file. """
+        styles = Style(self)
+        styles.working_copy_path = working_copy_path
+        styles_root_elt = styles.get_root()
         for group_to_insert in idml_package.style_groups:
             group_host = styles_root_elt.xpath(group_to_insert.tag)
             # Either the group exists.
@@ -486,7 +446,7 @@ class IDMLPackage(zipfile.ZipFile):
             else:
                 styles_root_elt.append(copy.deepcopy(group_to_insert))
 
-        styles_doc.overwrite_and_close(ref_doctype=None)
+        styles.synchronize()
         return self
 
     def _add_mapped_styles_from_idml(self, idml_package):
@@ -508,15 +468,13 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def _add_tags_from_idml(self, idml_package, working_copy_path=None):
-        tags_abs_filename = os.path.join(working_copy_path, TAGS)
-        tags = open(tags_abs_filename, mode="r")
-        tags_doc = XMLDocument(tags)
-        tags_root_elt = tags_doc.dom.xpath("/idPkg:Tags", namespaces={'idPkg': IdPkgNS})[0]
+        tags = Tags(self)
+        tags.working_copy_path = working_copy_path
+        tags_root_elt = tags.get_root()
         for tag in idml_package.tags:
             if not tags_root_elt.xpath("//XMLTag[@Self='%s']" % (tag.get("Self"))):
                 tags_root_elt.append(copy.deepcopy(tag))
-
-        tags_doc.overwrite_and_close(ref_doctype=None)
+        tags.synchronize()
         return self
 
     def _get_item_translation_for_insert(self, idml_package, at, only):
@@ -550,23 +508,19 @@ class IDMLPackage(zipfile.ZipFile):
         """ Append idml_package spread elements into self.spread[0] <Spread> node. """
 
         # There should be only one spread in the idml_package.
-        spread_src = idml_package.open(idml_package.spreads[0], mode="r")
-        spread_src_doc = XMLDocument(spread_src)
-
+        spread_src = idml_package.spreads_objects[0]
         spread_dest_filename = self.get_spread_by_xpath(at)
-        spread_dest_abs_filename = os.path.join(working_copy_path, spread_dest_filename)
-        spread_dest = open(spread_dest_abs_filename, mode="r")
-        spread_dest_doc = XMLDocument(spread_dest)
-        spread_dest_elt = spread_dest_doc.dom.xpath("./Spread")[0]
+        spread_dest = Spread(self, spread_dest_filename, working_copy_path)
+        spread_dest_elt = spread_dest.dom.xpath("./Spread")[0]
 
-        for child in spread_src_doc.dom.xpath("./Spread")[0].iterchildren():
+        for child in spread_src.dom.xpath("./Spread")[0].iterchildren():
             if child.tag in ["Page", "FlattenerPreference"]:
                 continue
             child_copy = copy.deepcopy(child)
             self.apply_translation_to_element(child_copy, translation)
             spread_dest_elt.append(child_copy)
 
-        spread_dest_doc.overwrite_and_close(ref_doctype=None)
+        spread_dest.synchronize()
         return self
 
     @use_working_copy
@@ -610,20 +564,16 @@ class IDMLPackage(zipfile.ZipFile):
 
         """
 
-        xml_element_src = idml_package.XMLStructure.dom.xpath(only)[0]
+        xml_element_src_id = idml_package.XMLStructure.xpath(only)[0].get("Self")
         story_src_filename = idml_package.get_node_story_by_xpath(only)
-        story_src = idml_package.open(story_src_filename, mode="r")
-        story_src_doc = XMLDocument(story_src)
-        story_src_elt = story_src_doc.dom.xpath("//XMLElement[@Self='%s']" %
-                                                xml_element_src.get("Self"))[0]
+        story_src = Story(idml_package, story_src_filename)
+        story_src_elt = story_src.get_element_by_id(xml_element_src_id).element
 
-        xml_element_dest = self.XMLStructure.dom.xpath(at)[0]
+        xml_element_dest_id = self.XMLStructure.xpath(at)[0].get("Self")
         story_dest_filename = self.get_node_story_by_xpath(at)
-        story_dest_abs_filename = os.path.join(working_copy_path, story_dest_filename)
-        story_dest = open(story_dest_abs_filename, mode="r")
-        story_dest_doc = XMLDocument(story_dest)
-        story_dest_elt = story_dest_doc.dom.xpath("//XMLElement[@Self='%s']" %
-                                                  xml_element_dest.get("Self"))[0]
+        story_dest = Story(self, story_dest_filename, working_copy_path)
+        story_dest_elt = story_dest.get_element_by_id(xml_element_dest_id)
+
         if story_dest_elt.get("XMLContent"):
             story_dest_elt.attrib.pop("XMLContent")
         story_src_elt_copy = copy.copy(story_src_elt)
@@ -631,8 +581,7 @@ class IDMLPackage(zipfile.ZipFile):
             for child in story_src_elt_copy.iterchildren():
                 story_src_elt_copy.remove(child)
         story_dest_elt.append(story_src_elt_copy)
-
-        story_dest_doc.overwrite_and_close(ref_doctype=None)
+        story_dest.synchronize()
 
         # Stories files are added.
         # `Stories' directory may not be present in the destination package.
@@ -646,12 +595,9 @@ class IDMLPackage(zipfile.ZipFile):
             story_cp.close()
 
         # Update designmap.xml.
-        # TODO: use Designmap instance.
-        designmap_abs_filename = os.path.join(working_copy_path, "designmap.xml")
-        designmap = open(designmap_abs_filename, mode="r")
-        designmap_doc = XMLDocument(designmap)
-        add_stories_to_designmap(designmap_doc.dom, idml_package.story_ids)
-        designmap_doc.overwrite_and_close(ref_doctype="designmap.xml")
+        designmap = Designmap(self, working_copy_path=working_copy_path)
+        designmap.add_stories(idml_package.story_ids)
+        designmap.synchronize()
 
         return self
         # BackingStory.xml ??
@@ -709,18 +655,14 @@ class IDMLPackage(zipfile.ZipFile):
         """ Search for the spread file having the element identified by the XMLContent attribute
         of the XMLElement pointed by xpath value."""
 
-        #TODO: caching.
         result = None
-        reference = self.XMLStructure.dom.xpath(xpath)[0].get("XMLContent")
-        for filename in self.spreads:
-            spread = self.open(filename, mode="r")
-            spread_doc = XMLDocument(spread)
+        reference = self.XMLStructure.xpath(xpath)[0].get("XMLContent")
+        for spread in self.spreads_objects:
             if (
-                spread_doc.getElementById(reference, tag="*") is not None or
-                spread_doc.getElementById(reference, tag="*", attr="ParentStory") is not None
+                spread.get_element_by_id(reference, tag="*") is not None or
+                spread.get_element_by_id(reference, tag="*", attr="ParentStory") is not None
             ):
-                result = filename
-            spread.close()
+                result = spread.name
             if result:
                 break
         return result
@@ -735,11 +677,11 @@ class IDMLPackage(zipfile.ZipFile):
         return out
 
     def get_element_content_id_by_xpath(self, xpath):
-        return self.XMLStructure.dom.xpath(xpath)[0].get("XMLContent")
+        return self.XMLStructure.xpath(xpath)[0].get("XMLContent")
 
     def get_node_story_by_xpath(self, xpath):
         """Return the Story (or BackingStory) filename containing the element selected by xpath."""
-        node = self.XMLStructure.dom.xpath(xpath)[0]
+        node = self.XMLStructure.xpath(xpath)[0]
         return self.get_xml_element_story(node).name
 
     # TODO: use Spread.get_element_by_id(self.get_element_content_id_by_xpath(xpath)) instead.
@@ -747,20 +689,12 @@ class IDMLPackage(zipfile.ZipFile):
         """Return the spread etree.Element designed by XMLElement xpath. """
 
         spread_filename = self.get_spread_by_xpath(xpath)
-        spread_file = self.open(spread_filename, mode="r")
-        spread_doc = XMLDocument(spread_file)
-        elt_id = self.XMLStructure.dom.xpath(xpath)[0].get("XMLContent")
-        # etree FutureWarning when trying to simply do elt = X or Y.
-        elt = spread_doc.getElementById(elt_id, tag="*")
+        spread = Spread(self, spread_filename)
+        elt_id = self.XMLStructure.xpath(xpath)[0].get("XMLContent")
+        elt = spread.get_element_by_id(elt_id, tag="*")
         if elt is None:
-            elt = spread_doc.getElementById(elt_id, tag="*", attr="ParentStory")
-        spread_file.close()
-
+            elt = spread.get_element_by_id(elt_id, tag="*", attr="ParentStory")
         return elt
-
-    # TODO: rename in get_story_filename_by_reference ?
-    def get_story_filename_by_xml_value(self, xml_value):
-        return u"Stories/Story_%s.xml" % xml_value
 
     def get_elem_point_position(self, elem, point_index=0):
         point = elem.xpath("Properties/PathGeometry/GeometryPathType/PathPointArray/PathPointType")[point_index]
@@ -770,144 +704,3 @@ class IDMLPackage(zipfile.ZipFile):
     def get_elem_translation(self, elem):
         item_transform = elem.get("ItemTransform").split(" ")
         return Decimal(item_transform[4]), Decimal(item_transform[5])
-
-
-# TODO : this class should be replaced by components IDML subclasses.
-class XMLDocument(object):
-    """An etree document wrapper to fit IDML XML Structure."""
-
-    excluded_tags_for_prefix = (
-        "Document",
-        "Language",
-        "NumberingList",
-        "NamedGrid",
-        "TextVariable",
-        "Layer",
-        "Section",
-        "DocumentUser",
-        "CrossReferenceFormat",
-        "BuildingBlock",
-        "IndexingSortOption",
-        "ABullet",
-        "Assignment",
-        "XMLTag",
-        "MasterSpread",
-    )
-    prefixable_attrs = (
-        "Self",
-        "XMLContent",
-        "ParentStory",
-        "MappedStyle",
-        "AppliedCharacterStyle",
-        "AppliedParagraphStyle",
-        "AppliedObjectStyle",
-        "NextStyle",
-        "FillColor",
-        "StrokeColor",
-    )
-
-    def __init__(self, xml_file=None, XMLElement=None):
-        if xml_file:
-            self.xml_file = xml_file
-            self.dom = etree.fromstring(xml_file.read())
-        elif XMLElement is not None:
-            self.dom = XMLElementToElement(XMLElement)
-        else:
-            raise BaseException("You must provide either a xml file or a name.")
-
-    def getElementById(self, id, tag="XMLElement", attr="Self"):
-        """ tag is by default XMLElement, the XML tag representing the InDesign XML structure
-            inside IDML files."""
-        return self.dom.find("*//%s[@%s='%s']" % (tag, attr, id))
-
-    def prefix_references(self, prefix):
-        """Update references inside various XML files found in an IDML package
-           after a call to prefix()."""
-
-        # <XMLElement Self="di2i3" MarkupTag="XMLTag/article" XMLContent="u102"/>
-        # <[Spread|Page|...] Self="ub6" FlattenerOverride="Default"
-        # <[TextFrame|...] Self="uca" ParentStory="u102" ...>
-        # <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
-        #  PointSize="10" />
-        for elt in self.dom.iter():
-            if elt.tag in self.excluded_tags_for_prefix:
-                continue
-            for attr in self.prefixable_attrs:
-                if elt.get(attr):
-                    elt.set(attr, "%s%s" % (prefix, elt.get(attr)))
-
-        # <idPkg:Spread src="Spreads/Spread_ub6.xml"/>
-        # <idPkg:Story src="Stories/Story_u139.xml"/>
-        for elt in self.dom.xpath(".//idPkg:Spread | .//idPkg:Story",
-                                  namespaces={'idPkg': IdPkgNS}):
-            if elt.get("src") and rx_contentfile2.match(elt.get("src")):
-                elt.set("src", prefix_content_filename(elt.get("src"), prefix, rx_contentfile2))
-
-        # <Document xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"...
-        # StoryList="ue4 u102 u11b u139 u9c"...>
-        elt = self.dom.xpath("/Document")
-        if elt and elt[0].get("StoryList"):
-            elt[0].set("StoryList", " ".join(["%s%s" % (prefix, s)
-                                              for s in elt[0].get("StoryList").split(" ")]))
-
-    # I'am not very happy with the «ref_doctype» choice. An explicit doctype looks better now.
-    def tostring(self, ref_doctype=None):
-        doctype = doctypes.get(ref_doctype, None)
-        kwargs = {"xml_declaration": True,
-                  "encoding": "UTF-8",
-                  "standalone": True,
-                  "pretty_print": True}
-
-        if etree.LXML_VERSION < (2, 3):
-            s = etree.tostring(self.dom, **kwargs)
-            if doctype:
-                lines = s.splitlines()
-                lines.insert(1, doctype)
-                s = "\n".join(line.decode("utf-8") for line in lines)
-                s += "\n"
-                s = s.encode("utf-8")
-
-        else:
-            kwargs["doctype"] = doctype
-            s = etree.tostring(self.dom, **kwargs)
-
-        return s
-
-    def overwrite_and_close(self, ref_doctype=None):
-        new_xml = self.tostring(ref_doctype)
-        filename = self.xml_file.name
-        self.xml_file.close()
-        xml_file = open(filename, mode="w+")
-        xml_file.write(new_xml)
-        xml_file.close()
-
-
-def XMLElementToElement(XMLElement):
-    """ Extract data from a XMLElement tag to restore the tag as seen by the ID end-user.
-
-    CamelCase Capfirst function name to keep the track.
-      o XMLElement are XML tags inside IDML file to express the XML structure of the IDML
-        document as seen by the end-user (not the developpers).
-    """
-    attrs = dict(XMLElement.attrib)
-    name = attrs.pop("MarkupTag").replace(xmltag_prefix, "")
-    return etree.Element(name, **attrs)
-
-
-def prefix_content_filename(filename, prefix, rx):
-    start, end = rx.match(filename).groups()
-    return "%s%s%s" % (start, prefix, end)
-
-
-def add_stories_to_designmap(dom, stories):
-    """This function is outside IDMLPackage because of readonly limitations of ZipFile. """
-
-    # Add stories in StoryList.
-    elt = dom.xpath("/Document")[0]
-    current_stories = elt.get("StoryList").split(" ")
-    elt.set("StoryList", " ".join(current_stories + stories))
-
-    # Add <idPkg:Story src="Stories/Story_[name].xml"/> elements.
-    for story in stories:
-        elt.append(etree.Element("{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Story",
-                                 src="Stories/Story_%s.xml" % story))
