@@ -18,7 +18,6 @@ from simple_idml.utils import increment_filename
 from simple_idml import IdPkgNS, BACKINGSTORY
 
 MAPPING = "XML/Mapping.xml"
-STYLES = "Resources/Styles.xml"
 STORIES_DIRNAME = "Stories"
 SPREADS_DIRNAME = "Spreads"
 
@@ -150,19 +149,11 @@ class IDMLPackage(zipfile.ZipFile):
             self._font_families = font_families
         return self._font_families
 
-    # TODO: use self.styles object.
     @property
     def style_groups(self):
-        """ Groups are `RootCharacterStyleGroup', `RootParagraphStyleGroup' etc. """
         if self._style_groups is None:
-            style_groups_src = self.open(STYLES, mode="r")
-            style_groups_doc = XMLDocument(style_groups_src)
-            style_groups = [copy.deepcopy(elt)
-                            for elt in style_groups_doc.dom.xpath("/idPkg:Styles/*",
-                                                                  namespaces={'idPkg':IdPkgNS})
-                            if re.match(r"^.+Group$", elt.tag)]
+            style_groups = [copy.deepcopy(elt) for elt in Style(self).style_groups()]
             self._style_groups = style_groups
-            style_groups_src.close()
         return self._style_groups
 
     @property
@@ -456,14 +447,10 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def _add_styles_from_idml(self, idml_package, working_copy_path=None):
-        """Append styles to their groups or add the group in the STYLES file.
-
-        The risk of collision is avoided by prefixing packages.
-        """
-        styles_abs_filename = os.path.join(working_copy_path, STYLES)
-        styles = open(styles_abs_filename, mode="r")
-        styles_doc = XMLDocument(styles)
-        styles_root_elt = styles_doc.dom.xpath("/idPkg:Styles", namespaces={'idPkg': IdPkgNS})[0]
+        """Append styles to their groups or add the group in the Styles file. """
+        styles = Style(self)
+        styles.working_copy_path = working_copy_path
+        styles_root_elt = styles.get_root()
         for group_to_insert in idml_package.style_groups:
             group_host = styles_root_elt.xpath(group_to_insert.tag)
             # Either the group exists.
@@ -474,7 +461,7 @@ class IDMLPackage(zipfile.ZipFile):
             else:
                 styles_root_elt.append(copy.deepcopy(group_to_insert))
 
-        styles_doc.overwrite_and_close(ref_doctype=None)
+        styles.synchronize()
         return self
 
     def _add_mapped_styles_from_idml(self, idml_package):

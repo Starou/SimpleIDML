@@ -322,6 +322,14 @@ class Style(IDMLXMLFile):
     def get_style_node_by_name(self, style_name):
         return self.dom.xpath(".//CharacterStyle[@Self='%s']" % style_name)[0]
 
+    def style_groups(self):
+        """ Groups are `RootCharacterStyleGroup', `RootParagraphStyleGroup' etc. """
+        return [elt for elt in self.dom.xpath("/idPkg:Styles/*", namespaces={'idPkg':IdPkgNS})
+                if re.match(r"^.+Group$", elt.tag)]
+
+    def get_root(self):
+        return self.dom.xpath("/idPkg:Styles", namespaces={'idPkg': IdPkgNS})[0]
+
 
 class StyleMapping(IDMLXMLFile):
     name = "XML/Mapping.xml"
