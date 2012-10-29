@@ -716,15 +716,11 @@ class IDMLPackage(zipfile.ZipFile):
         """Return the spread etree.Element designed by XMLElement xpath. """
 
         spread_filename = self.get_spread_by_xpath(xpath)
-        spread_file = self.open(spread_filename, mode="r")
-        spread_doc = XMLDocument(spread_file)
+        spread = Spread(self, spread_filename)
         elt_id = self.XMLStructure.xpath(xpath)[0].get("XMLContent")
-        # etree FutureWarning when trying to simply do elt = X or Y.
-        elt = spread_doc.getElementById(elt_id, tag="*")
+        elt = spread.get_element_by_id(elt_id, tag="*")
         if elt is None:
-            elt = spread_doc.getElementById(elt_id, tag="*", attr="ParentStory")
-        spread_file.close()
-
+            elt = spread.get_element_by_id(elt_id, tag="*", attr="ParentStory")
         return elt
 
     def get_elem_point_position(self, elem, point_index=0):
