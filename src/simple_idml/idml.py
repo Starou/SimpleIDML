@@ -251,50 +251,52 @@ class IDMLPackage(zipfile.ZipFile):
         # destination_node is not the node in story file, but a representation from self.XMLStructure.
         destination_node = self.XMLStructure.xpath(at)[0]
 
-        def set_destination_node_content(destination_node, content):
+        def _set_content(destination_node, content):
             element_id = destination_node.get("Self")
             story = self.get_xml_element_story(destination_node)
             story.set_element_content(element_id, content)
             story.synchronize()
 
-        def import_content(source_node, destination_node):
-            source_node_children = source_node.getchildren()
+        def _set_attributes(destination_node, items):
             element_id = destination_node.get("Self")
+            story = self.get_xml_element_story(destination_node)
+            story.set_element_attributes(element_id, items)
+            # Image references must be updated in the page item in Spread or Story.
+            if "href" in items:
+                xpath = self.xml_structure_tree.getpath(destination_node)
+                element_content_id = self.get_element_content_id_by_xpath(xpath)
+                resource_path = items.get("href")
+                story.set_element_resource_path(element_content_id, resource_path)
+                
+                spread = self.get_spread_object_by_xpath(xpath)
+                if spread:
+                    spread.set_element_resource_path(element_content_id,
+                                                     resource_path,
+                                                     synchronize=True)
+            story.synchronize()
 
+        def _import_xml(source_node, destination_node):
             items = dict(source_node.items())
             if items:
-                story = self.get_xml_element_story(destination_node)
-                story.set_element_attributes(element_id, items)
-                # Image references must be updated in the page item in Spread or Story.
-                if "href" in items:
-                    xpath = self.xml_structure_tree.getpath(destination_node)
-                    element_content_id = self.get_element_content_id_by_xpath(xpath)
-                    resource_path = items.get("href")
-                    story.set_element_resource_path(element_content_id, resource_path)
-                    
-                    spread = self.get_spread_object_by_xpath(xpath)
-                    if spread:
-                        spread.set_element_resource_path(element_content_id,
-                                                         resource_path,
-                                                         synchronize=True)
-                story.synchronize()
-
+                _set_attributes(destination_node, items)
             if not (items.get("simpleidml-setcontent") == "false"):
-                set_destination_node_content(destination_node, source_node.text or "")
+                _set_content(destination_node, source_node.text or "")
 
+            source_node_children = source_node.getchildren()
             if len(source_node_children):
+                element_id = destination_node.get("Self")
                 source_node_children_tags = [n.tag for n in source_node_children]
                 destination_node_children = destination_node.iterchildren()
                 destination_node_children_tags = [n.tag for n in destination_node.iterchildren()]
                 # FIXME: what if source_node.text exists ?
                 if destination_node_children_tags == source_node_children_tags:
-                    map(import_content, source_node_children, destination_node.iterchildren())
+                    map(_import_xml, source_node_children, destination_node.iterchildren())
                 else:
                     destination_node_child = next(destination_node_children, None)
                     for i, source_child in enumerate(source_node_children):
                         # Source and destination match.
                         if destination_node_child is not None and source_child.tag == destination_node_child.tag:
-                            import_content(source_child, destination_node_child)
+                            _import_xml(source_child, destination_node_child)
                             destination_node_child = next(destination_node_children, None)
                         # Only mapped style tags are added.
                         elif source_child.tag in self.style_mapping.character_style_mapping.keys():
@@ -309,7 +311,7 @@ class IDMLPackage(zipfile.ZipFile):
                                 story.add_content_to_element(element_id, source_child.tail, parent)
                             story.synchronize()
 
-        import_content(source_node, destination_node)
+        _import_xml(source_node, destination_node)
         return self
 
     def export_xml(self, from_tag=None):
