@@ -160,6 +160,18 @@ class IDMLXMLFile(object):
             if synchronize:
                 self.synchronize()
 
+    def remove_xml_element_page_items(self, element_id, synchronize=False):
+        """Page items are sometimes in Stories rather in Spread. """
+        elt = self.get_element_by_id(element_id)
+        if elt.get("NoTextMarker"):
+            elt.attrib.pop("NoTextMarker")
+        if elt.get("XMLContent"):
+            elt.attrib.pop("XMLContent")
+        for c in elt.iterchildren():
+            elt.remove(c)
+        if synchronize:
+            self.synchronize()
+
 
 class MasterSpread(IDMLXMLFile):
     def __init__(self, idml_package, name, working_copy_path=None):
@@ -252,6 +264,12 @@ class Spread(IDMLXMLFile):
     def get_node_name_from_xml_name(self):
         return rx_node_name_from_xml_name.match(self.name).groups()[0]
 
+    def remove_page_item(self, item_id, synchronize=False):
+        elt = self.get_element_by_id(item_id, tag="*")
+        elt.getparent().remove(elt)
+        if synchronize:
+            self.synchronize()
+
 
 class Story(IDMLXMLFile):
     def __init__(self, idml_package, name, working_copy_path=None):
@@ -283,8 +301,8 @@ class Story(IDMLXMLFile):
         element = self.get_element_by_id(element_id)
         # We remove all `CharacterStyleRange' containers except the first.
         # FIXME: This should handle ./ParagraphStyleRange/CharacterStyleRange too.
-        childrens = element.xpath("./CharacterStyleRange")[1:]
-        for c in childrens:
+        children = element.xpath("./CharacterStyleRange")[1:]
+        for c in children:
             element.remove(c)
         for content_node in self.get_element_content_nodes(element):
             content_node.text = ""

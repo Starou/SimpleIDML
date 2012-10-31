@@ -263,16 +263,20 @@ class IDMLPackage(zipfile.ZipFile):
             story.set_element_attributes(element_id, items)
             # Image references must be updated in the page item in Spread or Story.
             if "href" in items:
+                resource_path = items.get("href")
                 xpath = self.xml_structure_tree.getpath(destination_node)
                 element_content_id = self.get_element_content_id_by_xpath(xpath)
-                resource_path = items.get("href")
-                story.set_element_resource_path(element_content_id, resource_path)
-                
                 spread = self.get_spread_object_by_xpath(xpath)
-                if spread:
-                    spread.set_element_resource_path(element_content_id,
-                                                     resource_path,
-                                                     synchronize=True)
+                if resource_path == "":
+                    story.remove_xml_element_page_items(element_id)
+                    if spread:
+                        spread.remove_page_item(element_content_id, synchronize=True)
+                else:
+                    story.set_element_resource_path(element_content_id, resource_path)
+                    if spread:
+                        spread.set_element_resource_path(element_content_id,
+                                                         resource_path,
+                                                         synchronize=True)
             story.synchronize()
 
         def _import_xml(source_node, destination_node):
