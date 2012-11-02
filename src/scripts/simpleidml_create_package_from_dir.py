@@ -3,14 +3,10 @@
 
 """
 A convenient script to create an IDML package from a flat directory.
-
-
 """
 
-import os, glob, shutil, tempfile
-import sys
 from optparse import OptionParser
-from simple_idml.idml import create_idml_package_from_dir
+from simple_idml.extras import create_idml_package_from_dir
 
 
 def main():
@@ -25,5 +21,6 @@ def main():
     else:
         create_idml_package_from_dir(args[0], args[1])
     
+
 if __name__ == "__main__":
     main()

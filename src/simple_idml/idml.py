@@ -21,21 +21,6 @@ from simple_idml import IdPkgNS, BACKINGSTORY
 STORIES_DIRNAME = "Stories"
 
 
-def create_idml_package_from_dir(dir_path, package_path=None):
-    # TODO. raise exception, add a parameter to force overwrite.
-    if os.path.exists(package_path):
-        print "%s already exists." % package_path
-        return None
-
-    package = IDMLPackage(package_path, mode="w")
-
-    for root, dirs, filenames in os.walk(dir_path):
-        for filename in filenames:
-            package.write(os.path.join(root, filename),
-                          os.path.join(root.replace(dir_path, "."), filename))
-    return package
-
-
 class IDMLPackage(zipfile.ZipFile):
     """An IDML file (a package) is a Zip-stored archive/UCF container. """
 
