@@ -598,30 +598,22 @@ class IDMLPackage(zipfile.ZipFile):
         # The spread synchronization is done outside.
         return new_spread
 
-    def get_spread_by_xpath(self, xpath):
-        """ Search for the spread file having the element identified by the XMLContent attribute
-        of the XMLElement pointed by xpath value."""
-
+    def get_spread_object_by_xpath(self, xpath):
         result = None
-        reference = self.XMLStructure.xpath(xpath)[0].get("XMLContent")
+        ref = self.XMLStructure.xpath(xpath)[0].get("XMLContent")
         for spread in self.spreads_objects:
             if (
-                spread.get_element_by_id(reference, tag="*") is not None or
-                spread.get_element_by_id(reference, tag="*", attr="ParentStory") is not None
+                spread.get_element_by_id(ref, tag="*") is not None or
+                spread.get_element_by_id(ref, tag="*", attr="ParentStory") is not None
             ):
-                result = spread.name
+                result = spread
             if result:
                 break
         return result
 
-    def get_spread_object_by_xpath(self, xpath):
-        out = None
-        filename = self.get_spread_by_xpath(xpath)
-        for spread in self.spreads_objects:
-            if filename == spread.name:
-                out = spread
-                break
-        return out
+    def get_spread_by_xpath(self, xpath):
+        spread = self.get_spread_object_by_xpath(xpath)
+        return spread and spread.name or None
 
     def get_story_object_by_xpath(self, xpath):
         xml_element = self.XMLStructure.xpath(xpath)[0]
