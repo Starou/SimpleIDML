@@ -107,14 +107,14 @@ class IdmlTestCase(unittest.TestCase):
 </Root>
 """)
 
-    def test_get_node_story_by_xpath(self):
+    def test_get_story_by_xpath(self):
         idml_file = os.path.join(IDMLFILES_DIR, "4-pages.idml")
         idml_file = IDMLPackage(idml_file)
-        self.assertEqual(idml_file.get_node_story_by_xpath("/Root"), "XML/BackingStory.xml")
-        self.assertEqual(idml_file.get_node_story_by_xpath("/Root/article[1]"), "Stories/Story_u102.xml")
-        self.assertEqual(idml_file.get_node_story_by_xpath("/Root/article[1]/Story"), "Stories/Story_ue4.xml")
-        self.assertEqual(idml_file.get_node_story_by_xpath("/Root/article[1]/Story/title"), "Stories/Story_ue4.xml")
-        self.assertEqual(idml_file.get_node_story_by_xpath("/Root/article[1]/illustration"), "Stories/Story_u102.xml")
+        self.assertEqual(idml_file.get_story_by_xpath("/Root"), "XML/BackingStory.xml")
+        self.assertEqual(idml_file.get_story_by_xpath("/Root/article[1]"), "Stories/Story_u102.xml")
+        self.assertEqual(idml_file.get_story_by_xpath("/Root/article[1]/Story"), "Stories/Story_ue4.xml")
+        self.assertEqual(idml_file.get_story_by_xpath("/Root/article[1]/Story/title"), "Stories/Story_ue4.xml")
+        self.assertEqual(idml_file.get_story_by_xpath("/Root/article[1]/illustration"), "Stories/Story_u102.xml")
 
     def test_namelist(self):
         # The namelist can be inherited from ZipFile or computed from the working copy.
@@ -144,14 +144,6 @@ class IdmlTestCase(unittest.TestCase):
             u'Stories/Story_u102.xml',
             u'Stories/Story_ue4.xml',
         ])
-
-    def test_get_xml_element_story(self):
-        idml_file = os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml")
-        idml_file = IDMLPackage(idml_file)
-        xml_element = idml_file.XMLStructure
-        self.assertEqual(idml_file.get_xml_element_story(xml_element).name, "XML/BackingStory.xml")
-        self.assertEqual(idml_file.get_xml_element_story(xml_element.find("page")).name, "XML/BackingStory.xml")
-        self.assertEqual(idml_file.get_xml_element_story(xml_element.find("page/title")).name, "Stories/Story_u1b2.xml")
 
     def test_get_spread_object_by_xpath(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
