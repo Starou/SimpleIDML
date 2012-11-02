@@ -132,6 +132,19 @@ class IdmlTestCase(unittest.TestCase):
 
         shutil.rmtree(idml_working_copy)
 
+    def test_contentfile_namelist(self):
+        idml_file = os.path.join(IDMLFILES_DIR, "4-pages.idml")
+        idml_file = IDMLPackage(idml_file)
+        self.assertEqual(idml_file.contentfile_namelist(), [
+            u'Spreads/Spread_ub6.xml',
+            u'Spreads/Spread_ubc.xml',
+            u'Spreads/Spread_uc3.xml',
+            u'Stories/Story_u139.xml',
+            u'Stories/Story_u11b.xml',
+            u'Stories/Story_u102.xml',
+            u'Stories/Story_ue4.xml',
+        ])
+
     def test_get_xml_element_story(self):
         idml_file = os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml")
         idml_file = IDMLPackage(idml_file)

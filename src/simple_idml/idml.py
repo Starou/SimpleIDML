@@ -77,6 +77,10 @@ class IDMLPackage(zipfile.ZipFile):
                     namelist.append("%s%s" % (rel_root, filename))
             return namelist
 
+    def contentfile_namelist(self):
+        """Namelist filtered on Spreads and Stories. """
+        return [f for f in self.namelist() if os.path.dirname(f) in ("Spreads", "Stories")]
+
     @property
     def XMLStructure(self):
         """ Discover the XML structure from the story files.
