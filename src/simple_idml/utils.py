@@ -8,6 +8,8 @@ from types import MethodType
 
 rx_numbered = re.compile(r"(.*?)(\d+)")
 rx_xmltag_sibling_id = re.compile(r"(.*?d.*i)(\d+)")
+rx_contentfile_ref = re.compile(r"^(Stories/Story_|Spreads/Spread_)(.+\.xml)$")
+rx_contentfile_name = re.compile(r"^(Story_|Spread_)(.+\.xml)$")
 
 
 def increment_filename(filename):
@@ -36,7 +38,11 @@ def increment_filename(filename):
     return os.path.join(dirname, "%s%s" % (result, ext))
 
 
-def prefix_content_filename(filename, prefix, rx):
+def prefix_content_filename(filename, prefix, mode):
+    if mode == "ref":
+        rx = rx_contentfile_ref
+    elif mode == "filename":
+        rx = rx_contentfile_name
     start, end = rx.match(filename).groups()
     return "%s%s%s" % (start, prefix, end)
 

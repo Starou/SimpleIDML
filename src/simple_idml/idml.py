@@ -20,9 +20,6 @@ from simple_idml import IdPkgNS, BACKINGSTORY
 
 STORIES_DIRNAME = "Stories"
 
-rx_contentfile = re.compile(r"^(Story_|Spread_)(.+\.xml)$")
-rx_story_id = re.compile(r"%s/Story_([\w]+)\.xml" % STORIES_DIRNAME)
-
 
 def create_idml_package_from_dir(dir_path, package_path=None):
     # TODO. raise exception, add a parameter to force overwrite.
@@ -214,6 +211,7 @@ class IDMLPackage(zipfile.ZipFile):
     def story_ids(self):
         """ extract  `ID' from `Stories/Story_ID.xml'. """
         if self._story_ids is None:
+            rx_story_id = re.compile(r"%s/Story_([\w]+)\.xml" % STORIES_DIRNAME)
             story_ids = [rx_story_id.match(elt).group(1) for elt in self.stories]
             self._story_ids = story_ids
         return self._story_ids
@@ -398,14 +396,13 @@ class IDMLPackage(zipfile.ZipFile):
             idml_xml_file.synchronize()
 
         # Story and Spread XML files are "prefixed".
-        for filename in self.namelist():
-            if rx_contentfile.match(os.path.basename(filename)):
-                new_basename = prefix_content_filename(os.path.basename(filename),
-                                                       prefix, rx_contentfile)
-                # mv file in the new archive with the prefix.
-                old_name = os.path.join(working_copy_path, filename)
-                new_name = os.path.join(os.path.dirname(old_name), new_basename)
-                os.rename(old_name, new_name)
+        for filename in self.contentfile_namelist():
+            new_basename = prefix_content_filename(os.path.basename(filename),
+                                                   prefix, "filename")
+            # mv file in the new archive with the prefix.
+            old_name = os.path.join(working_copy_path, filename)
+            new_name = os.path.join(os.path.dirname(old_name), new_basename)
+            os.rename(old_name, new_name)
 
         # Update designmap.xml.
         designmap = Designmap(self, working_copy_path=working_copy_path)

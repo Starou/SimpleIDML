@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-import re
 
 
 class UtilsTestCase(unittest.TestCase):
@@ -40,25 +39,21 @@ class UtilsTestCase(unittest.TestCase):
         from simple_idml.utils import prefix_content_filename
 
         # Prefix stories and spread filename references.
-        rx = re.compile(r"^(Stories/Story_|Spreads/Spread_)(.+\.xml)$")
-        
         src = "Stories/Story_u139.xml"
-        result = prefix_content_filename(src, "MyPrefix", rx)
+        result = prefix_content_filename(src, "MyPrefix", "ref")
         self.assertEqual(result, "Stories/Story_MyPrefixu139.xml")
         
         src="Spreads/Spread_ub6.xml"
-        result = prefix_content_filename(src, "MyPrefix", rx)
+        result = prefix_content_filename(src, "MyPrefix", "ref")
         self.assertEqual(result, "Spreads/Spread_MyPrefixub6.xml")
 
         # Prefix filenames.
-        rx = re.compile(r"^(Story_|Spread_)(.+\.xml)$")
-        
         src = "Story_u139.xml"
-        result = prefix_content_filename(src, "MyPrefix", rx)
+        result = prefix_content_filename(src, "MyPrefix", "filename")
         self.assertEqual(result, "Story_MyPrefixu139.xml")
         
         src="Spread_ub6.xml"
-        result = prefix_content_filename(src, "MyPrefix", rx)
+        result = prefix_content_filename(src, "MyPrefix", "filename")
         self.assertEqual(result, "Spread_MyPrefixub6.xml")
 
 

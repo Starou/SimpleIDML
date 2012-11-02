@@ -14,7 +14,6 @@ RECTO = "recto"
 VERSO = "verso"
 
 rx_node_name_from_xml_name = re.compile(r"[\w]+/[\w]+_([\w]+)\.xml")
-rx_contentfile = re.compile(r"^(Stories/Story_|Spreads/Spread_)(.+\.xml)$")
 
 
 class IDMLXMLFile(object):
@@ -137,8 +136,8 @@ class IDMLXMLFile(object):
         # <idPkg:Story src="Stories/Story_u139.xml"/>
         for elt in self.dom.xpath(".//idPkg:Spread | .//idPkg:Story",
                                   namespaces={'idPkg': IdPkgNS}):
-            if elt.get("src") and rx_contentfile.match(elt.get("src")):
-                elt.set("src", prefix_content_filename(elt.get("src"), prefix, rx_contentfile))
+            if elt.get("src"):
+                elt.set("src", prefix_content_filename(elt.get("src"), prefix, "ref"))
 
         # <Document xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"...
         # StoryList="ue4 u102 u11b u139 u9c"...>
