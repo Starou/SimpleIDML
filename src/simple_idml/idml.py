@@ -650,12 +650,9 @@ class IDMLPackage(zipfile.ZipFile):
     def get_element_content_id_by_xpath(self, xpath):
         return self.XMLStructure.xpath(xpath)[0].get("XMLContent")
 
-    # TODO: use Spread.get_element_by_id(self.get_element_content_id_by_xpath(xpath)) instead.
     def get_spread_elem_by_xpath(self, xpath):
         """Return the spread etree.Element designed by XMLElement xpath. """
-
-        spread_filename = self.get_spread_by_xpath(xpath)
-        spread = Spread(self, spread_filename)
+        spread = self.get_spread_object_by_xpath(xpath)
         elt_id = self.XMLStructure.xpath(xpath)[0].get("XMLContent")
         elt = spread.get_element_by_id(elt_id, tag="*")
         if elt is None:
