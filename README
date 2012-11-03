@@ -51,10 +51,10 @@ Some attributes are *lxml.etree* Elements or Documents::
     >>> [e.get("Name") for e in my_package.font_families]
     ['Minion Pro', 'Myriad Pro', 'Kozuka Mincho Pro', 'Vollkorn']
 
-    >>> my_package.XMLStructure.dom
+    >>> my_package.XMLStructure
     <Element Root at 0x101004910>
     >>> from lxml import etree
-    >>> print etree.tostring(my_package.XMLStructure.dom, pretty_print=True)
+    >>> print etree.tostring(my_package.XMLStructure, pretty_print=True)
     <Root Self="di2">
       <article XMLContent="u102" Self="di2i3">
         <Story XMLContent="ue4" Self="di2i3i1">
@@ -110,7 +110,7 @@ to avoid reference collisions.
      'Stories/Story_mainu102.xml', 'Stories/Story_mainu11b.xml', 'Stories/Story_mainu139.xml', 'Stories/Story_mainue4.xml']
 
 
-    >>> print etree.tostring(idml_main.XMLStructure.dom, pretty_print=True)
+    >>> print etree.tostring(idml_main.XMLStructure, pretty_print=True)
     <Root Self="maindi2">
       <article XMLContent="mainu102" Self="maindi2i3">
         <Story XMLContent="mainue4" Self="maindi2i3i1">
@@ -158,7 +158,7 @@ You may need to gather pages from severals documents into a single one::
     3
 
     # The XML Structure has integrated the new file.
-    >>> print etree.tostring(new_idml.XMLStructure.dom, pretty_print=True)
+    >>> print etree.tostring(new_idml.XMLStructure, pretty_print=True)
     <Root Self="editodi2">
       <page Self="editodi2ib">
         <article Self="editodi2ibif">
@@ -202,6 +202,34 @@ There is a convenient method to add several pages at once::
     4
     >>> new_idml.spreads
     ['Spreads/Spread_editoub6.xml', 'Spreads/Spread_editoubc.xml', 'Spreads/Spread_editoubd.xml']
+
+
+Import/Export XML
+-----------------
+
+Exporting as XML:: 
+
+
+    >>> idml_file = IDMLPackage("path/to/file.idml")
+    >>> print idml_file.export_xml()
+    ... <Root>
+    ...     <module>
+    ...         <main_picture/>
+    ...         <headline>Hello world!</headline>
+    ...         <Story>
+    ...             <article>Lorem ipsum dolor sit amet, ...</article>
+    ...             <informations>Lorem ipsum dolor sit amet,</informations>
+    ...         </Story>
+    ...     </module>
+    ... </Root>
+
+You can as well import XML file into your InDesign® documents. The following rules applies:
+
+- A node having the attribute *simpleidml-setcontent="false"* will not impact the corresponding element into the idml document (but its children will be) ;
+- Images references are passed by the *href* attribute. An empty value will remove the corresponding page items into the document.
+
+
+Please take a look into the tests for more in-depth examples.
 
 
 Installation
