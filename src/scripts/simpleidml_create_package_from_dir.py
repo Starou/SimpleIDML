@@ -15,12 +15,11 @@ def main():
     parser = OptionParser(usage=usage, version=version, description=__doc__)
     (options, args) = parser.parse_args()
 
-
     if len(args) != 2:
         parser.error("You must provide 2 parameters to the script ('/path/to/dir' and '/path/to/destination.idml')")
     else:
         create_idml_package_from_dir(args[0], args[1])
-    
+
 
 if __name__ == "__main__":
     main()

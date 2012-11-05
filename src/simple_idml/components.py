@@ -146,7 +146,6 @@ class IDMLXMLFile(object):
             elt[0].set("StoryList", " ".join(["%s%s" % (prefix, s)
                                               for s in elt[0].get("StoryList").split(" ")]))
 
-
     def set_element_resource_path(self, element_id, resource_path, synchronize=False):
         """ For Spread and Story subclasses only (this comment is a call for a Mixin). """
         # the element may not be an <XMLElement> (so tag="*").
@@ -382,7 +381,7 @@ class Designmap(IDMLXMLFile):
     def set_style_mapping_node(self):
         """Do it only if self.style_mapping_node is None."""
         self.dom.append(
-                etree.Element("{%s}Mapping" % IdPkgNS, src=StyleMapping.name)
+            etree.Element("{%s}Mapping" % IdPkgNS, src=StyleMapping.name)
         )
 
     def add_spread(self, spread):
@@ -406,6 +405,7 @@ class Designmap(IDMLXMLFile):
         for story in stories:
             elt.append(etree.Element("{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Story",
                                      src="Stories/Story_%s.xml" % story))
+
 
 class Style(IDMLXMLFile):
     name = "Resources/Styles.xml"
@@ -692,7 +692,7 @@ class XMLElement(Proxy):
             return attr_node[0]
 
     def get_attributes(self):
-        return dict([(node.get("Name"), node.get("Value")) 
+        return dict([(node.get("Name"), node.get("Value"))
                      for node in self.xpath("./XMLAttribute")])
 
     def set_attribute(self, name, value):

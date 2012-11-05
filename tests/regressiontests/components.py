@@ -127,7 +127,7 @@ class StyleTestCase(unittest.TestCase):
         style = Style(idml_file)
         style_node = style.get_style_node_by_name("CharacterStyle/bold")
         #print(etree.tostring(style_node, pretty_print=True)).replace("\t"," ")
-        self.assertEqual(etree.tostring(style_node, pretty_print=True).replace("\t"," "),
+        self.assertEqual(etree.tostring(style_node, pretty_print=True).replace("\t", " "),
 # Don't remove trailing space !
 """<CharacterStyle xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" Self="CharacterStyle/bold" Imported="false" KeyboardShortcut="0 0" Name="bold" FontStyle="Bold">
    <Properties>

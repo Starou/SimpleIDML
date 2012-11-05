@@ -248,7 +248,7 @@ class IDMLPackage(zipfile.ZipFile):
                 destination_node_children_tags = [n.tag for n in destination_node.iterchildren()]
                 # FIXME: what if source_node.text exists ?
                 if destination_node_children_tags == source_node_children_tags:
-                    map(_import_xml, source_node_children, 
+                    map(_import_xml, source_node_children,
                         [self.xml_structure_tree.getpath(c) for c in destination_node.iterchildren()])
                 else:
                     destination_node_child = next(destination_node_children, None)
@@ -342,8 +342,10 @@ class IDMLPackage(zipfile.ZipFile):
 
         # Change the references inside the file.
         for filename in self.namelist():
-            if (os.path.basename(filename) in ["container.xml", "metadata.xml"] or
-                os.path.splitext(filename)[1] != ".xml"):
+            if (
+                os.path.basename(filename) in ["container.xml", "metadata.xml"] or
+                os.path.splitext(filename)[1] != ".xml"
+            ):
                 continue
             idml_xml_file = get_idml_xml_file_by_name(self, filename, working_copy_path)
             idml_xml_file.prefix_references(prefix)
@@ -617,6 +619,7 @@ class IDMLPackage(zipfile.ZipFile):
 
     def get_story_object_by_xpath(self, xpath):
         xml_element = self.XMLStructure.xpath(xpath)[0]
+
         def get_story_name(xml_element):
             ref = xml_element.get("XMLContent")
             if ref:

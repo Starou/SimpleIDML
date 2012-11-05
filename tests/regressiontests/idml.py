@@ -340,7 +340,6 @@ class IdmlTestCase(unittest.TestCase):
 </Root>
 """)
 
-
     def test_prefix(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                      os.path.join(OUTPUT_DIR, "4-pages.idml"))
@@ -394,7 +393,6 @@ class IdmlTestCase(unittest.TestCase):
         self.assertEqual(designmap.xpath(".//idPkg:Spread",
                                   namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0].get("src"),
                         "Spreads/Spread_FOOub6.xml")
-
 
         # Prefix d'un fichier avec un mapping Style/Tag XML.
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
@@ -468,7 +466,7 @@ class IdmlTestCase(unittest.TestCase):
         # Styles.
         styles = [[style.get("Self") for style in style_group.iterchildren()] 
                   for style_group in main_idml_file.style_groups]
-        self.assertEqual(styles,[
+        self.assertEqual(styles, [
             ['mainCharacterStyle/$ID/[No character style]',
              'article1CharacterStyle/$ID/[No character style]',
              'article1CharacterStyle/MyBoldStyle'],

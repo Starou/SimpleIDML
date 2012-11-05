@@ -43,7 +43,7 @@ class UtilsTestCase(unittest.TestCase):
         result = prefix_content_filename(src, "MyPrefix", "ref")
         self.assertEqual(result, "Stories/Story_MyPrefixu139.xml")
         
-        src="Spreads/Spread_ub6.xml"
+        src = "Spreads/Spread_ub6.xml"
         result = prefix_content_filename(src, "MyPrefix", "ref")
         self.assertEqual(result, "Spreads/Spread_MyPrefixub6.xml")
 
@@ -52,7 +52,7 @@ class UtilsTestCase(unittest.TestCase):
         result = prefix_content_filename(src, "MyPrefix", "filename")
         self.assertEqual(result, "Story_MyPrefixu139.xml")
         
-        src="Spread_ub6.xml"
+        src = "Spread_ub6.xml"
         result = prefix_content_filename(src, "MyPrefix", "filename")
         self.assertEqual(result, "Spread_MyPrefixub6.xml")
 
