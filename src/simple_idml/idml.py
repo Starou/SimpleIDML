@@ -31,7 +31,7 @@ class IDMLPackage(zipfile.ZipFile):
         self.init_lazy_references()
 
     def init_lazy_references(self):
-        self._XMLStructure = None
+        self._xml_structure = None
         self._xml_structure_tree = None
         self._tags = None
         self._font_families = None
@@ -64,12 +64,12 @@ class IDMLPackage(zipfile.ZipFile):
         return [f for f in self.namelist() if os.path.dirname(f) in ("Spreads", "Stories")]
 
     @property
-    def XMLStructure(self):
+    def xml_structure(self):
         """ Discover the XML structure from the story files.
 
         Starting at BackingStory.xml where the root-element is expected (because unused). """
 
-        if self._XMLStructure is None:
+        if self._xml_structure is None:
             source_node = self.backing_story.get_root()
             structure = source_node.to_xml_structure_element()
 
@@ -100,13 +100,13 @@ class IDMLPackage(zipfile.ZipFile):
                         append_childs(elt, new_destination_node)
 
             append_childs(source_node, structure)
-            self._XMLStructure = structure
-        return self._XMLStructure
+            self._xml_structure = structure
+        return self._xml_structure
 
     @property
     def xml_structure_tree(self):
         if self._xml_structure_tree is None:
-            xml_structure_tree = etree.ElementTree(self.XMLStructure)
+            xml_structure_tree = etree.ElementTree(self.xml_structure)
             self._xml_structure_tree = xml_structure_tree
         return self._xml_structure_tree
 
@@ -233,7 +233,7 @@ class IDMLPackage(zipfile.ZipFile):
             story.synchronize()
 
         def _import_xml(source_node, at):
-            element_id = self.XMLStructure.xpath(at)[0].get("Self")
+            element_id = self.xml_structure.xpath(at)[0].get("Self")
             items = dict(source_node.items())
             if items:
                 _set_attributes(at, element_id, items)
@@ -243,7 +243,7 @@ class IDMLPackage(zipfile.ZipFile):
             source_node_children = source_node.getchildren()
             if len(source_node_children):
                 source_node_children_tags = [n.tag for n in source_node_children]
-                destination_node = self.XMLStructure.xpath(at)[0]
+                destination_node = self.xml_structure.xpath(at)[0]
                 destination_node_children = destination_node.iterchildren()
                 destination_node_children_tags = [n.tag for n in destination_node.iterchildren()]
                 # FIXME: what if source_node.text exists ?
@@ -276,7 +276,7 @@ class IDMLPackage(zipfile.ZipFile):
     def export_xml(self, from_tag=None):
         """ Reproduce the action «Export XML» on a XML Element in InDesign® Structure. """
         if not from_tag:
-            export_from_node = self.XMLStructure
+            export_from_node = self.xml_structure
         else:
             # TODO
             pass
@@ -377,7 +377,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._add_tags_from_idml(idml_package)
         self._add_spread_elements_from_idml(idml_package, at, only, t)
         self._add_stories_from_idml(idml_package, at, only)
-        self._XMLStructure = None
+        self._xml_structure = None
         return self
 
     def _add_font_families_from_idml(self, idml_package):
@@ -515,12 +515,12 @@ class IDMLPackage(zipfile.ZipFile):
 
         """
 
-        xml_element_src_id = idml_package.XMLStructure.xpath(only)[0].get("Self")
+        xml_element_src_id = idml_package.xml_structure.xpath(only)[0].get("Self")
         story_src_filename = idml_package.get_story_by_xpath(only)
         story_src = Story(idml_package, story_src_filename)
         story_src_elt = story_src.get_element_by_id(xml_element_src_id).element
 
-        xml_element_dest_id = self.XMLStructure.xpath(at)[0].get("Self")
+        xml_element_dest_id = self.xml_structure.xpath(at)[0].get("Self")
         story_dest_filename = self.get_story_by_xpath(at)
         story_dest = Story(self, story_dest_filename, self.working_copy_path)
         story_dest_elt = story_dest.get_element_by_id(xml_element_dest_id)
@@ -602,7 +602,7 @@ class IDMLPackage(zipfile.ZipFile):
 
     def get_spread_object_by_xpath(self, xpath):
         result = None
-        ref = self.XMLStructure.xpath(xpath)[0].get("XMLContent")
+        ref = self.xml_structure.xpath(xpath)[0].get("XMLContent")
         for spread in self.spreads_objects:
             if (
                 spread.get_element_by_id(ref, tag="*") is not None or
@@ -618,7 +618,7 @@ class IDMLPackage(zipfile.ZipFile):
         return spread and spread.name or None
 
     def get_story_object_by_xpath(self, xpath):
-        xml_element = self.XMLStructure.xpath(xpath)[0]
+        xml_element = self.xml_structure.xpath(xpath)[0]
 
         def get_story_name(xml_element):
             ref = xml_element.get("XMLContent")
@@ -651,12 +651,12 @@ class IDMLPackage(zipfile.ZipFile):
         return story and story.name or None
 
     def get_element_content_id_by_xpath(self, xpath):
-        return self.XMLStructure.xpath(xpath)[0].get("XMLContent")
+        return self.xml_structure.xpath(xpath)[0].get("XMLContent")
 
     def get_spread_elem_by_xpath(self, xpath):
         """Return the spread etree.Element designed by XMLElement xpath. """
         spread = self.get_spread_object_by_xpath(xpath)
-        elt_id = self.XMLStructure.xpath(xpath)[0].get("XMLContent")
+        elt_id = self.xml_structure.xpath(xpath)[0].get("XMLContent")
         elt = spread.get_element_by_id(elt_id, tag="*")
         if elt is None:
             elt = spread.get_element_by_id(elt_id, tag="*", attr="ParentStory")

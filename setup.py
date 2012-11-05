@@ -5,7 +5,7 @@ import sys
 
 setup(
     name="SimpleIDML",
-    version="0.90",
+    version="0.91",
     author='Stanislas Guerra',
     author_email='stanislas.guerra@gmail.com',
     description='',
