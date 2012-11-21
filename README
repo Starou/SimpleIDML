@@ -244,7 +244,7 @@ Dependencies
 ------------
 
 - Python >= 2.6
-- lxml
+- lxml >= 2.3
 
 
 .. _XPath: http://en.wikipedia.org/wiki/XPath
