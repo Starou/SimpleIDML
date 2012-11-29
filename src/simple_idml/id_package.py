@@ -13,8 +13,8 @@ class ZipInDesignPackage(zipfile.ZipFile):
 
        The Package is obtained with the action `File > Package' from InDesign menu. """
 
-    rx_font = re.compile("(?P<root_dir>.*)/%s/(?P<font_name>.*)" % DOCUMENT_FONT_DIR)
-    rx_link = re.compile("(?P<root_dir>.*)/%s/(?P<link_name>.*)" % DOCUMENT_LINK_DIR)
+    rx_font = re.compile("(?P<root_dir>(?!__MACOSX).*)/%s/(?P<font_name>.+)" % DOCUMENT_FONT_DIR)
+    rx_link = re.compile("(?P<root_dir>(?!__MACOSX).*)/%s/(?P<link_name>.+)" % DOCUMENT_LINK_DIR)
 
     def get_font_list(self):
         return [(self.rx_font.match(filename).groupdict()["font_name"], filename)
