@@ -4,6 +4,7 @@ import os
 import unittest
 
 from simple_idml.id_package import ZipInDesignPackage
+from simple_idml.id_package import merge_font_lst
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
@@ -23,6 +24,238 @@ class ZipInDesignPackageTestCase(unittest.TestCase):
         )
 
 
+class IDPackageTestCase(unittest.TestCase):
+    def test_merge_font_lst(self):
+
+        font_suitecases = [
+            ("output/Document fonts/AdobeFnt13.lst", ""),
+            ("output/Document fonts/AdobeFnt13.lst", ""),
+            ("output/Document fonts/AdobeFnt13.lst", ""),
+        ]
+
+        filename, content = merge_font_lst(font_suitecases)
+        self.assertEqual(content, "")
+
+        # The first file may not reference any font.
+        font_suitecases = [
+("output/Document fonts/AdobeFnt13.lst", ""),
+("output/Document fonts/AdobeFnt13.lst",
+ """%!Adobe-FontList 1.13
+%Locale:0x409
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Suitcase
+FontName:Times-Roman
+OutlineFileName:\Times-Roman
+ResourceID:20
+MacStyle:0
+FileLength:12882
+FileModTime:1342371272
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:Times-Roman
+FamilyName:Times
+StyleName:Roman
+MenuName:Times
+StyleBits:0
+WeightClass:400
+WidthClass:5
+AngleClass:0
+FullName:Times Roman
+WritingScript:Roman
+OutlineFileName:\TimesRom
+DataFormat:POSTResource
+UsesStandardEncoding:yes
+isCFF:no
+FileLength:34006
+FileModTime:1342371272
+DesignSize:-1
+%EndFont
+                           
+"""),
+("output/Document fonts/AdobeFnt13.lst",
+"""%!Adobe-FontList 1.13
+%Locale:0x409
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Suitcase
+FontName:AGaramond-BoldItalic
+OutlineFileName:\AGaramond-BoldItalic.ECR
+ResourceID:14570
+MacStyle:0
+FileLength:10327
+FileModTime:1341477738
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Suitcase
+FontName:AGaramond-Regular
+OutlineFileName:\AGaramond-Regular.ECR
+ResourceID:14562
+MacStyle:0
+FileLength:18702
+FileModTime:1341477705
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:AGaramond-BoldItalic
+FamilyName:Adobe Garamond
+StyleName:Bold Italic
+MenuName:AGaramond Bold
+StyleBits:3
+WeightClass:700
+WidthClass:5
+AngleClass:1
+FullName:Adobe Garamond Bold Italic
+WritingScript:Roman
+OutlineFileName:\AGarBolIta
+DataFormat:POSTResource
+UsesStandardEncoding:yes
+isCFF:no
+FileLength:45072
+FileModTime:1341477738
+DesignSize:-1
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:AGaramond-Regular
+FamilyName:Adobe Garamond
+StyleName:Regular
+MenuName:AGaramond
+StyleBits:0
+WeightClass:400
+WidthClass:5
+AngleClass:0
+FullName:Adobe Garamond Regular
+WritingScript:Roman
+OutlineFileName:\AGarReg
+DataFormat:POSTResource
+UsesStandardEncoding:yes
+isCFF:no
+FileLength:45376
+FileModTime:1341477705
+DesignSize:-1
+%EndFont
+
+""")]
+        filename, content = merge_font_lst(font_suitecases)
+        self.assertEqual(content, 
+"""%!Adobe-FontList 1.13
+%Locale:0x409
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Suitcase
+FontName:Times-Roman
+OutlineFileName:\Times-Roman
+ResourceID:20
+MacStyle:0
+FileLength:12882
+FileModTime:1342371272
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:Times-Roman
+FamilyName:Times
+StyleName:Roman
+MenuName:Times
+StyleBits:0
+WeightClass:400
+WidthClass:5
+AngleClass:0
+FullName:Times Roman
+WritingScript:Roman
+OutlineFileName:\TimesRom
+DataFormat:POSTResource
+UsesStandardEncoding:yes
+isCFF:no
+FileLength:34006
+FileModTime:1342371272
+DesignSize:-1
+%EndFont
+                           
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Suitcase
+FontName:AGaramond-BoldItalic
+OutlineFileName:\AGaramond-BoldItalic.ECR
+ResourceID:14570
+MacStyle:0
+FileLength:10327
+FileModTime:1341477738
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Suitcase
+FontName:AGaramond-Regular
+OutlineFileName:\AGaramond-Regular.ECR
+ResourceID:14562
+MacStyle:0
+FileLength:18702
+FileModTime:1341477705
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:AGaramond-BoldItalic
+FamilyName:Adobe Garamond
+StyleName:Bold Italic
+MenuName:AGaramond Bold
+StyleBits:3
+WeightClass:700
+WidthClass:5
+AngleClass:1
+FullName:Adobe Garamond Bold Italic
+WritingScript:Roman
+OutlineFileName:\AGarBolIta
+DataFormat:POSTResource
+UsesStandardEncoding:yes
+isCFF:no
+FileLength:45072
+FileModTime:1341477738
+DesignSize:-1
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:AGaramond-Regular
+FamilyName:Adobe Garamond
+StyleName:Regular
+MenuName:AGaramond
+StyleBits:0
+WeightClass:400
+WidthClass:5
+AngleClass:0
+FullName:Adobe Garamond Regular
+WritingScript:Roman
+OutlineFileName:\AGarReg
+DataFormat:POSTResource
+UsesStandardEncoding:yes
+isCFF:no
+FileLength:45376
+FileModTime:1341477705
+DesignSize:-1
+%EndFont
+
+""")
+
 def suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(ZipInDesignPackageTestCase)
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(IDPackageTestCase))
     return suite

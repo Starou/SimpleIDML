@@ -2,6 +2,7 @@
 
 import zipfile
 import re
+from copy import deepcopy
 
 DOCUMENT_FONT_DIR = "Document fonts"
 DOCUMENT_LINK_DIR = "Links"
@@ -25,3 +26,29 @@ class ZipInDesignPackage(zipfile.ZipFile):
     def get_link_list(self):
         return [(self.rx_link.match(filename).groupdict()["link_name"], filename)
                 for filename in self.namelist() if self.rx_link.match(filename)]
+
+
+def merge_font_lst(font_lst_files):
+    """This function is useful to generate the ADOBE_FONT_LIST file from several ones. """
+    font_lst_files = deepcopy(font_lst_files)
+    first = font_lst_files.pop(0)
+    filename_out = first[0]
+    content_out = [first[1]]
+
+    filename_out, content_out = None, []
+
+    # Search for the first Suite case file not empty.
+    while(font_lst_files):
+        first = font_lst_files.pop(0)
+        filename_out = first[0]
+        if first[1] != "":
+            content_out = [first[1]]
+            break
+
+    for filename, content in font_lst_files:
+        if content != "":
+            # Remove the header (3 first lines).
+            lines = content.split("\n")[3:]
+            content_out.append("\n".join(lines))
+
+    return filename_out, "\n".join(content_out)
