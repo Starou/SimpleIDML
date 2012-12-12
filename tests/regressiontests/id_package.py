@@ -16,6 +16,7 @@ class ZipInDesignPackageTestCase(unittest.TestCase):
         self.assertEqual(
             set(zip_indesign_package.get_font_list()),
             set([('AdobeFnt13.lst', 'article-1photo-package/Document fonts/AdobeFnt13.lst'),
+                 ('._AdobeFnt13.lst', '__MACOSX/article-1photo-package/Document fonts/._AdobeFnt13.lst'),
                  ('MinionPro-Bold.otf', 'article-1photo-package/Document fonts/MinionPro-Bold.otf'),
                  ('MinionPro-It.otf', 'article-1photo-package/Document fonts/MinionPro-It.otf'),
                  ('MinionPro-Regular.otf', 'article-1photo-package/Document fonts/MinionPro-Regular.otf')])
