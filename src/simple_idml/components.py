@@ -56,6 +56,9 @@ class IDMLXMLFile(object):
         self._fobj = None
         self._dom = None
 
+    def __repr__(self):
+        return "%s %s" % (self.__class__.__name__, self.name)
+
     @property
     def fobj(self):
         if self._fobj is None:
@@ -636,6 +639,12 @@ class Page(object):
 
 class XMLElement(Proxy):
     """A proxy over the etree.Element to represent XMLElement nodes in Story files. """
+    def __repr__(self):
+        if self.element:
+            return "XMLElement %s - %s" % (repr(self.element), ", ".join(["%s: %s" % (k, v) for k, v in self.element.items()]))
+        else:
+            return "XMLElement (no element)"
+
     def __init__(self, element=None, tag=None):
         if element is not None:
             self.element = element
