@@ -35,8 +35,6 @@ def merge_font_lst(font_lst_files):
     filename_out = first[0]
     content_out = [first[1]]
 
-    filename_out, content_out = None, []
-
     # Search for the first Suite case file not empty.
     while(font_lst_files):
         first = font_lst_files.pop(0)
