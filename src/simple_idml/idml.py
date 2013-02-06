@@ -207,8 +207,8 @@ class IDMLPackage(zipfile.ZipFile):
 
         source_node = etree.fromstring(xml_file.read())
 
-        def _set_content(xpath, element_id, content):
-            story = self.get_story_object_by_xpath(xpath)
+        def _set_content(xpath, element_id, content, story=None):
+            story = story or self.get_story_object_by_xpath(xpath)
             story.set_element_content(element_id, content)
             story.synchronize()
 
@@ -231,14 +231,27 @@ class IDMLPackage(zipfile.ZipFile):
                                                          resource_path,
                                                          synchronize=True)
             story.synchronize()
+        
+        def _import_new_node(source_node, at, element_id):
+            style_name = self.style_mapping.character_style_mapping[source_node.tag]
+            style_node = self.style.get_style_node_by_name(style_name)
+            story = self.get_story_object_by_xpath(at) # TODO story or self.get_story_object_by_xpath(at)
+            parent = story.get_element_by_id(element_id)
+            new_xml_element = XMLElement(tag=source_node.tag)
+            new_xml_element.add_content(source_node.text, parent, style_node=style_node)
+            story.add_element(element_id, new_xml_element.element)
 
-        def _import_xml(source_node, at):
-            element_id = self.xml_structure.xpath(at)[0].get("Self")
+            if source_node.tail:
+                story.add_content_to_element(element_id, source_node.tail, parent)
+            story.synchronize()
+
+        def _import_node(source_node, at=None, element_id=None, story=None):
+            element_id = element_id or self.xml_structure.xpath(at)[0].get("Self")
             items = dict(source_node.items())
             if items:
                 _set_attributes(at, element_id, items)
             if not (items.get("simpleidml-setcontent") == "false"):
-                _set_content(at, element_id, source_node.text or "")
+                _set_content(at, element_id, source_node.text or "", story)
 
             source_node_children = source_node.getchildren()
             if len(source_node_children):
@@ -246,31 +259,25 @@ class IDMLPackage(zipfile.ZipFile):
                 destination_node = self.xml_structure.xpath(at)[0]
                 destination_node_children = destination_node.iterchildren()
                 destination_node_children_tags = [n.tag for n in destination_node.iterchildren()]
+                # Childrens in source node (xml file) and destination node are an exact match,
+                # we can call a map() on _import_node().
                 # FIXME: what if source_node.text exists ?
                 if destination_node_children_tags == source_node_children_tags:
-                    map(_import_xml, source_node_children,
+                    map(_import_node, source_node_children,
                         [self.xml_structure_tree.getpath(c) for c in destination_node.iterchildren()])
+                # Step-by-step iteration.
                 else:
                     destination_node_child = next(destination_node_children, None)
                     for i, source_child in enumerate(source_node_children):
                         # Source and destination match.
                         if destination_node_child is not None and source_child.tag == destination_node_child.tag:
-                            _import_xml(source_child, self.xml_structure_tree.getpath(destination_node_child))
+                            _import_node(source_child, self.xml_structure_tree.getpath(destination_node_child))
                             destination_node_child = next(destination_node_children, None)
-                        # Only mapped style tags are added.
+                        # Source does not match destination. It is added, but only if the tag is mapped to a style.
                         elif source_child.tag in self.style_mapping.character_style_mapping.keys():
-                            style_name = self.style_mapping.character_style_mapping[source_child.tag]
-                            style_node = self.style.get_style_node_by_name(style_name)
-                            story = self.get_story_object_by_xpath(at)
-                            parent = story.get_element_by_id(element_id)
-                            new_xml_element = XMLElement(tag=source_child.tag)
-                            new_xml_element.add_content(source_child.text, parent, style_node=style_node)
-                            story.add_element(element_id, new_xml_element.element)
-                            if source_child.tail:
-                                story.add_content_to_element(element_id, source_child.tail, parent)
-                            story.synchronize()
+                            _import_new_node(source_child, at, element_id)
 
-        _import_xml(source_node, at)
+        _import_node(source_node, at)
         return self
 
     def export_xml(self, from_tag=None):
