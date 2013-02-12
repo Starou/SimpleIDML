@@ -424,9 +424,7 @@ class IDMLPackage(zipfile.ZipFile):
             else:
                 # Node without content > `content' is fed with recursive call on childrens.
                 if len(xml_structure_node_children):
-                    # TODO: content = map(_export_content_as_tree, xml_structure_node_children)
-                    for xml_structure_child_node in xml_structure_node_children:
-                        content.append(_export_content_as_tree(xml_structure_child_node))
+                    content.extend(map(_export_content_as_tree, xml_structure_node_children))
 
             return tree
 

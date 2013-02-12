@@ -247,6 +247,7 @@ Dependencies
 
 - Python >= 2.6
 - lxml >= 2.3
+- unittest2
 
 
 .. _XPath: http://en.wikipedia.org/wiki/XPath
