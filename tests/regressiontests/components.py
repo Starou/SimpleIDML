@@ -3,7 +3,7 @@
 import os
 import sys
 import shutil
-import unittest
+import unittest2 as unittest
 from decimal import Decimal
 from lxml import etree
 
@@ -142,7 +142,15 @@ class StyleMappingTestCase(unittest.TestCase):
     def test_styles(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), mode="r")
         style_mapping = StyleMapping(idml_file)
-        self.assertEqual(style_mapping.tostring(), '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">\n\t<XMLImportMap Self="did2" MarkupTag="XMLTag/bold" MappedStyle="CharacterStyle/bold"/>\n\t<XMLImportMap Self="di13f" MarkupTag="XMLTag/italique" MappedStyle="CharacterStyle/italique"/>\n</idPkg:Mapping>\n')
+        self.assertEqual(
+            [line.strip() for line in style_mapping.tostring().split("\n")], 
+            ["<?xml version='1.0' encoding='UTF-8' standalone='yes'?>",
+             '<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">',
+             '<XMLImportMap Self="did2" MarkupTag="XMLTag/bold" MappedStyle="CharacterStyle/bold"/>',
+             '<XMLImportMap Self="di13f" MarkupTag="XMLTag/italique" MappedStyle="CharacterStyle/italique"/>',
+             '<XMLImportMap Self="di141" MarkupTag="XMLTag/sup" MappedStyle="CharacterStyle/sup"/>',
+             '</idPkg:Mapping>',
+             ''])
 
         # The XML/Mapping.xml may not be present.
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
@@ -152,7 +160,9 @@ class StyleMappingTestCase(unittest.TestCase):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), mode="r")
         style_mapping = StyleMapping(idml_file)
         self.assertEqual(style_mapping.character_style_mapping,
-                         {'italique': 'CharacterStyle/italique', 'bold': 'CharacterStyle/bold'})
+                         {'italique': 'CharacterStyle/italique',
+                          'bold': 'CharacterStyle/bold',
+                          'sup': 'CharacterStyle/sup'})
 
 
 class XMLElementTestCase(unittest.TestCase):
@@ -207,7 +217,8 @@ class XMLElementTestCase(unittest.TestCase):
         self.assertEqual(picture_elt.get_attribute("href"), "file:///maison.jpg")
         self.assertEqual(picture_elt.get_attribute("style"), "fancy")
 
-    def test_create_style_element(self):
+    # TODO: this code is no longer in component. These tests need to be rewritten somewhere else.
+    def notest_create_style_element(self):
         parent = XMLElement(etree.fromstring("""
             <XMLElement Self="di3i4i1i2i2i2" MarkupTag="XMLTag/texte">
                 <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"

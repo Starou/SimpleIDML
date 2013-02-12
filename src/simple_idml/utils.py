@@ -3,6 +3,7 @@
 import os
 import re
 import new
+from lxml import etree
 from types import MethodType
 
 
@@ -66,3 +67,33 @@ class Proxy(object):
             return new.instancemethod(f.im_func, self, target.__class__)
         else:
             return f
+
+
+def tree_to_etree_dom(tree):
+    """Convert a tree in a elementTree dom instance.
+    
+    >>> tree = {
+    ...     "tag": "Root",
+    ...     "attrs": {...},
+    ...     "content": ["foo", {subtree}, "bar", ...]
+    ... }
+    
+    """
+
+    def _set_node_content(node, tree):
+        for c in tree["content"]:
+            if isinstance(c, dict):
+                child = etree.Element(c["tag"], **c.get("attrs", {}))
+                _set_node_content(child, c)
+                node.append(child)
+            else:
+                node_children = node.getchildren()
+                if len(node_children) == 0:
+                    node.text = "%s%s" % (node.text or "", c or "")
+                else:
+                    node_children[-1].tail = "%s%s" % (node_children[-1].tail or "", c or "")
+
+    dom = etree.Element(tree["tag"], **tree.get("attrs", {}))
+    _set_node_content(dom, tree)
+
+    return dom

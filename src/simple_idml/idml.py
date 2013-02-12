@@ -14,7 +14,7 @@ from simple_idml.components import get_idml_xml_file_by_name
 from simple_idml.components import (Designmap, Spread, Story, BackingStory,
                                     Style, StyleMapping, Graphic, Tags, Fonts, XMLElement)
 from simple_idml.decorators import use_working_copy
-from simple_idml.utils import increment_filename, prefix_content_filename
+from simple_idml.utils import increment_filename, prefix_content_filename, tree_to_etree_dom
 
 from simple_idml import IdPkgNS, BACKINGSTORY
 
@@ -231,15 +231,111 @@ class IDMLPackage(zipfile.ZipFile):
                                                          resource_path,
                                                          synchronize=True)
             story.synchronize()
-        
-        def _import_new_node(source_node, at, element_id):
-            style_name = self.style_mapping.character_style_mapping[source_node.tag]
-            style_node = self.style.get_style_node_by_name(style_name)
-            story = self.get_story_object_by_xpath(at) # TODO story or self.get_story_object_by_xpath(at)
+
+        def _apply_style(style_range_node, style_to_apply_node, applied_style_node):
+            """ A style_range_node as an applied_style_node overriden with style_to_apply_node. """
+            for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization", "Position"):
+                if style_to_apply_node.get(attr) is not None:
+                    value_to_apply = style_to_apply_node.get(attr)
+                    applied_value = style_range_node.get(attr) or applied_style_node.get(attr)
+                    if attr == "FontStyle":
+                        style_range_node.set(attr, _merge_font_style(applied_value, value_to_apply))
+                    else:
+                        style_range_node.set(attr, style_to_apply_node.get(attr))
+            # TODO
+            #for attr in ("Leading", "AppliedFont"):
+            #    path = "Properties/%s" % attr
+            #    source_attr_node = source_style_node.find(path)
+            #    attr_node = (style_node is not None and style_node.find(path) is not None)
+            #    if attr_node is None and source_attr_node is not None:
+            #        properties_element.append(copy.deepcopy(source_attr_node))
+
+        mergeable_font_styles = {
+            "Condensed": {
+                "Light": "Condensed Light",
+            },
+            "Bold": {
+                "Italic": "Bold Italic",
+            },
+            "SemiBold": {
+                "Italic": "SemiBold Italic",
+            },
+            "Semibold": {
+                "Italic": "Semibold Italic",
+            },
+        }
+
+        def _merge_font_style(applied_font_style, font_style_to_apply):
+            """ If not mergeable, return the child."""
+            parent = mergeable_font_styles.get(applied_font_style, {})
+            return parent.get(font_style_to_apply, font_style_to_apply)
+
+        def _get_nested_style_range_node(xml_structure_node):
+            """Use the more distant parent as base style and then apply its children styles until the new tag itself."""
+            nested_styles = []
+            while(xml_structure_node is not None):
+                style_name = self.style_mapping.character_style_mapping.get(xml_structure_node.tag)
+                if style_name:
+                    style_node = self.style.get_style_node_by_name(style_name)
+                    nested_styles.insert(0, style_node)
+                xml_structure_node = xml_structure_node.getparent() 
+
+            # Merge the styles starting from the top parent like in a HTML document.
+            root_style_node = nested_styles.pop(0)
+            new_style_range_node = etree.Element("CharacterStyleRange", AppliedCharacterStyle=root_style_node.get("Self"))
+            etree.SubElement(new_style_range_node, "Properties")
+            for style_to_apply_node in nested_styles:
+                _apply_style(new_style_range_node, style_to_apply_node, root_style_node)
+
+            return new_style_range_node, root_style_node
+
+        def _apply_parent_style_range(style_range_node, applied_style_node, parent):
+            """Parent CharacterStyleRange must be set locally. """
+            properties_element = style_range_node.find("Properties")
+            # If the parent specify a font face, a font style or a font size and the style_node don't, it is added.
+            try:
+                parent_style_node = parent.xpath(("./ParagraphStyleRange/CharacterStyleRange | \
+                                                  ./CharacterStyleRange"))[0]
+            # parent is None or has no inline style.
+            except (IndexError, AttributeError):
+                pass
+            else:
+                for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization", "Position"):
+                    if parent_style_node.get(attr) is not None and (applied_style_node is None or not applied_style_node.get(attr)):
+                        style_range_node.set(attr, parent_style_node.get(attr))
+
+                for attr in ("Leading", "AppliedFont"):
+                    path = "Properties/%s" % attr
+                    parent_attr_node = parent_style_node.find(path)
+                    attr_node = (applied_style_node is not None and applied_style_node.find(path) is not None) or None
+                    if attr_node is None and parent_attr_node is not None:
+                        properties_element.append(copy.deepcopy(parent_attr_node))
+
+        def _import_new_node(source_node, at=None, element_id=None, story=None):
+            xml_structure_parent_node = self.xml_structure.find("*//*[@Self='%s']" % element_id)
+            xml_structure_new_node = etree.Element(source_node.tag)
+            # We cannot force the self._xml_structure reset by setting it at None.
+            xml_structure_parent_node.append(xml_structure_new_node)
+
+            style_range_node, applied_style_node = _get_nested_style_range_node(xml_structure_new_node)
+            story = story or self.get_story_object_by_xpath(at)
             parent = story.get_element_by_id(element_id)
+            _apply_parent_style_range(style_range_node, applied_style_node, parent)
+
             new_xml_element = XMLElement(tag=source_node.tag)
-            new_xml_element.add_content(source_node.text, parent, style_node=style_node)
+            new_xml_element.add_content(source_node.text, parent, style_range_node)
             story.add_element(element_id, new_xml_element.element)
+            
+            xml_structure_new_node.set("Self", new_xml_element.get("Self"))
+
+            # Source may also contains some children.
+            source_node_children = source_node.getchildren()
+            if len(source_node_children):
+                story.synchronize()
+                for j, source_node_child in enumerate(source_node_children):
+                    _import_new_node(source_node_child,
+                                     element_id=new_xml_element.get("Self"),
+                                     story=story)
 
             if source_node.tail:
                 story.add_content_to_element(element_id, source_node.tail, parent)
@@ -280,64 +376,67 @@ class IDMLPackage(zipfile.ZipFile):
         _import_node(source_node, at)
         return self
 
-    def export_xml(self, from_tag=None):
-        """ Reproduce the action «Export XML» on a XML Element in InDesign® Structure. """
-        if not from_tag:
-            export_from_node = self.xml_structure
-        else:
-            # TODO
-            pass
-        dom = etree.Element(export_from_node.tag)
-
-        def append_content(source_node, destination_node):
-            # Retouver le node de la Story correspondant au node source_node.
-            # Si ce node contient une sous balise <content>, l'ajouter au contenu
-            # de la destination.
-            source_node_children = source_node.getchildren()
-
-            xpath = self.xml_structure_tree.getpath(source_node)
+    def export_as_tree(self):
+        """ 
+        >>> tree = {
+        ...     "tag": "Root",
+        ...     "attrs": {...},
+        ...     "content": ["foo", {subtree}, "bar", ...]
+        ... }
+        """
+        def _export_content_as_tree(xml_structure_node):
+            content = []
+            tree = {"tag": xml_structure_node.tag,
+                    "attrs": {},
+                    "content": content}
+            # Explore the story to discover the content and the attributes.
+            xpath = self.xml_structure_tree.getpath(xml_structure_node)
             story = self.get_story_object_by_xpath(xpath)
-            story_content_nodes = None
+
             try:
                 story.fobj
             except KeyError:
-                pass
+                story_content_and_xmlelement_nodes = []
             else:
-                story_node = story.get_element_by_id(source_node.get("Self"))
-                for attr, value in story_node.get_attributes().items():
-                    destination_node.set(attr, value)
-                story_content_nodes = story.get_element_content_nodes(story_node)
-            if story_content_nodes and not source_node_children:
-                #TODO join() with XML_PARAGRAPH_SEP if getnext().tag == "Br"
-                # XML_PARAGRAPH_SEP = u"\u2029"
-                destination_node.text = "".join([c.text or "" for c in story_content_nodes])
-            elif not story_content_nodes and source_node_children:
-                for elt in source_node_children:
-                    new_destination_node = etree.Element(elt.tag)
-                    destination_node.append(new_destination_node)
-                    append_content(elt, new_destination_node)
-            elif story_content_nodes and source_node_children:
-                last_child_inserted = None
-                for story_content_node in story_content_nodes:
-                    xml_element_for_content = story_content_node.iterancestors("XMLElement").next()
-                    if (
-                        not source_node_children or
-                        (xml_element_for_content.get("Self") != source_node_children[0].get("Self"))
-                    ):
-                        if last_child_inserted is None:
-                            # There should be several <Content> nodes.
-                            destination_node.text = (destination_node.text or "") + \
-                                                    (story_content_node.text or "")
-                        else:
-                            last_child_inserted.tail = (last_child_inserted.tail or "") + \
-                                                       (story_content_node.text)
-                    else:
-                        xml_element_child = source_node_children.pop(0)
-                        last_child_inserted = etree.Element(xml_element_child.tag)
-                        destination_node.append(last_child_inserted)
-                        append_content(xml_element_child, last_child_inserted)
+                story_node = story.get_element_by_id(xml_structure_node.get("Self"))
+                story_content_and_xmlelement_nodes = story.get_element_content_and_xmlelement_nodes(story_node)
+                # Attributes. TODO: Attributes are already known in xml_structure.
+                tree["attrs"] = copy.deepcopy(story_node.get_attributes())
 
-        append_content(export_from_node, dom)
+            xml_structure_node_children = xml_structure_node.getchildren()
+
+            if len(story_content_and_xmlelement_nodes):
+                # Leaf with content.
+                if len(xml_structure_node_children) == 0:
+                    content.append("".join([c.text or "" for c in story_content_and_xmlelement_nodes])) # if not XMLElement
+                # Node with content.
+                else:
+                    xml_structure_child_node = xml_structure_node_children.pop(0)
+                    for story_content_node in story_content_and_xmlelement_nodes:
+                        if story_content_node.tag == "XMLElement":
+                            content.append(_export_content_as_tree(xml_structure_child_node))
+                            try:
+                                xml_structure_child_node = xml_structure_node_children.pop(0)
+                            except IndexError:
+                                xml_structure_child_node = None
+                        else:
+                            content.append(story_content_node.text)
+            else:
+                # Node without content > `content' is fed with recursive call on childrens.
+                if len(xml_structure_node_children):
+                    # TODO: content = map(_export_content_as_tree, xml_structure_node_children)
+                    for xml_structure_child_node in xml_structure_node_children:
+                        content.append(_export_content_as_tree(xml_structure_child_node))
+
+            return tree
+
+        xml_structure_root_node = self.xml_structure
+        return _export_content_as_tree(xml_structure_root_node)
+
+    def export_xml(self, from_tag=None):
+        """ Reproduce the action «Export XML» on a XML Element in InDesign® Structure. """
+        tree = self.export_as_tree()
+        dom = tree_to_etree_dom(tree)
         return etree.tostring(dom, pretty_print=True)
 
     @use_working_copy

@@ -4,7 +4,7 @@ import os
 import sys
 import shutil
 import glob
-import unittest
+import unittest2 as unittest
 import StringIO
 from tempfile import mkdtemp
 from lxml import etree
@@ -20,6 +20,7 @@ OUTPUT_DIR = os.path.join(CURRENT_DIR, "outputs", "simpleIDML")
 class IdmlTestCase(unittest.TestCase):
     def setUp(self):
         super(IdmlTestCase, self).setUp()
+        self.maxDiff = None
         for f in glob.glob(os.path.join(OUTPUT_DIR, "*")):
             if os.path.isdir(f):
                 shutil.rmtree(f)
@@ -175,6 +176,27 @@ class IdmlTestCase(unittest.TestCase):
 """)
         xml_file.close()
 
+    def test_import_xml_nested_tags(self):
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
+                     os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
+        idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
+        xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-nested-tags.xml"), "r")
+        idml_file = idml_file.import_xml(xml_file, at="/Root/module[1]")
+        xml = idml_file.export_xml()
+        self.assertMultiLineEqual(xml,
+"""<Root>
+  <module>
+    <main_picture href="file:///steve.jpg"/>
+    <headline>The Life Aquatic with Steve Zissou</headline>
+    <Story>
+      <article>While oceanographer and documentarian <bold>Steve Zissou (Bill Murray) is <sup>working</sup> on his latest documentary at sea, his best friend <italique>Esteban du Plantier</italique> (Seymour Cassel)</bold> is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark's destruction.
+            The crew aboard Zissou's research vessel <italique>Belafonte</italique> includes <italique>Pel&#233; dos Santos (Seu Jorge)</italique>, a safety expert and Brazilian musician who sings David Bowie songs in Portuguese, and Klaus Daimler (Willem Dafoe), the German second-in-command who viewed Zissou and Esteban as father figures</article>
+      <informations>The Life Aquatic with Steve Zissou is an American comedy-drama film directed, written, and co-produced by Wes Anderson.</informations>
+    </Story>
+  </module>
+</Root>
+""")
+            
     def test_import_xml_with_ignored_tags(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes.idml"))
@@ -227,7 +249,7 @@ class IdmlTestCase(unittest.TestCase):
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-with-extra-nodes2.xml"), "r")
         idml_file = idml_file.import_xml(xml_file, at="/Root/module[1]")
         xml = idml_file.export_xml()
-        self.assertEqual(xml, 
+        self.assertMultiLineEqual(xml, 
 """<Root>
   <module>
     <main_picture href="file:///steve.jpg"/>
@@ -289,6 +311,84 @@ class IdmlTestCase(unittest.TestCase):
 """)
         xml_file.close()
 
+    def test_export_as_tree(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_imported-nested-xml.idml"))
+        tree = idml_file.export_as_tree()
+        self.assertEqual(tree, {
+            'tag': 'Root',
+            'attrs': {},
+            'content': [
+                {
+                    'tag': 'module',
+                    'attrs': {},
+                    'content': [
+                        {
+                            'tag': 'main_picture',
+                            'attrs': {'href': 'file:///steve.jpg'},
+                            'content': [],
+                        },
+                        {
+                            'tag': 'headline',
+                            'attrs': {},
+                            'content': ['The Life Aquatic with Steve Zissou'],
+                        },
+                        {
+                            'tag': 'Story',
+                            'attrs': {},
+                            'content': [
+                                {
+                                    'tag': 'article',
+                                    'attrs': {},
+                                    'content': [
+                                        'While oceanographer and documentarian ',
+                                        {
+                                            'tag': 'bold',
+                                            'attrs': {},
+                                            'content': [
+                                                'Steve Zissou (Bill Murray) is ',
+                                                {
+                                                    'tag': 'sup',
+                                                    'attrs': {},
+                                                    'content': ['working'],
+                                                },
+                                                ' on his latest documentary at sea, his best friend ',
+                                                {
+                                                    'tag': 'italique',
+                                                    'attrs': {},
+                                                    'content': ['Esteban du Plantier'],
+                                                },
+                                                ' (Seymour Cassel)',
+                                            ],
+                                        },
+                                        u' is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark\'s destruction.\u2028            The crew aboard Zissou\'s research vessel ',
+                                        {
+                                            'tag': 'italique',
+                                            'attrs': {},
+                                            'content': ['Belafonte'],
+                                        },
+                                        ' includes ',
+                                        {
+                                            'tag': 'italique',
+                                            'attrs': {},
+                                            'content': [u'Pel\xe9 dos Santos (Seu Jorge)'],
+                                        },
+                                        ', a safety expert and Brazilian musician who sings David Bowie songs in Portuguese, and Klaus Daimler (Willem Dafoe), the German second-in-command who viewed Zissou and Esteban as father figures'
+                                    ],
+                                },
+                                {
+                                    'tag': 'informations',
+                                    'attrs': {},
+                                    'content': [
+                                        'The Life Aquatic with Steve Zissou is an American comedy-drama film directed, written, and co-produced by Wes Anderson.'
+                                    ],
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ],
+        })
+
     def test_export_xml(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
         xml = idml_file.export_xml()
@@ -307,7 +407,7 @@ class IdmlTestCase(unittest.TestCase):
 
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_imported-xml.idml"))
         xml = idml_file.export_xml()
-        self.assertEqual(xml,
+        self.assertMultiLineEqual(xml,
 """<Root>
   <module>
     <main_picture/>
@@ -330,6 +430,22 @@ class IdmlTestCase(unittest.TestCase):
     <Story>
       <article>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt.</article>
       <informations bar="baz">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt.</informations>
+    </Story>
+  </module>
+</Root>
+""")
+
+    def test_export_xml_with_nested_nodes(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_imported-nested-xml.idml"))
+        xml = idml_file.export_xml()
+        self.assertMultiLineEqual(xml,
+"""<Root>
+  <module>
+    <main_picture href="file:///steve.jpg"/>
+    <headline>The Life Aquatic with Steve Zissou</headline>
+    <Story>
+      <article>While oceanographer and documentarian <bold>Steve Zissou (Bill Murray) is <sup>working</sup> on his latest documentary at sea, his best friend <italique>Esteban du Plantier</italique> (Seymour Cassel)</bold> is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark's destruction.&#8232;            The crew aboard Zissou's research vessel <italique>Belafonte</italique> includes <italique>Pel&#233; dos Santos (Seu Jorge)</italique>, a safety expert and Brazilian musician who sings David Bowie songs in Portuguese, and Klaus Daimler (Willem Dafoe), the German second-in-command who viewed Zissou and Esteban as father figures</article>
+      <informations>The Life Aquatic with Steve Zissou is an American comedy-drama film directed, written, and co-produced by Wes Anderson.</informations>
     </Story>
   </module>
 </Root>
