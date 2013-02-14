@@ -456,6 +456,7 @@ class IdmlTestCase(unittest.TestCase):
                      os.path.join(OUTPUT_DIR, "4-pages.idml"))
 
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages.idml"))
+        self.assertRaises(BaseException, idml_file.prefix, "bad-prefix")
         idml_file = idml_file.prefix("FOO")
 
         # Spreads.

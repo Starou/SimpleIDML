@@ -443,6 +443,8 @@ class IDMLPackage(zipfile.ZipFile):
 
         files in ZipFile cannot be renamed or moved so we make a copy of it.
         """
+        if not re.match("^\w+$", prefix):
+            raise BaseException("Prefix must be alphanumeric.")
 
         # Change the references inside the file.
         for filename in self.namelist():
