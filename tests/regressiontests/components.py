@@ -15,6 +15,38 @@ CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 
 
+class DesignmapTestCase(unittest.TestCase):
+    def test_layer_nodes(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
+        designmap = idml_file.designmap
+        self.assertEqual(len(designmap.layer_nodes), 1)
+        self.assertEqual(designmap.layer_nodes[0].get("Name"), 'Layer 1')
+
+    def test_add_layer_nodes(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
+        designmap = idml_file.designmap
+
+        designmap.add_layer_nodes([
+            etree.fromstring(
+                """<Layer Self="toto" Name="Layer 2" Visible="true" Locked="false" IgnoreWrap="false" ShowGuides="true" LockGuides="false" UI="true" Expendable="true" Printable="true">
+                    <Properties>
+                        <LayerColor type="enumeration">Red</LayerColor>
+                    </Properties>
+                </Layer>"""
+            ),
+            etree.fromstring(
+                """<Layer Self="titi" Name="Layer 3" Visible="true" Locked="false" IgnoreWrap="false" ShowGuides="true" LockGuides="false" UI="true" Expendable="true" Printable="true">
+                    <Properties>
+                        <LayerColor type="enumeration">Blue</LayerColor>
+                    </Properties>
+                </Layer>"""
+            ),
+        ])
+        self.assertEqual(len(designmap.layer_nodes), 3)
+        self.assertEqual([n.get("Name") for n in designmap.layer_nodes],
+                         ['Layer 1', 'Layer 2', 'Layer 3'])
+
+
 class SpreadTestCase(unittest.TestCase):
     def test_pages(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
@@ -362,6 +394,7 @@ class XMLElementTestCase(unittest.TestCase):
 
 def suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(SpreadTestCase)
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(DesignmapTestCase))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(StoryTestCase))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(PageTestCase))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(StyleTestCase))

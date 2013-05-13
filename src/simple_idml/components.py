@@ -26,7 +26,6 @@ class IDMLXMLFile(object):
         "NumberingList",
         "NamedGrid",
         "TextVariable",
-        "Layer",
         "Section",
         "DocumentUser",
         "CrossReferenceFormat",
@@ -48,6 +47,7 @@ class IDMLXMLFile(object):
         "NextStyle",
         "FillColor",
         "StrokeColor",
+        "ItemLayer",
     )
 
     def __init__(self, idml_package, working_copy_path=None):
@@ -364,6 +364,7 @@ class Designmap(IDMLXMLFile):
         self._spread_nodes = None
         self._style_mapping_node = None
         self._section_node = None
+        self._layer_nodes = None
 
     @property
     def spread_nodes(self):
@@ -371,6 +372,13 @@ class Designmap(IDMLXMLFile):
             nodes = self.dom.findall("idPkg:Spread", namespaces={'idPkg': IdPkgNS})
             self._spread_nodes = nodes
         return self._spread_nodes
+
+    @property
+    def layer_nodes(self):
+        if self._layer_nodes is None:
+            nodes = self.dom.findall("Layer")
+            self._layer_nodes = nodes
+        return self._layer_nodes
 
     @property
     def section_node(self):
@@ -415,6 +423,10 @@ class Designmap(IDMLXMLFile):
             elt.append(etree.Element("{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Story",
                                      src="Stories/Story_%s.xml" % story))
 
+    def add_layer_nodes(self, layer_nodes):
+        for layer in reversed(layer_nodes):
+            self.layer_nodes[-1].addnext(copy.deepcopy(layer))
+        self._layer_nodes = None
 
 class Style(IDMLXMLFile):
     name = "Resources/Styles.xml"

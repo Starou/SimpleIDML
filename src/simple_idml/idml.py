@@ -33,6 +33,7 @@ class IDMLPackage(zipfile.ZipFile):
     def init_lazy_references(self):
         self._xml_structure = None
         self._xml_structure_tree = None
+        self._designmap = None
         self._tags = None
         self._font_families = None
         self._style_groups = None
@@ -109,6 +110,13 @@ class IDMLPackage(zipfile.ZipFile):
             xml_structure_tree = etree.ElementTree(self.xml_structure)
             self._xml_structure_tree = xml_structure_tree
         return self._xml_structure_tree
+
+    @property
+    def designmap(self):
+        if self._designmap is None:
+            designmap = Designmap(self, working_copy_path=self.working_copy_path)
+            self._designmap = designmap
+        return self._designmap
 
     @property
     def tags(self):
@@ -483,6 +491,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._add_tags_from_idml(idml_package)
         self._add_spread_elements_from_idml(idml_package, at, only, t)
         self._add_stories_from_idml(idml_package, at, only)
+        self._add_layers_from_idml(idml_package, at, only)
         self._xml_structure = None
         return self
 
@@ -656,6 +665,11 @@ class IDMLPackage(zipfile.ZipFile):
         designmap.add_stories(idml_package.story_ids)
         designmap.synchronize()
         # BackingStory.xml ??
+
+    def _add_layers_from_idml(self, idml_package, at, only):
+        designmap = Designmap(self, working_copy_path=self.working_copy_path)
+        designmap.add_layer_nodes(idml_package.designmap.layer_nodes)
+        designmap.synchronize()
 
     @use_working_copy
     def add_pages_from_idml(self, idml_packages, working_copy_path=None):
