@@ -56,6 +56,11 @@ class UtilsTestCase(unittest.TestCase):
         result = prefix_content_filename(src, "MyPrefix", "filename")
         self.assertEqual(result, "Spread_MyPrefixub6.xml")
 
+    def test_str_is_prefixed(self):
+        from simple_idml.utils import str_is_prefixed
+        self.assertFalse(str_is_prefixed("foo", "bar"))
+        self.assertTrue(str_is_prefixed("foo", "foobar"))
+
     def test_tree_to_etree_dom(self):
         from lxml import etree
         from simple_idml.utils import tree_to_etree_dom

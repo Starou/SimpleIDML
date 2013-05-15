@@ -447,9 +447,9 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def prefix(self, prefix, working_copy_path=None):
-        """Change references and filename by inserting `prefix_` everywhere.
+        """Change references and filename by inserting `prefix' everywhere.
 
-        files in ZipFile cannot be renamed or moved so we make a copy of it.
+        files in ZipFile cannot be renamed or moved so we make a copies of them.
         """
         if not re.match("^\w+$", prefix):
             raise BaseException("Prefix must be alphanumeric.")
@@ -480,6 +480,11 @@ class IDMLPackage(zipfile.ZipFile):
         designmap.synchronize()
 
         return self
+
+    def is_prefixed(self, prefix):
+        # check the <XmlStory> root tag in BackingStory.xml.
+        from simple_idml.utils import str_is_prefixed
+        return str_is_prefixed(prefix, self.backing_story.node.get("Self"))
 
     @use_working_copy
     def insert_idml(self, idml_package, at, only, working_copy_path=None):

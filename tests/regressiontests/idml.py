@@ -514,6 +514,17 @@ class IdmlTestCase(unittest.TestCase):
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-prefixed.idml"))
         idml_file = idml_file.prefix("FOO")
 
+    def test_is_prefixed(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"))
+        self.assertFalse(idml_file.is_prefixed("foo"))
+
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
+                     os.path.join(OUTPUT_DIR, "4-pages.idml"))
+        idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages.idml"))
+        idml_file = idml_file.prefix("foo")
+        self.assertTrue(idml_file.is_prefixed("foo"))
+        self.assertFalse(idml_file.is_prefixed("bar"))
+
     def test_insert_idml(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                      os.path.join(OUTPUT_DIR, "4-pages.idml"))

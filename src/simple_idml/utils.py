@@ -56,6 +56,12 @@ def increment_xmltag_id(xmltag_id, position="sibling"):
         return "%si1" % xmltag_id
 
 
+def str_is_prefixed(prefix, strng):
+    if re.match("^%s.+$" % prefix, strng):
+        return True
+    return False
+
+
 class Proxy(object):
     def __init__(self, target):
         self._target = target
