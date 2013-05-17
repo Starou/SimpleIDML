@@ -103,6 +103,9 @@ class IDMLPackage(zipfile.ZipFile):
             append_childs(source_node, structure)
             self._xml_structure = structure
         return self._xml_structure
+    
+    def xml_structure_pretty(self):
+        return etree.tostring(self.xml_structure, pretty_print=True)
 
     @property
     def xml_structure_tree(self):
