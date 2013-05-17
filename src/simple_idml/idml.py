@@ -759,7 +759,7 @@ class IDMLPackage(zipfile.ZipFile):
         story_name = get_story_name(xml_element)
 
         # Some XMLElement store a reference which is not a Story.
-        # In that case, the Story it the parent's Story.
+        # In that case, the Story is the parent's Story.
         if (story_name not in self.story_ids) and (story_name is not BACKINGSTORY):
             xpath = self.xml_structure_tree.getpath(xml_element.getparent())
             story = self.get_story_object_by_xpath(xpath)

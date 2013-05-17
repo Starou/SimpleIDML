@@ -266,7 +266,10 @@ class Spread(IDMLXMLFile):
         return rx_node_name_from_xml_name.match(self.name).groups()[0]
 
     def remove_page_item(self, item_id, synchronize=False):
+        # etree FutureWarning when trying to simply do: elt = foo() or bar().
         elt = self.get_element_by_id(item_id, tag="*")
+        if elt is None:
+            elt = self.get_element_by_id(item_id, tag="*", attr="ParentStory")
         elt.getparent().remove(elt)
         if synchronize:
             self.synchronize()
@@ -658,7 +661,7 @@ class Page(object):
 class XMLElement(Proxy):
     """A proxy over the etree.Element to represent XMLElement nodes in Story files. """
     def __repr__(self):
-        if self.element:
+        if self.element is not None:
             return "XMLElement %s - %s" % (repr(self.element), ", ".join(["%s: %s" % (k, v) for k, v in self.element.items()]))
         else:
             return "XMLElement (no element)"

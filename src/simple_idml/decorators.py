@@ -25,7 +25,6 @@ def use_working_copy(view_func):
         if "working_copy_path" in kwargs:
             return view_func(idml_package, *args, **kwargs)
 
-        # TODO: use tempfile package.
         tmp_filename = NamedTemporaryFile().name
         idml_package.extractall(tmp_filename)
         idml_package.working_copy_path = tmp_filename
