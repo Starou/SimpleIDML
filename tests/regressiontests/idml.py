@@ -617,6 +617,22 @@ class IdmlTestCase(unittest.TestCase):
         # Graphics.
         self.assertTrue(main_idml_file.graphic.dom.xpath(".//Swatch[@Self='article1Swatch/None']"))
 
+    def test_remove_content(self):
+        idml_filename = os.path.join(IDMLFILES_DIR, "article-1photo_imported-xml.idml")
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_imported-xml.idml"),
+                     os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml"))
+        idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml"))
+        idml_file = idml_file.remove_content(under="/Root/module/Story")
+        self.assertEqual(idml_file.xml_structure_pretty(), 
+"""<Root Self="di3">
+  <module XMLContent="u10d" Self="di3i4">
+    <main_picture XMLContent="udf" Self="di3i4i1"/>
+    <headline XMLContent="ue1" Self="di3i4i2"/>
+    <Story XMLContent="uf7" Self="di3i4i3"/>
+  </module>
+</Root>
+""")
+
     def test_add_page_from_idml(self):
         edito_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-edito.idml")
         courrier_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-courrier-des-lecteurs.idml")

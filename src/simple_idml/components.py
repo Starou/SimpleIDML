@@ -337,6 +337,18 @@ class Story(IDMLXMLFile):
             position = "child"
         element.set("Self", increment_xmltag_id(ref_element.get("Self"), position))
 
+    def remove_element(self, element_id, synchronize=False):
+        elt = self.get_element_by_id(element_id).element
+        elt.getparent().remove(elt)
+        if synchronize:
+            self.synchronize()
+
+    def remove_children(self, element_id, synchronize=False):
+        elt = self.get_element_by_id(element_id).element
+        map(lambda c: elt.remove(c), elt.iterchildren())
+        if synchronize:
+            self.synchronize()
+
     def add_element(self, element_destination_id, element):
         node = self.get_element_by_id(element_destination_id)
         node.append(element)

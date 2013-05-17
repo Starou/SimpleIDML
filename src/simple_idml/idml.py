@@ -492,6 +492,7 @@ class IDMLPackage(zipfile.ZipFile):
     @use_working_copy
     def insert_idml(self, idml_package, at, only, working_copy_path=None):
         t = self._get_item_translation_for_insert(idml_package, at, only)
+        self = self.remove_content(at, working_copy_path=self.working_copy_path)
         self._add_font_families_from_idml(idml_package)
         self._add_styles_from_idml(idml_package)
         self._add_mapped_styles_from_idml(idml_package)
@@ -501,6 +502,36 @@ class IDMLPackage(zipfile.ZipFile):
         self._add_stories_from_idml(idml_package, at, only)
         self._add_layers_from_idml(idml_package, at, only)
         self._xml_structure = None
+        return self
+
+    @use_working_copy
+    def remove_content(self, under, working_copy_path=None):
+        """Recursively reach the leafs to remove the content. """
+        def _remove_content(node):
+            if len(node.getchildren()):
+                map(_remove_content, node.iterchildren())
+            xpath = self.xml_structure_tree.getpath(node)
+            element_content_id = self.get_element_content_id_by_xpath(xpath)
+
+            story = self.get_story_object_by_xpath(xpath)
+            story.clear_element_content(node.get("Self"))
+            story.remove_element(node.get("Self"), synchronize=True)
+            # call story.remove_xml_element_page_items() for images ?
+            
+            spread = self.get_spread_object_by_xpath(xpath)
+            if spread:
+                spread.remove_page_item(element_content_id, synchronize=True)
+
+        try:
+            node = self.xml_structure.xpath(under)[0]
+        except IndexError, err:
+            raise IndexError(u"Cannot remove content under path '%s'. Are you sure the path exists ?" % under)
+        map(_remove_content, node.iterchildren())
+        # `under' node may have a reference to its first children in his story.
+        story = self.get_story_object_by_xpath(under)
+        story.remove_children(node.get("Self"), synchronize=True)
+
+        self.init_lazy_references()
         return self
 
     def _add_font_families_from_idml(self, idml_package):
