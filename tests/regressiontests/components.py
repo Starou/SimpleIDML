@@ -84,6 +84,24 @@ class StoryTestCase(unittest.TestCase):
         elem = story.get_element_by_id("di2i3i2", tag="*")
         self.assertEqual(elem.get("MarkupTag"), "XMLTag/content")
 
+    def test_create(self):
+        from tempfile import mkdtemp
+        idml_working_copy = mkdtemp()
+        story = Story.create(None, "my_story_id", "my_xml_element_id", "my_xml_element_tag", idml_working_copy)
+
+        self.assertEqual(story.name, 'Stories/Story_my_story_id.xml')
+        self.assertEqual(story.tostring(),
+"""<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
+     <Story Self="my_story_id" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+       <StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection"/>
+       <InCopyExportOption IncludeGraphicProxies="true" IncludeAllResources="false"/>
+       <XMLElement Self="my_xml_element_id" MarkupTag="XMLTag/my_xml_element_tag" XMLContent="my_story_id"/>
+     </Story>
+</idPkg:Story>
+""")
+        shutil.rmtree(idml_working_copy)
+
 
 class PageTestCase(unittest.TestCase):
     def test_page_items(self):

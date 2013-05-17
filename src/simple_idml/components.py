@@ -64,7 +64,7 @@ class IDMLXMLFile(object):
         if self._fobj is None:
             if self.working_copy_path:
                 filename = os.path.join(self.working_copy_path, self.name)
-                fobj = open(filename, mode="r+")
+                fobj = open(filename, mode="a+")
             else:
                 fobj = self.idml_package.open(self.name, mode="r")
             self._fobj = fobj
@@ -275,12 +275,39 @@ class Spread(IDMLXMLFile):
             self.synchronize()
 
 
+STORIES_DIRNAME = "Stories"
+
+
 class Story(IDMLXMLFile):
     def __init__(self, idml_package, name, working_copy_path=None):
         super(Story, self).__init__(idml_package, working_copy_path)
         self.name = name
         self.node_name = "Story"
         self._node = None
+    
+    @classmethod
+    def create(cls, idml_package, story_id, xml_element_id, xml_element_tag, working_copy_path):
+        dirname = os.path.join(working_copy_path, STORIES_DIRNAME)
+        if not os.path.exists(dirname):
+            os.mkdir(dirname)
+        story_name = "%s/Story_%s.xml" % (STORIES_DIRNAME, story_id)
+        story = Story(idml_package, story_name, working_copy_path)
+        story.fobj.write(
+            """<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+   <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
+     <Story Self="%(story_id)s" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+       <StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection"/>
+       <InCopyExportOption IncludeGraphicProxies="true" IncludeAllResources="false"/>
+       <XMLElement Self="%(xml_element_id)s" MarkupTag="XMLTag/%(xml_element_tag)s" XMLContent="%(story_id)s" />
+     </Story>
+</idPkg:Story>
+""" % {"story_id": story_id,
+       "xml_element_tag": xml_element_tag,
+       "xml_element_id": xml_element_id})
+
+        story.fobj.flush()
+        story.fobj.seek(0)
+        return story
 
     @property
     def node(self):
