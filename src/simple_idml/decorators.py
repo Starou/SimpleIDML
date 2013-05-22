@@ -21,8 +21,7 @@ def simple_decorator(decorator):
 @simple_decorator
 def use_working_copy(view_func):
     def new_func(idml_package, *args, **kwargs):
-        # In nested calls, we use the working_copy of the parent method.
-        if "working_copy_path" in kwargs:
+        if idml_package.working_copy_path is not None:
             return view_func(idml_package, *args, **kwargs)
 
         tmp_filename = NamedTemporaryFile().name
@@ -30,9 +29,11 @@ def use_working_copy(view_func):
         idml_package.working_copy_path = tmp_filename
         idml_package.init_lazy_references()
 
-        kwargs["working_copy_path"] = tmp_filename
-
-        idml_package = view_func(idml_package, *args, **kwargs)
+        try:
+            idml_package = view_func(idml_package, *args, **kwargs)
+        except BaseException, err:
+            idml_package.working_copy_path = None
+            raise err
 
         from simple_idml.idml import IDMLPackage
         # Create a new archive from the extracted one.
@@ -49,6 +50,7 @@ def use_working_copy(view_func):
         os.unlink(idml_package.filename)
         os.rename(tmp_package.filename, new_filename)
         shutil.rmtree(tmp_filename)
+        idml_package.working_copy_path = None
 
         return IDMLPackage(new_filename)
 

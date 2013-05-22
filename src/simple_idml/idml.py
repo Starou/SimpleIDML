@@ -213,7 +213,7 @@ class IDMLPackage(zipfile.ZipFile):
         return self._story_ids
 
     @use_working_copy
-    def import_xml(self, xml_file, at, working_copy_path=None):
+    def import_xml(self, xml_file, at):
         """ Reproduce the action «Import XML» on a XML Element in InDesign® Structure. """
 
         source_node = etree.fromstring(xml_file.read())
@@ -449,7 +449,7 @@ class IDMLPackage(zipfile.ZipFile):
         return etree.tostring(dom, pretty_print=True)
 
     @use_working_copy
-    def prefix(self, prefix, working_copy_path=None):
+    def prefix(self, prefix):
         """Change references and filename by inserting `prefix' everywhere.
 
         files in ZipFile cannot be renamed or moved so we make a copies of them.
@@ -464,7 +464,7 @@ class IDMLPackage(zipfile.ZipFile):
                 os.path.splitext(filename)[1] != ".xml"
             ):
                 continue
-            idml_xml_file = get_idml_xml_file_by_name(self, filename, working_copy_path)
+            idml_xml_file = get_idml_xml_file_by_name(self, filename, self.working_copy_path)
             idml_xml_file.prefix_references(prefix)
             idml_xml_file.synchronize()
 
@@ -473,12 +473,12 @@ class IDMLPackage(zipfile.ZipFile):
             new_basename = prefix_content_filename(os.path.basename(filename),
                                                    prefix, "filename")
             # mv file in the new archive with the prefix.
-            old_name = os.path.join(working_copy_path, filename)
+            old_name = os.path.join(self.working_copy_path, filename)
             new_name = os.path.join(os.path.dirname(old_name), new_basename)
             os.rename(old_name, new_name)
 
         # Update designmap.xml.
-        designmap = Designmap(self, working_copy_path=working_copy_path)
+        designmap = Designmap(self, working_copy_path=self.working_copy_path)
         designmap.prefix_page_start(prefix)
         designmap.synchronize()
 
@@ -490,9 +490,9 @@ class IDMLPackage(zipfile.ZipFile):
         return str_is_prefixed(prefix, self.backing_story.node.get("Self"))
 
     @use_working_copy
-    def insert_idml(self, idml_package, at, only, working_copy_path=None):
+    def insert_idml(self, idml_package, at, only):
         t = self._get_item_translation_for_insert(idml_package, at, only)
-        self = self.remove_content(at, working_copy_path=self.working_copy_path)
+        self.remove_content(at)
         self._add_font_families_from_idml(idml_package)
         self._add_styles_from_idml(idml_package)
         self._add_mapped_styles_from_idml(idml_package)
@@ -505,7 +505,7 @@ class IDMLPackage(zipfile.ZipFile):
         return self
 
     @use_working_copy
-    def remove_content(self, under, working_copy_path=None):
+    def remove_content(self, under):
         """Recursively reach the leafs to remove the content. """
         def _remove_content(node):
             if len(node.getchildren()):
@@ -679,10 +679,8 @@ class IDMLPackage(zipfile.ZipFile):
         # Neither we want to wipe the page item out from the spread.
         # To keep the document valid, the solution is to create a proxy story.
         if content_ref and (content_ref not in self.story_ids):
-            self = self.add_story_with_content(content_ref, xml_element_dest_id, xml_element_dest.tag,
-                                               working_copy_path=self.working_copy_path)
-            self = self.xml_element_leaf_to_node(at, content_ref, 
-                                                 working_copy_path=self.working_copy_path)
+            self.add_story_with_content(content_ref, xml_element_dest_id, xml_element_dest.tag)
+            self.xml_element_leaf_to_node(at, content_ref) 
             xml_element_dest = self.xml_structure.xpath(at)[0]
 
         story_dest_filename = self.get_story_by_xpath(at)
@@ -719,17 +717,16 @@ class IDMLPackage(zipfile.ZipFile):
         designmap.synchronize()
 
     @use_working_copy
-    def add_pages_from_idml(self, idml_packages, working_copy_path=None):
+    def add_pages_from_idml(self, idml_packages):
         for package, page_number, at, only in idml_packages:
-            self = self.add_page_from_idml(package, page_number, at, only,
-                                           working_copy_path=working_copy_path)
+            self = self.add_page_from_idml(package, page_number, at, only)
         return self
 
     @use_working_copy
-    def add_page_from_idml(self, idml_package, page_number, at, only, working_copy_path=None):
+    def add_page_from_idml(self, idml_package, page_number, at, only):
         last_spread = self.spreads_objects[-1]
         if last_spread.pages[-1].is_recto:
-            last_spread = self.add_new_spread(working_copy_path)
+            last_spread = self.add_new_spread(self.working_copy_path)
 
         page = idml_package.pages[page_number - 1]
         last_spread.add_page(page)
@@ -744,7 +741,7 @@ class IDMLPackage(zipfile.ZipFile):
         return self
 
     @use_working_copy
-    def add_story_with_content(self, story_id, xml_element_id, xml_element_tag, working_copy_path=None):
+    def add_story_with_content(self, story_id, xml_element_id, xml_element_tag):
         story = Story.create(self, story_id, xml_element_id, xml_element_tag, self.working_copy_path)
         self.designmap.add_stories([story_id])
         self.designmap.synchronize()
@@ -752,7 +749,7 @@ class IDMLPackage(zipfile.ZipFile):
         return self
     
     @use_working_copy
-    def xml_element_leaf_to_node(self, xpath, xml_content_ref, working_copy_path=None):
+    def xml_element_leaf_to_node(self, xpath, xml_content_ref):
         spread = self.get_spread_object_by_xpath(xpath)
         page_item = spread.get_element_by_id(xml_content_ref, tag="*", attr="Self")
 
