@@ -660,6 +660,7 @@ class IDMLPackage(zipfile.ZipFile):
             <XMLElement Self="prefixeddi2i3" MarkupTag="XMLTag/module" XMLContent="prefixedu102"/> (A)
           </XMLElement>
 
+        o The Story_udd.xml is created.
         o The Spread page item 'udd' is updated. 
         o The designmap.xml file is updated.
 
@@ -677,7 +678,7 @@ class IDMLPackage(zipfile.ZipFile):
         # We don't want to lose the XMLContent referencing the spread page item.
         # Neither we want to wipe the page item out from the spread.
         # To keep the document valid, the solution is to create a proxy story.
-        if content_ref not in self.story_ids:
+        if content_ref and (content_ref not in self.story_ids):
             self = self.add_story_with_content(content_ref, xml_element_dest_id, xml_element_dest.tag,
                                                working_copy_path=self.working_copy_path)
             self = self.xml_element_leaf_to_node(at, content_ref, 
@@ -754,12 +755,15 @@ class IDMLPackage(zipfile.ZipFile):
     def xml_element_leaf_to_node(self, xpath, xml_content_ref, working_copy_path=None):
         spread = self.get_spread_object_by_xpath(xpath)
         page_item = spread.get_element_by_id(xml_content_ref, tag="*", attr="Self")
+
         page_item.set("ParentStory", xml_content_ref)
-        # Avoid ParentStory == Self.
         page_item.set("Self", "%sToNode" % xml_content_ref)
-        # Rectangle is converted to a TextFrame
-        if page_item.tag == "Rectange":
-            page_item.tag = "TextFrame"
+
+        # To be a node, a Rectangle must be converted into a TextFrame.
+        # There is not simple way to change the tag of a XMLElement so
+        # a new copy is created.
+        if page_item.tag == "Rectangle":
+            spread.rectangle_to_textframe(page_item)
         spread.synchronize()
         return self
 

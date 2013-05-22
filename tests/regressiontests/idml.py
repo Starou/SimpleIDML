@@ -549,10 +549,11 @@ class IdmlTestCase(unittest.TestCase):
                                                   'Stories/Story_mainu102.xml',
                                                   'Stories/Story_mainu11b.xml',
                                                   'Stories/Story_mainu139.xml',
+                                                  'Stories/Story_mainudd.xml',
                                                   'Stories/Story_mainue4.xml'])
 
         # The XML Structure has integrated the new file.
-        self.assertEqual(etree.tostring(main_idml_file.xml_structure, pretty_print=True),
+        self.assertEqual(main_idml_file.xml_structure_pretty(),
 """<Root Self="maindi2">
   <article XMLContent="mainu102" Self="maindi2i3">
     <Story XMLContent="mainue4" Self="maindi2i3i1">
@@ -564,7 +565,7 @@ class IdmlTestCase(unittest.TestCase):
     <description XMLContent="mainu139" Self="maindi2i3i4"/>
   </article>
   <article XMLContent="mainudb" Self="maindi2i4"/>
-  <article Self="maindi2i5">
+  <article XMLContent="mainudd" Self="maindi2i5">
     <module XMLContent="article1u1db" Self="article1di3i12">
       <main_picture XMLContent="article1u182" Self="article1di3i12i1"/>
       <headline XMLContent="article1u188" Self="article1di3i12i2"/>
@@ -581,9 +582,9 @@ class IdmlTestCase(unittest.TestCase):
         # Designmap.xml.
         designmap = etree.fromstring(main_idml_file.open("designmap.xml", mode="r").read())
         self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
-                         "mainue4 mainu102 mainu11b mainu139 mainu9c article1u188 article1u19f article1u1db")
+                         "mainue4 mainu102 mainu11b mainu139 mainu9c mainudd article1u188 article1u19f article1u1db")
         self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
-                             namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})), 7)
+                             namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})), 8)
 
         # Styles.
         styles = [[style.get("Self") for style in style_group.iterchildren()] 
@@ -749,6 +750,7 @@ class IdmlTestCase(unittest.TestCase):
         os.unlink(bloc_notes_idml_filename)
 
         self.assertEqual(len(magazineA_idml_file.pages), 4)
+        # FIXME Broken.
         self.assertEqual(magazineA_idml_file.spreads, ['Spreads/Spread_magub6.xml', 'Spreads/Spread_magub7.xml'])
 
 

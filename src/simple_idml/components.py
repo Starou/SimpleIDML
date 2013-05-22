@@ -274,6 +274,22 @@ class Spread(IDMLXMLFile):
         if synchronize:
             self.synchronize()
 
+    def rectangle_to_textframe(self, rectangle):
+        from simple_idml.utils import deepcopy_element_as
+        textframe = deepcopy_element_as(rectangle, "TextFrame")
+        textframe.set("ContentType", "TextType")
+        textframe.set("PreviousTextFrame", "n")
+        textframe.set("NextTextFrame", "n")
+        # These attributes and subelements must be removed.
+        # Further investigations are required but here we suppose
+        # they are always found.
+        del textframe.attrib["StoryTitle"]
+        textframe.remove(textframe.find("InCopyExportOption"))
+        textframe.remove(textframe.find("FrameFittingOption"))
+        textframe.remove(textframe.find("ObjectExportOption"))
+        rectangle.addnext(textframe)
+        self.node.remove(rectangle)
+
 
 STORIES_DIRNAME = "Stories"
 
