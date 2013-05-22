@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import copy
 import os
 import re
 import new
@@ -103,3 +104,10 @@ def tree_to_etree_dom(tree):
     _set_node_content(dom, tree)
 
     return dom
+
+
+def deepcopy_element_as(element, tag):
+    new_element = etree.Element(tag, **element.attrib)
+    for child in element.iterchildren():
+        new_element.append(copy.deepcopy(child))
+    return new_element

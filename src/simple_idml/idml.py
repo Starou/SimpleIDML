@@ -654,18 +654,15 @@ class IDMLPackage(zipfile.ZipFile):
         What we want:
         =============
 
-        o At (A) in the file in [1] we are pointing to (B):
+        o if XMLContent is not related to a story file, we create it and insert `only' XML content:
 
-            <XMLElement Self="di2" MarkupTag="XMLTag/Root">
-                <XMLElement Self="di2i3" MarkupTag="XMLTag/article" XMLContent="u102"/>
-                <XMLElement Self="di2i4" MarkupTag="XMLTag/article" XMLContent="udb"/>
-                <XMLElement Self="di2i5" MarkupTag="XMLTag/article"> (A)
-                    <XMLElement Self="prefixeddi2i3" MarkupTag="XMLTag/module" XMLContent="prefixedu102"/> (A)
-                </XMLElement>
-                <XMLElement Self="di2i6" MarkupTag="XMLTag/advertise" XMLContent="udf"/>
-            </XMLElement>
+          <XMLElement Self="di2i5" MarkupTag="XMLTag/article" XMLContent="udd">
+            <XMLElement Self="prefixeddi2i3" MarkupTag="XMLTag/module" XMLContent="prefixedu102"/> (A)
+          </XMLElement>
 
-        o The designmap.xml file is updated [6].
+        o The Story_udd.xml is created.
+        o The Spread page item 'udd' is updated. 
+        o The designmap.xml file is updated.
 
         """
 
@@ -674,13 +671,24 @@ class IDMLPackage(zipfile.ZipFile):
         story_src = Story(idml_package, story_src_filename)
         story_src_elt = story_src.get_element_by_id(xml_element_src_id).element
 
-        xml_element_dest_id = self.xml_structure.xpath(at)[0].get("Self")
+        xml_element_dest = self.xml_structure.xpath(at)[0]
+        xml_element_dest_id = xml_element_dest.get("Self")
+        content_ref = xml_element_dest.get("XMLContent")
+
+        # We don't want to lose the XMLContent referencing the spread page item.
+        # Neither we want to wipe the page item out from the spread.
+        # To keep the document valid, the solution is to create a proxy story.
+        if content_ref and (content_ref not in self.story_ids):
+            self = self.add_story_with_content(content_ref, xml_element_dest_id, xml_element_dest.tag,
+                                               working_copy_path=self.working_copy_path)
+            self = self.xml_element_leaf_to_node(at, content_ref, 
+                                                 working_copy_path=self.working_copy_path)
+            xml_element_dest = self.xml_structure.xpath(at)[0]
+
         story_dest_filename = self.get_story_by_xpath(at)
         story_dest = Story(self, story_dest_filename, self.working_copy_path)
         story_dest_elt = story_dest.get_element_by_id(xml_element_dest_id)
 
-        if story_dest_elt.get("XMLContent"):
-            story_dest_elt.attrib.pop("XMLContent")
         story_src_elt_copy = copy.copy(story_src_elt)
         if story_src_elt_copy.get("XMLContent"):
             for child in story_src_elt_copy.iterchildren():
@@ -733,6 +741,30 @@ class IDMLPackage(zipfile.ZipFile):
         self._add_styles_from_idml(idml_package)
         self._add_tags_from_idml(idml_package)
 
+        return self
+
+    @use_working_copy
+    def add_story_with_content(self, story_id, xml_element_id, xml_element_tag, working_copy_path=None):
+        story = Story.create(self, story_id, xml_element_id, xml_element_tag, self.working_copy_path)
+        self.designmap.add_stories([story_id])
+        self.designmap.synchronize()
+        self.init_lazy_references()
+        return self
+    
+    @use_working_copy
+    def xml_element_leaf_to_node(self, xpath, xml_content_ref, working_copy_path=None):
+        spread = self.get_spread_object_by_xpath(xpath)
+        page_item = spread.get_element_by_id(xml_content_ref, tag="*", attr="Self")
+
+        page_item.set("ParentStory", xml_content_ref)
+        page_item.set("Self", "%sToNode" % xml_content_ref)
+
+        # To be a node, a Rectangle must be converted into a TextFrame.
+        # There is not simple way to change the tag of a XMLElement so
+        # a new copy is created.
+        if page_item.tag == "Rectangle":
+            spread.rectangle_to_textframe(page_item)
+        spread.synchronize()
         return self
 
     def add_new_spread(self, working_copy_path):

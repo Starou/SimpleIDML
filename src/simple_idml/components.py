@@ -274,6 +274,25 @@ class Spread(IDMLXMLFile):
         if synchronize:
             self.synchronize()
 
+    def rectangle_to_textframe(self, rectangle):
+        from simple_idml.utils import deepcopy_element_as
+        textframe = deepcopy_element_as(rectangle, "TextFrame")
+        textframe.set("ContentType", "TextType")
+        textframe.set("PreviousTextFrame", "n")
+        textframe.set("NextTextFrame", "n")
+        # These attributes and subelements must be removed.
+        # Further investigations are required but here we suppose
+        # they are always found.
+        del textframe.attrib["StoryTitle"]
+        textframe.remove(textframe.find("InCopyExportOption"))
+        textframe.remove(textframe.find("FrameFittingOption"))
+        textframe.remove(textframe.find("ObjectExportOption"))
+        rectangle.addnext(textframe)
+        self.node.remove(rectangle)
+
+
+STORIES_DIRNAME = "Stories"
+
 
 class Story(IDMLXMLFile):
     def __init__(self, idml_package, name, working_copy_path=None):
@@ -281,6 +300,35 @@ class Story(IDMLXMLFile):
         self.name = name
         self.node_name = "Story"
         self._node = None
+    
+    @classmethod
+    def create(cls, idml_package, story_id, xml_element_id, xml_element_tag, working_copy_path):
+        dirname = os.path.join(working_copy_path, STORIES_DIRNAME)
+        if not os.path.exists(dirname):
+            os.mkdir(dirname)
+        story_name = "%s/Story_%s.xml" % (STORIES_DIRNAME, story_id)
+        story = Story(idml_package, story_name, working_copy_path)
+
+        # Difficult to do it in .fobj() because we don't always need
+        # to create a unexisting file.
+        filename = os.path.join(working_copy_path, story_name)
+        story._fobj = open(filename, mode="w+")
+        story.fobj.write(
+            """<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+   <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
+     <Story Self="%(story_id)s" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+       <StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection"/>
+       <InCopyExportOption IncludeGraphicProxies="true" IncludeAllResources="false"/>
+       <XMLElement Self="%(xml_element_id)s" MarkupTag="XMLTag/%(xml_element_tag)s" XMLContent="%(story_id)s" />
+     </Story>
+</idPkg:Story>
+""" % {"story_id": story_id,
+       "xml_element_tag": xml_element_tag,
+       "xml_element_id": xml_element_id})
+
+        story.fobj.flush()
+        story.fobj.seek(0)
+        return story
 
     @property
     def node(self):
