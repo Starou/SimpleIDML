@@ -64,7 +64,7 @@ class IDMLXMLFile(object):
         if self._fobj is None:
             if self.working_copy_path:
                 filename = os.path.join(self.working_copy_path, self.name)
-                fobj = open(filename, mode="a+")
+                fobj = open(filename, mode="r+")
             else:
                 fobj = self.idml_package.open(self.name, mode="r")
             self._fobj = fobj
@@ -292,6 +292,11 @@ class Story(IDMLXMLFile):
             os.mkdir(dirname)
         story_name = "%s/Story_%s.xml" % (STORIES_DIRNAME, story_id)
         story = Story(idml_package, story_name, working_copy_path)
+
+        # Difficult to do it in .fobj() because we don't always need
+        # to create a unexisting file.
+        filename = os.path.join(working_copy_path, story_name)
+        story._fobj = open(filename, mode="w+")
         story.fobj.write(
             """<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
    <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
