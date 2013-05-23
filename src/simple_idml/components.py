@@ -441,6 +441,7 @@ class Designmap(IDMLXMLFile):
         self._style_mapping_node = None
         self._section_node = None
         self._layer_nodes = None
+        self._active_layer = None
 
     @property
     def spread_nodes(self):
@@ -455,6 +456,24 @@ class Designmap(IDMLXMLFile):
             nodes = self.dom.findall("Layer")
             self._layer_nodes = nodes
         return self._layer_nodes
+
+    @property
+    def active_layer(self):
+        if self._active_layer is None:
+            active_layer = self.dom.get("ActiveLayer")
+            self._active_layer = active_layer
+        return self._active_layer
+
+    @active_layer.setter
+    def active_layer(self, layer):
+        self.dom.set("ActiveLayer", layer)
+        self._active_layer = layer
+
+    @active_layer.deleter
+    def active_layer(self):
+        if self.dom.get("ActiveLayer"):
+            del self.dom.attrib["ActiveLayer"]
+        self._active_layer = None
 
     @property
     def section_node(self):
@@ -503,6 +522,18 @@ class Designmap(IDMLXMLFile):
         for layer in reversed(layer_nodes):
             self.layer_nodes[-1].addnext(copy.deepcopy(layer))
         self._layer_nodes = None
+
+    def remove_layer(self, layer_id, synchronize=False):
+        layer = self.get_element_by_id(layer_id, tag="Layer", attr="Self")
+        layer.getparent().remove(layer)
+        self._layer_nodes = None
+        if self.active_layer == layer_id:
+            del self.active_layer
+            # Change the active layer if some remains.
+            if len(self.layer_nodes):
+                self.active_layer = self.layer_nodes[0].get("Self")
+        if synchronize:
+            self.synchronize()
 
     def suffix_layers(self, suffix):
         for layer in self.layer_nodes:

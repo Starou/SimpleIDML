@@ -53,6 +53,38 @@ class DesignmapTestCase(unittest.TestCase):
         designmap.suffix_layers(" #66")
         self.assertEqual(designmap.layer_nodes[0].get("Name"), 'Layer 1 #66')
 
+    def test_active_layer(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        designmap = idml_file.designmap
+        self.assertEqual(designmap.active_layer, "u2db")
+
+        designmap.active_layer = "ua4"
+        self.assertEqual(designmap.active_layer, "ua4")
+
+        del designmap.active_layer
+        self.assertEqual(designmap.active_layer, None)
+
+    def test_remove_layer(self):
+        # Remove active layer.
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        designmap = idml_file.designmap
+        self.assertEqual(designmap.active_layer, "u2db")
+
+        designmap.remove_layer("u2db")
+        self.assertEqual(designmap.active_layer, "ua4")
+        idml_file.close()
+
+        # Remove inactive layer.
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        designmap = idml_file.designmap
+        self.assertEqual(designmap.active_layer, "u2db")
+
+        designmap.remove_layer("ua4")
+        self.assertEqual(designmap.active_layer, "u2db")
+        designmap.remove_layer("u2db")
+        self.assertEqual(designmap.active_layer, None)
+        idml_file.close()
+
 
 class SpreadTestCase(unittest.TestCase):
     def test_pages(self):
