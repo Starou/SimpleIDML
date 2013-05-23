@@ -269,6 +269,15 @@ class Spread(IDMLXMLFile):
         # The page Guide are not page items.
         return bool(len(self.node.xpath(".//*[not(self::Guide)][@ItemLayer='%s']" % layer_id)))
 
+    def has_any_guide_on_layer(self, layer_id):
+        return bool(len(self.node.xpath(".//Guide[@ItemLayer='%s']" % layer_id)))
+
+    def remove_guides_on_layer(self, layer_id, synchronize=False):
+        for guide in self.node.xpath(".//Guide[@ItemLayer='%s']" % layer_id):
+            guide.getparent().remove(guide)
+        if synchronize:
+            self.synchronize()
+
     def remove_page_item(self, item_id, synchronize=False):
         # etree FutureWarning when trying to simply do: elt = foo() or bar().
         elt = self.get_element_by_id(item_id, tag="*")

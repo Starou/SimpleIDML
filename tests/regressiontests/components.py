@@ -82,6 +82,48 @@ class SpreadTestCase(unittest.TestCase):
         self.assertFalse(spread1.has_any_item_on_layer("unknown_layer"))
         self.assertTrue(spread1.has_any_item_on_layer("u2db"))
 
+    def test_has_any_guide_on_layer(self):
+        # Package with 2 layers, each one having guides.
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        spreads = idml_file.spreads
+
+        # Spread_ud8.xml
+        spread1 = Spread(idml_file, spreads[0])
+        self.assertFalse(spread1.has_any_guide_on_layer("unknown_layer"))
+        self.assertTrue(spread1.has_any_guide_on_layer("u2db"))
+        self.assertTrue(spread1.has_any_guide_on_layer("ua4"))
+
+        # Package with one layer and no guides.
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
+        spreads = idml_file.spreads
+
+        # Spread_ub6.xml
+        spread1 = Spread(idml_file, spreads[0])
+        self.assertFalse(spread1.has_any_guide_on_layer("ub3"))
+
+    def test_remove_guides_on_layer(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        spreads = idml_file.spreads
+
+        # Spread_ud8.xml
+        spread1 = Spread(idml_file, spreads[0])
+        self.assertTrue(spread1.has_any_guide_on_layer("u2db"))
+        self.assertTrue(spread1.has_any_item_on_layer("u2db"))
+        self.assertTrue(spread1.has_any_guide_on_layer("ua4"))
+        self.assertTrue(spread1.has_any_item_on_layer("ua4"))
+
+        spread1.remove_guides_on_layer("u2db")
+        self.assertFalse(spread1.has_any_guide_on_layer("u2db"))
+        self.assertTrue(spread1.has_any_item_on_layer("u2db"))
+        self.assertTrue(spread1.has_any_guide_on_layer("ua4"))
+        self.assertTrue(spread1.has_any_item_on_layer("ua4"))
+
+        spread1.remove_guides_on_layer("ua4")
+        self.assertFalse(spread1.has_any_guide_on_layer("u2db"))
+        self.assertTrue(spread1.has_any_item_on_layer("u2db"))
+        self.assertFalse(spread1.has_any_guide_on_layer("ua4"))
+        self.assertTrue(spread1.has_any_item_on_layer("ua4"))
+
 
 class StoryTestCase(unittest.TestCase):
     def test_pages(self):
