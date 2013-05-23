@@ -73,6 +73,15 @@ class SpreadTestCase(unittest.TestCase):
     def test_set_element_resource_path(self):
         pass
 
+    def test_has_any_item_on_layer(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        spreads = idml_file.spreads
+
+        # Spread_ud8.xml
+        spread1 = Spread(idml_file, spreads[0])
+        self.assertFalse(spread1.has_any_item_on_layer("unknown_layer"))
+        self.assertTrue(spread1.has_any_item_on_layer("u2db"))
+
 
 class StoryTestCase(unittest.TestCase):
     def test_pages(self):

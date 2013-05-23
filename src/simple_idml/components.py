@@ -265,6 +265,10 @@ class Spread(IDMLXMLFile):
     def get_node_name_from_xml_name(self):
         return rx_node_name_from_xml_name.match(self.name).groups()[0]
 
+    def has_any_item_on_layer(self, layer_id):
+        # The page Guide are not page items.
+        return bool(len(self.node.xpath(".//*[not(self::Guide)][@ItemLayer='%s']" % layer_id)))
+
     def remove_page_item(self, item_id, synchronize=False):
         # etree FutureWarning when trying to simply do: elt = foo() or bar().
         elt = self.get_element_by_id(item_id, tag="*")
