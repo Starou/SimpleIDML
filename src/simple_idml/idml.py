@@ -46,6 +46,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._backing_story = None
         self._stories = None
         self._story_ids = None
+        self._referenced_layers = None
 
     def namelist(self):
         if not self.working_copy_path:
@@ -211,6 +212,18 @@ class IDMLPackage(zipfile.ZipFile):
             story_ids = [rx_story_id.match(elt).group(1) for elt in self.stories]
             self._story_ids = story_ids
         return self._story_ids
+
+    @property
+    def referenced_layers(self):
+        if self._referenced_layers is None:
+            referenced_layers = []
+            for layer in self.designmap.layer_nodes:
+                layer_id = layer.get("Self")
+                for spread in self.spreads_objects:
+                    if spread.has_any_item_on_layer(layer_id):
+                        referenced_layers.append(layer_id)
+            self._referenced_layers = referenced_layers
+        return self._referenced_layers
 
     @use_working_copy
     def import_xml(self, xml_file, at):
@@ -499,6 +512,7 @@ class IDMLPackage(zipfile.ZipFile):
     def insert_idml(self, idml_package, at, only):
         t = self._get_item_translation_for_insert(idml_package, at, only)
         self.remove_content(at)
+        self.remove_orphan_layers()
         self._add_font_families_from_idml(idml_package)
         self._add_styles_from_idml(idml_package)
         self._add_mapped_styles_from_idml(idml_package)
@@ -538,6 +552,27 @@ class IDMLPackage(zipfile.ZipFile):
         story.remove_children(node.get("Self"), synchronize=True)
 
         self.init_lazy_references()
+        return self
+
+    @use_working_copy
+    def remove_orphan_layers(self):
+        for layer in self.designmap.layer_nodes:
+            layer_id = layer.get("Self")
+            if layer_id not in self.referenced_layers:
+                self.remove_layer(layer_id)
+        return self
+
+    @use_working_copy
+    def remove_layer(self, layer_id):
+        self.remove_guides_on_layer(layer_id)
+        self.designmap.remove_layer(layer_id, synchronize=True)
+        return self
+
+    @use_working_copy
+    def remove_guides_on_layer(self, layer_id):
+        for spread in self.spreads_objects:
+            if spread.has_any_guide_on_layer(layer_id):
+                spread.remove_guides_on_layer(layer_id, synchronize=True)
         return self
 
     def _add_font_families_from_idml(self, idml_package):

@@ -53,6 +53,38 @@ class DesignmapTestCase(unittest.TestCase):
         designmap.suffix_layers(" #66")
         self.assertEqual(designmap.layer_nodes[0].get("Name"), 'Layer 1 #66')
 
+    def test_active_layer(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        designmap = idml_file.designmap
+        self.assertEqual(designmap.active_layer, "u2db")
+
+        designmap.active_layer = "ua4"
+        self.assertEqual(designmap.active_layer, "ua4")
+
+        del designmap.active_layer
+        self.assertEqual(designmap.active_layer, None)
+
+    def test_remove_layer(self):
+        # Remove active layer.
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        designmap = idml_file.designmap
+        self.assertEqual(designmap.active_layer, "u2db")
+
+        designmap.remove_layer("u2db")
+        self.assertEqual(designmap.active_layer, "ua4")
+        idml_file.close()
+
+        # Remove inactive layer.
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        designmap = idml_file.designmap
+        self.assertEqual(designmap.active_layer, "u2db")
+
+        designmap.remove_layer("ua4")
+        self.assertEqual(designmap.active_layer, "u2db")
+        designmap.remove_layer("u2db")
+        self.assertEqual(designmap.active_layer, None)
+        idml_file.close()
+
 
 class SpreadTestCase(unittest.TestCase):
     def test_pages(self):
@@ -72,6 +104,57 @@ class SpreadTestCase(unittest.TestCase):
 
     def test_set_element_resource_path(self):
         pass
+
+    def test_has_any_item_on_layer(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        spreads = idml_file.spreads
+
+        # Spread_ud8.xml
+        spread1 = Spread(idml_file, spreads[0])
+        self.assertFalse(spread1.has_any_item_on_layer("unknown_layer"))
+        self.assertTrue(spread1.has_any_item_on_layer("u2db"))
+
+    def test_has_any_guide_on_layer(self):
+        # Package with 2 layers, each one having guides.
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        spreads = idml_file.spreads
+
+        # Spread_ud8.xml
+        spread1 = Spread(idml_file, spreads[0])
+        self.assertFalse(spread1.has_any_guide_on_layer("unknown_layer"))
+        self.assertTrue(spread1.has_any_guide_on_layer("u2db"))
+        self.assertTrue(spread1.has_any_guide_on_layer("ua4"))
+
+        # Package with one layer and no guides.
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
+        spreads = idml_file.spreads
+
+        # Spread_ub6.xml
+        spread1 = Spread(idml_file, spreads[0])
+        self.assertFalse(spread1.has_any_guide_on_layer("ub3"))
+
+    def test_remove_guides_on_layer(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        spreads = idml_file.spreads
+
+        # Spread_ud8.xml
+        spread1 = Spread(idml_file, spreads[0])
+        self.assertTrue(spread1.has_any_guide_on_layer("u2db"))
+        self.assertTrue(spread1.has_any_item_on_layer("u2db"))
+        self.assertTrue(spread1.has_any_guide_on_layer("ua4"))
+        self.assertTrue(spread1.has_any_item_on_layer("ua4"))
+
+        spread1.remove_guides_on_layer("u2db")
+        self.assertFalse(spread1.has_any_guide_on_layer("u2db"))
+        self.assertTrue(spread1.has_any_item_on_layer("u2db"))
+        self.assertTrue(spread1.has_any_guide_on_layer("ua4"))
+        self.assertTrue(spread1.has_any_item_on_layer("ua4"))
+
+        spread1.remove_guides_on_layer("ua4")
+        self.assertFalse(spread1.has_any_guide_on_layer("u2db"))
+        self.assertTrue(spread1.has_any_item_on_layer("u2db"))
+        self.assertFalse(spread1.has_any_guide_on_layer("ua4"))
+        self.assertTrue(spread1.has_any_item_on_layer("ua4"))
 
 
 class StoryTestCase(unittest.TestCase):
