@@ -491,6 +491,11 @@ class Designmap(IDMLXMLFile):
             self.layer_nodes[-1].addnext(copy.deepcopy(layer))
         self._layer_nodes = None
 
+    def suffix_layers(self, suffix):
+        for layer in self.layer_nodes:
+            layer.set("Name", "%s%s" % (layer.get("Name"), suffix))
+
+
 class Style(IDMLXMLFile):
     name = "Resources/Styles.xml"
 

@@ -525,6 +525,14 @@ class IdmlTestCase(unittest.TestCase):
         self.assertTrue(idml_file.is_prefixed("foo"))
         self.assertFalse(idml_file.is_prefixed("bar"))
 
+    def test_suffix_layers(self):
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
+                     os.path.join(OUTPUT_DIR, "4-pages.idml"))
+
+        idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages.idml"))
+        idml_file = idml_file.suffix_layers(" - 23")
+        self.assertEqual(idml_file.designmap.layer_nodes[0].get("Name"), "Layer 1 - 23")
+
     def test_insert_idml(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                      os.path.join(OUTPUT_DIR, "4-pages.idml"))

@@ -490,6 +490,12 @@ class IDMLPackage(zipfile.ZipFile):
         return str_is_prefixed(prefix, self.backing_story.node.get("Self"))
 
     @use_working_copy
+    def suffix_layers(self, suffix):
+        self.designmap.suffix_layers(suffix)
+        self.designmap.synchronize()
+        return self
+
+    @use_working_copy
     def insert_idml(self, idml_package, at, only):
         t = self._get_item_translation_for_insert(idml_package, at, only)
         self.remove_content(at)

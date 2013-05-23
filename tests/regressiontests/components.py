@@ -46,6 +46,13 @@ class DesignmapTestCase(unittest.TestCase):
         self.assertEqual([n.get("Name") for n in designmap.layer_nodes],
                          ['Layer 1', 'Layer 2', 'Layer 3'])
 
+    def test_suffix_layers(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
+        designmap = idml_file.designmap
+        self.assertEqual(designmap.layer_nodes[0].get("Name"), 'Layer 1')
+        designmap.suffix_layers(" #66")
+        self.assertEqual(designmap.layer_nodes[0].get("Name"), 'Layer 1 #66')
+
 
 class SpreadTestCase(unittest.TestCase):
     def test_pages(self):
