@@ -46,6 +46,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._backing_story = None
         self._stories = None
         self._story_ids = None
+        self._referenced_layers = None
 
     def namelist(self):
         if not self.working_copy_path:
@@ -211,6 +212,18 @@ class IDMLPackage(zipfile.ZipFile):
             story_ids = [rx_story_id.match(elt).group(1) for elt in self.stories]
             self._story_ids = story_ids
         return self._story_ids
+
+    @property
+    def referenced_layers(self):
+        if self._referenced_layers is None:
+            referenced_layers = []
+            for layer in self.designmap.layer_nodes:
+                layer_id = layer.get("Self")
+                for spread in self.spreads_objects:
+                    if spread.has_any_item_on_layer(layer_id):
+                        referenced_layers.append(layer_id)
+            self._referenced_layers = referenced_layers
+        return self._referenced_layers
 
     @use_working_copy
     def import_xml(self, xml_file, at):

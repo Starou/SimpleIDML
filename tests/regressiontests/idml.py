@@ -144,6 +144,10 @@ class IdmlTestCase(unittest.TestCase):
             u'Stories/Story_ue4.xml',
         ])
 
+    def test_referenced_layers(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        self.assertEqual(idml_file.referenced_layers, ['u2db', 'ua4'])
+
     def test_get_spread_object_by_xpath(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
         spread = idml_file.get_spread_object_by_xpath("/Root/module/main_picture")
