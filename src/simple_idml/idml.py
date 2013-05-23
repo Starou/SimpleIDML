@@ -491,9 +491,8 @@ class IDMLPackage(zipfile.ZipFile):
             os.rename(old_name, new_name)
 
         # Update designmap.xml.
-        designmap = Designmap(self, working_copy_path=self.working_copy_path)
-        designmap.prefix_page_start(prefix)
-        designmap.synchronize()
+        self.designmap.prefix_page_start(prefix)
+        self.designmap.synchronize()
 
         return self
 
@@ -512,7 +511,6 @@ class IDMLPackage(zipfile.ZipFile):
     def insert_idml(self, idml_package, at, only):
         t = self._get_item_translation_for_insert(idml_package, at, only)
         self.remove_content(at)
-        self.remove_orphan_layers()
         self._add_font_families_from_idml(idml_package)
         self._add_styles_from_idml(idml_package)
         self._add_mapped_styles_from_idml(idml_package)
@@ -521,6 +519,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._add_spread_elements_from_idml(idml_package, at, only, t)
         self._add_stories_from_idml(idml_package, at, only)
         self._add_layers_from_idml(idml_package, at, only)
+        self.remove_orphan_layers()
         self._xml_structure = None
         return self
 
@@ -609,10 +608,9 @@ class IDMLPackage(zipfile.ZipFile):
             self.style_mapping.synchronize()
 
         # Update designmap.xml because it may not reference the Mapping file.
-        designmap = Designmap(self, working_copy_path=self.working_copy_path)
-        if designmap.style_mapping_node is not None:
-            designmap.set_style_mapping_node()
-            designmap.synchronize()
+        if self.designmap.style_mapping_node is not None:
+            self.designmap.set_style_mapping_node()
+            self.designmap.synchronize()
 
     def _add_graphics_from_idml(self, idml_package):
         for graphic_node in idml_package.graphic.dom.iterchildren():
@@ -669,6 +667,7 @@ class IDMLPackage(zipfile.ZipFile):
             self.apply_translation_to_element(child_copy, translation)
             spread_dest_elt.append(child_copy)
         spread_dest.synchronize()
+        self.init_lazy_references()
 
     def _add_stories_from_idml(self, idml_package, at, only):
         """Add all idml_package stories and insert `only' refence at `at' position in self.
@@ -747,15 +746,14 @@ class IDMLPackage(zipfile.ZipFile):
             story_cp.close()
 
         # Update designmap.xml.
-        designmap = Designmap(self, working_copy_path=self.working_copy_path)
-        designmap.add_stories(idml_package.story_ids)
-        designmap.synchronize()
+        self.designmap.add_stories(idml_package.story_ids)
+        self.designmap.synchronize()
         # BackingStory.xml ??
+        self.init_lazy_references()
 
     def _add_layers_from_idml(self, idml_package, at, only):
-        designmap = Designmap(self, working_copy_path=self.working_copy_path)
-        designmap.add_layer_nodes(idml_package.designmap.layer_nodes)
-        designmap.synchronize()
+        self.designmap.add_layer_nodes(idml_package.designmap.layer_nodes)
+        self.designmap.synchronize()
 
     @use_working_copy
     def add_pages_from_idml(self, idml_packages):
@@ -822,9 +820,8 @@ class IDMLPackage(zipfile.ZipFile):
         new_spread.clear()
         new_spread.node.set("Self", new_spread.get_node_name_from_xml_name())
 
-        designmap = Designmap(self, working_copy_path=working_copy_path)
-        designmap.add_spread(new_spread)
-        designmap.synchronize()
+        self.designmap.add_spread(new_spread)
+        self.designmap.synchronize()
 
         # The spread synchronization is done outside.
         return new_spread

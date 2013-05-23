@@ -519,8 +519,11 @@ class Designmap(IDMLXMLFile):
                                      src="Stories/Story_%s.xml" % story))
 
     def add_layer_nodes(self, layer_nodes):
+        current_layers_ids = [l.get("Self") for l in self.layer_nodes]
         for layer in reversed(layer_nodes):
-            self.layer_nodes[-1].addnext(copy.deepcopy(layer))
+            # If a similar layer is already present, we do not add it.
+            if layer.get("Self") not in current_layers_ids:
+                self.layer_nodes[-1].addnext(copy.deepcopy(layer))
         self._layer_nodes = None
 
     def remove_layer(self, layer_id, synchronize=False):
