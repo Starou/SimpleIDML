@@ -163,7 +163,7 @@ class IdmlTestCase(unittest.TestCase):
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml.xml"), "r")
-        idml_file = idml_file.import_xml(xml_file, at="/Root/module[1]")
+        idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
         xml = idml_file.export_xml()
         self.assertEqual(xml,
 """<Root>
@@ -185,7 +185,7 @@ class IdmlTestCase(unittest.TestCase):
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-nested-tags.xml"), "r")
-        idml_file = idml_file.import_xml(xml_file, at="/Root/module[1]")
+        idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
         xml = idml_file.export_xml()
         self.assertMultiLineEqual(xml,
 """<Root>
@@ -206,7 +206,7 @@ class IdmlTestCase(unittest.TestCase):
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes.idml"))
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes.idml"))
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-with-extra-nodes.xml"), "r")
-        idml_file = idml_file.import_xml(xml_file, at="/Root/module[1]")
+        idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
         xml = idml_file.export_xml()
         self.assertEqual(xml,
 """<Root>
@@ -228,7 +228,7 @@ class IdmlTestCase(unittest.TestCase):
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes2.idml"))
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes2.idml"))
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-with-extra-nodes2.xml"), "r")
-        idml_file = idml_file.import_xml(xml_file, at="/Root/module[1]")
+        idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
         xml = idml_file.export_xml()
         self.assertEqual(xml, 
 """<Root>
@@ -251,7 +251,7 @@ class IdmlTestCase(unittest.TestCase):
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes2.idml"))
         idml_file = idml_file.prefix("myprefix")
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-with-extra-nodes2.xml"), "r")
-        idml_file = idml_file.import_xml(xml_file, at="/Root/module[1]")
+        idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
         xml = idml_file.export_xml()
         self.assertMultiLineEqual(xml, 
 """<Root>
@@ -274,7 +274,7 @@ class IdmlTestCase(unittest.TestCase):
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-setcontent-false.idml"))
         idml_file = idml_file.prefix("myprefix")
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-with-setcontent-false.xml"), "r")
-        idml_file = idml_file.import_xml(xml_file, at="/Root/module[1]")
+        idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
         xml = idml_file.export_xml()
         self.assertEqual(xml, 
 """<Root>
@@ -297,7 +297,7 @@ class IdmlTestCase(unittest.TestCase):
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-without-picture.idml"))
         idml_file = idml_file.prefix("myprefix")
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-without-picture.xml"), "r")
-        idml_file = idml_file.import_xml(xml_file, at="/Root/module[1]")
+        idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
         xml = idml_file.export_xml()
         # Should check that the page item has been removed from the spread (or story).
         self.assertEqual(xml, 

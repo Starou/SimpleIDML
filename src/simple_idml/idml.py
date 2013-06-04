@@ -226,10 +226,10 @@ class IDMLPackage(zipfile.ZipFile):
         return self._referenced_layers
 
     @use_working_copy
-    def import_xml(self, xml_file, at):
+    def import_xml(self, xml, at):
         """ Reproduce the action «Import XML» on a XML Element in InDesign® Structure. """
 
-        source_node = etree.fromstring(xml_file.read())
+        source_node = etree.fromstring(xml)
 
         def _set_content(xpath, element_id, content, story=None):
             story = story or self.get_story_object_by_xpath(xpath)
