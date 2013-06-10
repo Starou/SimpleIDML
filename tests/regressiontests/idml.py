@@ -4,7 +4,10 @@ import os
 import sys
 import shutil
 import glob
-import unittest2 as unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 import StringIO
 from tempfile import mkdtemp
 from lxml import etree
@@ -71,8 +74,8 @@ class IdmlTestCase(unittest.TestCase):
         self.assertEqual([font.get("Name") for font in idml_file.font_families], ['Minion Pro', 'Myriad Pro', 'Kozuka Mincho Pro', 'Vollkorn'])
 
         # XML Structure.
-        self.assertEqual(etree.tostring(idml_file.xml_structure, pretty_print=True),
-"""<Root Self="di2">
+        self.assertEqual(unicode(idml_file.xml_structure_pretty()),
+u"""<Root Self="di2">
   <article XMLContent="u102" Self="di2i3">
     <Story XMLContent="ue4" Self="di2i3i1">
       <title Self="di2i3i1i1"/>
@@ -426,8 +429,8 @@ class IdmlTestCase(unittest.TestCase):
 
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo-with-attributes.idml"))
         xml = idml_file.export_xml()
-        self.assertEqual(xml,
-"""<Root>
+        self.assertEqual(unicode(xml),
+u"""<Root>
   <module>
     <main_picture style="fancy" foo="bar"/>
     <headline>THE HEADLINE HERE</headline>
@@ -483,8 +486,8 @@ class IdmlTestCase(unittest.TestCase):
                          "FOOCharacterStyle/$ID/[No character style]")
 
         # XML Structure.
-        self.assertEqual(etree.tostring(idml_file.xml_structure, pretty_print=True),
-"""<Root Self="FOOdi2">
+        self.assertEqual(unicode(idml_file.xml_structure_pretty()),
+u"""<Root Self="FOOdi2">
   <article XMLContent="FOOu102" Self="FOOdi2i3">
     <Story XMLContent="FOOue4" Self="FOOdi2i3i1">
       <title Self="FOOdi2i3i1i1"/>
@@ -565,8 +568,8 @@ class IdmlTestCase(unittest.TestCase):
                                                   'Stories/Story_mainue4.xml'])
 
         # The XML Structure has integrated the new file.
-        self.assertEqual(main_idml_file.xml_structure_pretty(),
-"""<Root Self="maindi2">
+        self.assertEqual(unicode(main_idml_file.xml_structure_pretty()),
+u"""<Root Self="maindi2">
   <article XMLContent="mainu102" Self="maindi2i3">
     <Story XMLContent="mainue4" Self="maindi2i3i1">
       <title Self="maindi2i3i1i1"/>
@@ -636,8 +639,8 @@ class IdmlTestCase(unittest.TestCase):
                      os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml"))
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml"))
         idml_file = idml_file.remove_content(under="/Root/module/Story")
-        self.assertEqual(idml_file.xml_structure_pretty(), 
-"""<Root Self="di3">
+        self.assertEqual(unicode(idml_file.xml_structure_pretty()),
+u"""<Root Self="di3">
   <module XMLContent="u10d" Self="di3i4">
     <main_picture XMLContent="udf" Self="di3i4i1"/>
     <headline XMLContent="ue1" Self="di3i4i2"/>
@@ -667,8 +670,8 @@ class IdmlTestCase(unittest.TestCase):
         self.assertEqual(len(new_idml.pages), 3)
 
         # The XML Structure has integrated the new file.
-        self.assertEqual(etree.tostring(new_idml.xml_structure, pretty_print=True),
-"""<Root Self="editodi2">
+        self.assertEqual(unicode(new_idml.xml_structure_pretty()),
+u"""<Root Self="editodi2">
   <page Self="editodi2ib">
     <article Self="editodi2ibif">
       <Story XMLContent="editoue4" Self="editodi2ibifi1f">

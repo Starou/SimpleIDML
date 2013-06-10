@@ -3,7 +3,10 @@
 import os
 import sys
 import shutil
-import unittest2 as unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 from decimal import Decimal
 from lxml import etree
 
