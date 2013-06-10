@@ -30,6 +30,12 @@ class IDMLPackage(zipfile.ZipFile):
         self.working_copy_path = None
         self.init_lazy_references()
 
+    def __repr__(self):
+        return "<idml.IDMLPackage instance of '%s' at %s>" % (
+            os.path.basename(self.filename),
+            hex(id(self))
+        )
+
     def init_lazy_references(self):
         self._xml_structure = None
         self._xml_structure_tree = None
