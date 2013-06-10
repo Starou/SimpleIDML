@@ -23,6 +23,7 @@ STORIES_DIRNAME = "Stories"
 
 class IDMLPackage(zipfile.ZipFile):
     """An IDML file (a package) is a Zip-stored archive/UCF container. """
+    debug = False
 
     def __init__(self, *args, **kwargs):
         kwargs["compression"] = zipfile.ZIP_STORED
