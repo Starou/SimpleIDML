@@ -8,23 +8,45 @@ What is SimpleIDML ?
 SimpleIDML is a Python library to manipulate Adobe® InDesign® IDML file. The main purpose being the ability to 
 compose IDML files together and produce complex documents from simple pieces and to separate the data from the structure.
 
-The philosophy behind SimpleIDML is to keep separated the content and the structure and to use XML files to feed your documents.
+The philosophy behind SimpleIDML is to keep separated the content and the structure and to use XML files to feed your documents by
+using the XML Structure in InDesign.
 Keeping this isolation is important to ease the debugging and to keep track of what is going on.
-You can use the same XML file to build your IDML document and to fill it, but this is a second step done in InDesign through the
-XML Import function.
 
-I urge you to take a look in the *regressiontests* directory for real-world (well, *my* real-world) examples.
+I urge you to take a look in the *regressiontests* directory for real-world examples.
 
+Uses cases - success story(ies)
+===-===========================
+
+Le Figaro - FigaroClassifieds
+-----------------------------
+
+SimpleIDML is used in production at *Le Figaro* aside in-house tools managing the content of Classifieds Ads magazines like
+*Propriétés de France* or "Belles Maisons à louer*.
+These tools produces XML files describing the page layout (which IDML templates and sub-templates to use) and the page content.
+The XML files feed another tool - the one using SimpleIDML - that compose the final page.
+
+The steps of the (simplified) process of composition are:
+
+1. Get the main IDML template (the page) ;
+2. Ad the sub-templates into the main one ;
+3. Import the content into the final IDML file ;
+4. Edit the file in InDesign ;
+5. Push the changesets back to the content management application and update the database.
+
+Architecture
+''''''''''''
+
+These applications are web-applications. The communication is done by web-services feeding a task queue (RabbitMQ/Celery).
+
+The performances are quite good. Composing a document require a fraction of a second.
 
 What are IDML files ?
 =====================
 
 IDML (*InDesign Markup Language*) files are a Zip archives (Adobe calls them packages) storing essentially XML files. Adobe 
-made a great step forward with this functionnality because those files can completely express the content of the native (binary)
-documents.
+made a descent job because those files can completely express the content of the native (binary) documents.
 This is a small revolution in the print world when it comes to automatically process files in both ways from templates and database
-(Round-trip) because everybody speak XML. No more awkward *AppleScript* to construct a document.
-
+(Round-trip) without using proprietary server-edition of Publishing Software.
 
 What does SimpleIDML do ?
 =========================
@@ -54,6 +76,7 @@ Some attributes are *lxml.etree* Elements or Documents::
     >>> my_package.xml_structure
     <Element Root at 0x101004910>
     >>> from lxml import etree
+    >>> # print my_package.xml_structure_pretty() is a shortcut for:
     >>> print etree.tostring(my_package.xml_structure, pretty_print=True)
     <Root Self="di2">
       <article XMLContent="u102" Self="di2i3">
@@ -110,7 +133,7 @@ to avoid reference collisions.
      'Stories/Story_mainu102.xml', 'Stories/Story_mainu11b.xml', 'Stories/Story_mainu139.xml', 'Stories/Story_mainue4.xml']
 
 
-    >>> print etree.tostring(idml_main.xml_structure, pretty_print=True)
+    >>> print idml_main.xml_structure_pretty()
     <Root Self="maindi2">
       <article XMLContent="mainu102" Self="maindi2i3">
         <Story XMLContent="mainue4" Self="maindi2i3i1">
