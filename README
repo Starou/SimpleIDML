@@ -21,17 +21,19 @@ Le Figaro - FigaroClassifieds
 -----------------------------
 
 SimpleIDML is used in production at *Le Figaro* aside in-house tools managing the content of Classifieds Ads magazines like
-*Propriétés de France* or "Belles Maisons à louer*.
+*Propriétés de France* or *Belles Maisons à louer*.
 These tools produces XML files describing the page layout (which IDML templates and sub-templates to use) and the page content.
 The XML files feed another tool - the one using SimpleIDML - that compose the final page.
 
 The steps of the (simplified) process of composition are:
 
 1. Get the main IDML template (the page) ;
-2. Ad the sub-templates into the main one ;
+2. Ad the sub-templates (the ads) into the page template ;
 3. Import the content into the final IDML file ;
 4. Edit the file in InDesign ;
 5. Push the changesets back to the content management application and update the database.
+
+There is a lot of cool features in this application. You can update a part of a page already or partially composed for example.
 
 Architecture
 ''''''''''''
