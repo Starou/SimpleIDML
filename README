@@ -247,7 +247,31 @@ Dependencies
 
 - Python >= 2.6
 - lxml >= 2.3
-- unittest2
+- unittest2 if Python < 2.7
+
+
+Revisions
+=========
+
+0.91.2
+------
+
+New features
+''''''''''''
+
+- Ticket #20 - Suffix layers.
+
+Backward incompatibilities
+''''''''''''''''''''''''''
+
+- Ticket #22 - IDMLPackage.import_xml() parameter is a XML string and not a file object.
+
+Bugfixes
+''''''''
+
+Tickets #19, #21 (orphan layers), #23 (AssertXMLEqual), #24 (import_xml() failure).
+
+
 
 
 .. _XPath: http://en.wikipedia.org/wiki/XPath
