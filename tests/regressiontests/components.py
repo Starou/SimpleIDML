@@ -480,7 +480,7 @@ class XMLElementTestCase(unittest.TestCase):
 </CharacterStyleRange>
 """)                         
 
-    def test_get_applied_character_style(self):
+    def test_get_character_style_range(self):
         elt = XMLElement(etree.fromstring("""
             <XMLElement Self="di3i4i1i2i2i2" MarkupTag="XMLTag/texte">
                 <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/MyFancyStyle" 
@@ -500,7 +500,61 @@ class XMLElementTestCase(unittest.TestCase):
                     <Content>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum d</Content>
                 </CharacterStyleRange>
             </XMLElement>"""))
-        self.assertEqual(elt.get_applied_character_style(), "CharacterStyle/$ID/MyFancyStyle")
+        self.assertEqual(elt.get_character_style_range().get("AppliedCharacterStyle"), "CharacterStyle/$ID/MyFancyStyle")
+
+        elt = XMLElement(etree.fromstring("""
+        <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/MyOtherStyle" FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
+          <Properties>
+            <Leading type="unit">10</Leading>
+            <AppliedFont type="string">Adobe Garamond</AppliedFont>
+          </Properties>
+          <Content>﻿</Content>
+          <XMLElement Self="di3i9i1i2" MarkupTag="XMLTag/texte">
+            <Content>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</Content>
+          </XMLElement>
+          <Br/>
+          <Content>Prix : </Content>
+        </CharacterStyleRange>
+        """).find("XMLElement"))
+        self.assertEqual(elt.get_character_style_range().get("AppliedCharacterStyle"), "CharacterStyle/$ID/MyOtherStyle")
+
+ #   def test_get_applied_character_style(self):
+ #       elt = XMLElement(etree.fromstring("""
+ #           <XMLElement Self="di3i4i1i2i2i2" MarkupTag="XMLTag/texte">
+ #               <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/MyFancyStyle" 
+ #                                         FontStyle="Semibold" PointSize="9" HorizontalScale="90" Tracking="-30">
+ #                   <Properties>
+ #                       <Leading type="unit">10</Leading>
+ #                       <AppliedFont type="string">Adobe Garamond</AppliedFont>
+ #                   </Properties>
+ #                   <Content>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </Content>
+ #               </CharacterStyleRange>
+ #               <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" 
+ #                                         FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
+ #                   <Properties>
+ #                       <Leading type="unit">10</Leading>
+ #                       <AppliedFont type="string">Adobe Garamond</AppliedFont>
+ #                   </Properties>
+ #                   <Content>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum d</Content>
+ #               </CharacterStyleRange>
+ #           </XMLElement>"""))
+ #       self.assertEqual(elt.get_applied_character_style(), "CharacterStyle/$ID/MyFancyStyle")
+
+ #       elt = XMLElement(etree.fromstring("""
+ #       <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/MyOtherStyle" FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
+ #         <Properties>
+ #           <Leading type="unit">10</Leading>
+ #           <AppliedFont type="string">Adobe Garamond</AppliedFont>
+ #         </Properties>
+ #         <Content>﻿</Content>
+ #         <XMLElement Self="di3i9i1i2" MarkupTag="XMLTag/texte">
+ #           <Content>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</Content>
+ #         </XMLElement>
+ #         <Br/>
+ #         <Content>Prix : </Content>
+ #       </CharacterStyleRange>
+ #       """).find("XMLElement"))
+ #       self.assertEqual(elt.get_applied_character_style(), "CharacterStyle/$ID/MyOtherStyle")
 
 
 def suite():

@@ -774,7 +774,7 @@ class XMLElement(Proxy):
     """A proxy over the etree.Element to represent XMLElement nodes in Story files. """
     def __repr__(self):
         if self.element is not None:
-            return "XMLElement %s - %s" % (repr(self.element), ", ".join(["%s: %s" % (k, v) for k, v in self.element.items()]))
+            return "%s {%s}" % (repr(self.element), ", ".join(["%s: %s" % (k, v) for k, v in self.element.items()]))
         else:
             return "XMLElement (no element)"
 
@@ -794,26 +794,38 @@ class XMLElement(Proxy):
         self.element.append(style_range_node)
 
     def _create_style_range_from_parent(self, parent):
-        applied_style = parent.get_applied_character_style()
+        parent_style_node = parent.get_character_style_range()
+        applied_style = parent_style_node.get("AppliedCharacterStyle")
         style_range_node = etree.Element("CharacterStyleRange", AppliedCharacterStyle=applied_style)
         properties_node = etree.SubElement(style_range_node, "Properties")
-        # If the parent specify a font face, a font style or a font size and the style_node don't, it is added.
-        try:
-            parent_style_node = parent.xpath(("./ParagraphStyleRange/CharacterStyleRange | \
-                                              ./CharacterStyleRange"))[0]
-        # parent is None or has no inline style.
-        except (IndexError, AttributeError):
-            pass
-        else:
-            for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization"):
-                if parent_style_node.get(attr) is not None: 
-                    style_range_node.set(attr, parent_style_node.get(attr))
 
-            for attr in ("Leading", "AppliedFont"):
-                path = "Properties/%s" % attr
-                parent_attr_node = parent_style_node.find(path)
-                if parent_attr_node is not None:
-                    properties_node.append(copy.deepcopy(parent_attr_node))
+        for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization"):
+            if parent_style_node.get(attr) is not None: 
+                style_range_node.set(attr, parent_style_node.get(attr))
+
+        for attr in ("Leading", "AppliedFont"):
+            path = "Properties/%s" % attr
+            parent_attr_node = parent_style_node.find(path)
+            if parent_attr_node is not None:
+                properties_node.append(copy.deepcopy(parent_attr_node))
+
+      #  # If the parent specify a font face, a font style or a font size and the style_node don't, it is added.
+      #  try:
+      #      parent_style_node = parent.xpath(("./ParagraphStyleRange/CharacterStyleRange | \
+      #                                        ./CharacterStyleRange"))[0]
+      #  # parent is None or has no inline style.
+      #  except (IndexError, AttributeError):
+      #      pass
+      #  else:
+      #      for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization"):
+      #          if parent_style_node.get(attr) is not None: 
+      #              style_range_node.set(attr, parent_style_node.get(attr))
+
+      #      for attr in ("Leading", "AppliedFont"):
+      #          path = "Properties/%s" % attr
+      #          parent_attr_node = parent_style_node.find(path)
+      #          if parent_attr_node is not None:
+      #              properties_node.append(copy.deepcopy(parent_attr_node))
 
         return style_range_node
 
@@ -843,8 +855,23 @@ class XMLElement(Proxy):
         for name, value in attributes.items():
             self.set_attribute(name, value)
 
-    def get_applied_character_style(self):
-        return self.find("CharacterStyleRange").get("AppliedCharacterStyle")
+    def get_character_style_range(self):
+        """The applied style may be contained or the container. """
+        try:
+            node = self.xpath(("./ParagraphStyleRange/CharacterStyleRange | ./CharacterStyleRange"))[0]
+        except (IndexError, AttributeError):
+            node = self.getparent()
+            if node.tag != "CharacterStyleRange":
+                node = None
+        return node
+
+    #def get_applied_character_style(self):
+    #    """The applied style may be contained or the container. """
+    #   # return self.find("CharacterStyleRange").get("AppliedCharacterStyle")
+    #    try:
+    #        return self.find("CharacterStyleRange").get("AppliedCharacterStyle")
+    #    except AttributeError:
+    #        return self.getparent().get("AppliedCharacterStyle")
 
     def to_xml_structure_element(self):
         """Return the node as seen in the Structure panel of InDesign. """

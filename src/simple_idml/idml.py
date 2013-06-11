@@ -323,24 +323,40 @@ class IDMLPackage(zipfile.ZipFile):
         def _apply_parent_style_range(style_range_node, applied_style_node, parent):
             """Parent CharacterStyleRange must be set locally. """
             properties_element = style_range_node.find("Properties")
-            # If the parent specify a font face, a font style or a font size and the style_node don't, it is added.
-            try:
-                parent_style_node = parent.xpath(("./ParagraphStyleRange/CharacterStyleRange | \
-                                                  ./CharacterStyleRange"))[0]
-            # parent is None or has no inline style.
-            except (IndexError, AttributeError):
-                pass
-            else:
-                for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization", "Position"):
-                    if parent_style_node.get(attr) is not None and (applied_style_node is None or not applied_style_node.get(attr)):
-                        style_range_node.set(attr, parent_style_node.get(attr))
 
-                for attr in ("Leading", "AppliedFont"):
-                    path = "Properties/%s" % attr
-                    parent_attr_node = parent_style_node.find(path)
-                    attr_node = (applied_style_node is not None and applied_style_node.find(path) is not None) or None
-                    if attr_node is None and parent_attr_node is not None:
-                        properties_element.append(copy.deepcopy(parent_attr_node))
+            parent_style_node = parent.get_character_style_range()
+            if not parent_style_node:
+                return
+            # If the parent specify a font face, a font style or a font size and the style_node don't, it is added.
+            for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization", "Position"):
+                if parent_style_node.get(attr) is not None and (applied_style_node is None or not applied_style_node.get(attr)):
+                    style_range_node.set(attr, parent_style_node.get(attr))
+
+            for attr in ("Leading", "AppliedFont"):
+                path = "Properties/%s" % attr
+                parent_attr_node = parent_style_node.find(path)
+                attr_node = (applied_style_node is not None and applied_style_node.find(path) is not None) or None
+                if attr_node is None and parent_attr_node is not None:
+                    properties_element.append(copy.deepcopy(parent_attr_node))
+
+    #        # If the parent specify a font face, a font style or a font size and the style_node don't, it is added.
+    #        try:
+    #            parent_style_node = parent.xpath(("./ParagraphStyleRange/CharacterStyleRange | \
+    #                                              ./CharacterStyleRange"))[0]
+    #        # parent is None or has no inline style.
+    #        except (IndexError, AttributeError):
+    #            pass
+    #        else:
+    #            for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization", "Position"):
+    #                if parent_style_node.get(attr) is not None and (applied_style_node is None or not applied_style_node.get(attr)):
+    #                    style_range_node.set(attr, parent_style_node.get(attr))
+
+    #            for attr in ("Leading", "AppliedFont"):
+    #                path = "Properties/%s" % attr
+    #                parent_attr_node = parent_style_node.find(path)
+    #                attr_node = (applied_style_node is not None and applied_style_node.find(path) is not None) or None
+    #                if attr_node is None and parent_attr_node is not None:
+    #                    properties_element.append(copy.deepcopy(parent_attr_node))
 
         def _import_new_node(source_node, at=None, element_id=None, story=None):
             xml_structure_parent_node = self.xml_structure.find("*//*[@Self='%s']" % element_id)
