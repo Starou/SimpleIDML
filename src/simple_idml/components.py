@@ -294,12 +294,13 @@ class Spread(IDMLXMLFile):
         textframe.set("PreviousTextFrame", "n")
         textframe.set("NextTextFrame", "n")
         # These attributes and subelements must be removed.
-        # Further investigations are required but here we suppose
-        # they are always found.
-        del textframe.attrib["StoryTitle"]
-        textframe.remove(textframe.find("InCopyExportOption"))
-        textframe.remove(textframe.find("FrameFittingOption"))
-        textframe.remove(textframe.find("ObjectExportOption"))
+        del textframe.attrib["StoryTitle"] # Suppose it is always present.
+        for sub_elt_name in ("InCopyExportOption", "FrameFittingOption", "ObjectExportOption"):
+            try:
+                textframe.remove(textframe.find(sub_elt_name))
+            # There is not such subelement.
+            except TypeError:
+                pass
         rectangle.addnext(textframe)
         self.node.remove(rectangle)
 
