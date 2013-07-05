@@ -12,8 +12,6 @@ from xml.dom.minidom import parseString, Node
 
 # This code came from the Django Project.
 # https://github.com/django/django/blob/1.6a1/django/test/testcases.py
-
-
 class SimpleTestCase(unittest.TestCase):   
    def assertXMLEqual(self, xml1, xml2, msg=None):
         """
@@ -33,7 +31,6 @@ class SimpleTestCase(unittest.TestCase):
 
 
 # https://github.com/django/django/blob/1.6a1/django/test/utils.py
-
 def compare_xml(want, got):
     """Tries to do a 'xml-comparison' of want and got. Plain string
     comparison doesn't always work because, for example, attribute
@@ -98,6 +95,7 @@ def compare_xml(want, got):
 
     return check_element(want_root, got_root)
 
+
 def strip_quotes(want, got):
     """
     Strip quotes of doctests output values:
@@ -127,3 +125,15 @@ def strip_quotes(want, got):
         want = want.strip()[2:-1]
         got = got.strip()[2:-1]
     return want, got
+
+
+# https://github.com/django/django/blob/1.6a1/django/utils/unittest/util.py
+_MAX_LENGTH = 80
+def safe_repr(obj, short=False):
+    try:
+        result = repr(obj)
+    except Exception:
+        result = object.__repr__(obj)
+    if not short or len(result) < _MAX_LENGTH:
+        return result
+    return result[:_MAX_LENGTH] + ' [truncated]...'
