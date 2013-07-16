@@ -639,6 +639,9 @@ class IDMLPackage(zipfile.ZipFile):
         at_transform_x, at_transform_y = self.get_elem_translation(at_elem)
 
         only_elem = idml_package.get_spread_elem_by_xpath(only)
+        # <Image> don't store positional information, so we use the parent <Rectangle>.
+        if only_elem.tag == "Image":
+            only_elem = only_elem.getparent()
         only_rel_pos_x, only_rel_pos_y = idml_package.get_elem_point_position(only_elem, 0)
         only_transform_x, only_transform_y = idml_package.get_elem_translation(only_elem)
 
