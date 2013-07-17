@@ -75,6 +75,8 @@ class IDMLXMLFile(object):
         if self._dom is None:
             dom = etree.fromstring(self.fobj.read())
             self._dom = dom
+            self._fobj.close()
+            self._fobj = None
         return self._dom
 
     def tostring(self):
