@@ -22,6 +22,8 @@ class CreatePackageTestCase(unittest.TestCase):
                 shutil.rmtree(f)
             else:
                 os.unlink(f)
+        if not (os.path.exists(OUTPUT_DIR)):
+            os.makedirs(OUTPUT_DIR)
 
         self.watch_dir = tempfile.mkdtemp()
 
