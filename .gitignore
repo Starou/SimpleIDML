@@ -1,2 +1,5 @@
 *.pyc
 *.swp
+\.DS_Store
+build
+tests/regressiontests/outputs
