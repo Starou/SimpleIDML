@@ -459,11 +459,11 @@ class IDMLPackage(zipfile.ZipFile):
         xml_structure_root_node = self.xml_structure
         return _export_content_as_tree(xml_structure_root_node)
 
-    def export_xml(self, from_tag=None):
+    def export_xml(self, from_tag=None, encoding=None):
         """ Reproduce the action «Export XML» on a XML Element in InDesign® Structure. """
         tree = self.export_as_tree()
         dom = tree_to_etree_dom(tree)
-        return etree.tostring(dom, pretty_print=True)
+        return etree.tostring(dom, encoding=encoding, pretty_print=True)
 
     @use_working_copy
     def prefix(self, prefix):
