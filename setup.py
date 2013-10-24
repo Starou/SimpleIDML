@@ -1,19 +1,35 @@
-from distutils.core import setup
 import os
-import sys
+from distutils.core import setup
 
+README = open(os.path.join(os.path.dirname(__file__), 'README')).read()
+
+# allow setup.py to be run from any path
+os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name="SimpleIDML",
     version="0.91.2",
+    license='BSD Licence',
     author='Stanislas Guerra',
     author_email='stanislas.guerra@gmail.com',
-    description='',
-    long_description='',
+    description='A library to manipulate Adobe(r) IDML(r) files.',
+    long_description = README,
     package_dir={'': 'src'},
     packages=['simple_idml'],
     data_files=[],
     scripts=[
         'src/scripts/simpleidml_create_package_from_dir.py',
+    ],
+    classifiers=[
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: Multimedia :: Graphics',
+        'Topic :: Printing',
+        'Topic :: Software Development :: Libraries :: Python Modules',
     ],
 )
