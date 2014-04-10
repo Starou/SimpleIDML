@@ -2,6 +2,30 @@
 SimpleIDML
 ==========
 
+Installation
+============
+
+Use ``pip``:
+
+.. code-block:: bash
+
+    pip install SimpleIDML
+
+Or:
+
+.. code-block:: bash
+
+    python setup.py build
+    sudo python setup.py install
+
+Dependencies
+------------
+
+- Python >= 2.6
+- lxml >= 2.3
+- unittest2 if Python < 2.7
+
+
 What is SimpleIDML ?
 ====================
 
@@ -258,23 +282,6 @@ You can as well import XML file into your InDesign® documents. The following ru
 
 Please take a look into the tests for in-depth examples.
 
-
-Installation
-============
-
-::
-    
-    python setup.py build
-    sudo python setup.py install
-
-Dependencies
-------------
-
-- Python >= 2.6
-- lxml >= 2.3
-- unittest2 if Python < 2.7
-
-
 Revisions
 =========
 
@@ -295,8 +302,6 @@ Bugfixes
 ''''''''
 
 Tickets #19, #21 (orphan layers), #23 (AssertXMLEqual), #24 (import_xml() failure).
-
-
 
 
 .. _XPath: http://en.wikipedia.org/wiki/XPath
