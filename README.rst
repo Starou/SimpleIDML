@@ -284,11 +284,13 @@ Exporting as XML:
 
 You can as well import XML file into your InDesign® documents. The following rules applies:
 
-- A node having the attribute *simpleidml-setcontent="false"* will not impact the corresponding element into the idml document (but its children will be) ;
-- images references are passed by the *href* attribute. An empty value will remove the corresponding page items into the document ;
+- A node having the attribute *simpleidml-setcontent="false"* will not impact the corresponding
+  element into the idml document (but its children will be) ;
+- images references are passed by the *href* attribute. An empty value will remove the
+  corresponding page items into the document ;
 - nested tag will be created if they are mapped with a character-style ;
-- the style applied to the newly created tag is a combinaison of the parent character-styles and the mapped one.
-
+- the style applied to the newly created tag is a combinaison of the parent character-styles and
+  the mapped one.
 
 Please take a look into the tests for in-depth examples.
 
@@ -296,7 +298,6 @@ Convert an IDML into a INDD native file
 ---------------------------------------
 
 This require an InDesign Server and a directory that it can access in read/write.
-
 
 .. code-block:: python
 
