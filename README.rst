@@ -24,6 +24,7 @@ Dependencies
 - Python >= 2.6
 - lxml >= 2.3
 - unittest2 if Python < 2.7
+- suds (SOAP client)
 
 
 What is SimpleIDML ?
