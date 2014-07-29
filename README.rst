@@ -257,8 +257,9 @@ There is a convenient method to add several pages at once::
 Import/Export XML
 -----------------
 
-Exporting as XML:: 
+Exporting as XML:
 
+.. code-block:: python
 
     >>> idml_file = IDMLPackage("path/to/file.idml")
     >>> print idml_file.export_xml()
@@ -283,8 +284,31 @@ You can as well import XML file into your InDesign® documents. The following ru
 
 Please take a look into the tests for in-depth examples.
 
+Convert an IDML into a INDD native file
+---------------------------------------
+
+This require an InDesign Server and a directory that it can access in read/write.
+
+
+.. code-block:: python
+
+    from simple_idml.indesign import indesign
+    response = indesign.idml_to_indd("/path_to_file.idml",
+                                     "http://url-to-indesign-server:port",
+                                     "/path/to/indesign-server/workdir")
+
+
 Revisions
 =========
+
+0.91.3
+------
+
+New features
+''''''''''''
+
+- IDML to INDD via SOAP call to InDesign Server.
+
 
 0.91.2
 ------

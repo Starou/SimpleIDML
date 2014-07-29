@@ -8,14 +8,22 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name="SimpleIDML",
-    version="0.91.2",
+    version="0.91.3",
     license='BSD Licence',
     author='Stanislas Guerra',
     author_email='stanislas.guerra@gmail.com',
     description='A library to manipulate Adobe(r) IDML(r) files.',
     long_description=README,
     package_dir={'': 'src'},
-    packages=['simple_idml'],
+    packages=[
+        'simple_idml',
+        'simple_idml.indesign',
+    ],
+    package_data={
+        'simple_idml.indesign': [
+            'scripts/*.jsx',
+        ]
+    },
     data_files=[],
     scripts=[
         'src/scripts/simpleidml_create_package_from_dir.py',
