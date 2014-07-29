@@ -294,17 +294,32 @@ You can as well import XML file into your InDesign® documents. The following ru
 
 Please take a look into the tests for in-depth examples.
 
-Convert an IDML into a INDD native file
----------------------------------------
+Use InDesign server SOAP interface to convert a file
+----------------------------------------------------
 
 This require an InDesign Server and a directory that it can access in read/write.
 
 .. code-block:: python
 
     from simple_idml.indesign import indesign
-    response = indesign.idml_to_indd("/path_to_file.idml",
-                                     "http://url-to-indesign-server:port",
-                                     "/path/to/indesign-server/workdir")
+    response = indesign.save_as("/path_to_file.idml", "indd",
+                                "http://url-to-indesign-server:port",
+                                "/path/to/indesign-server/workdir")
+    f = open("foo.indd", "w+")
+    f.write(response)
+    f.close()
+
+You can export a .indd into a .idml as well:
+
+.. code-block:: python
+
+    from simple_idml.indesign import indesign
+    response = indesign.save_as("/path_to_file.indd", "idml",
+                                "http://url-to-indesign-server:port",
+                                "/path/to/indesign-server/workdir")
+    f = open("foo.indd", "w+")
+    f.write(response)
+    f.close()
 
 
 Revisions

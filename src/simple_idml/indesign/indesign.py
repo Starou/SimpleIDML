@@ -8,17 +8,17 @@ CURRENT_DIR = os.path.abspath(os.path.split(__file__)[0])
 SCRIPTS_DIR = os.path.join(CURRENT_DIR, "scripts")
 
 
-def idml_to_indd(idml_filename, indesign_server_url, indesign_server_workdir):
+def save_as(src_filename, dst_extension, indesign_server_url, indesign_server_workdir):
     """SOAP call to an InDesign Server to make the conversion. """
-
-    javascript_basename = "idml_to_indd.jsx"
+    javascript_basename = "save_as.jsx"
     local_javascript_filename = os.path.join(SCRIPTS_DIR, javascript_basename)
     remote_javascript_filename = os.path.join(indesign_server_workdir, javascript_basename)
 
-    idml_basename = os.path.basename(idml_filename)
-    remote_idml_filename = os.path.join(indesign_server_workdir, idml_basename)
-    remote_indd_filename = os.path.join(indesign_server_workdir,
-                                        "%s.indd" % os.path.splitext(idml_basename)[0])
+    src_basename = os.path.basename(src_filename)
+    remote_src_filename = os.path.join(indesign_server_workdir, src_basename)
+    remote_dst_filename = os.path.join(indesign_server_workdir,
+                                       "%s.%s" % (os.path.splitext(src_basename)[0],
+                                                  dst_extension))
 
     cl = Client("%s/service?wsdl" % indesign_server_url)
     params = cl.factory.create("ns0:RunScriptParameters")
@@ -27,23 +27,23 @@ def idml_to_indd(idml_filename, indesign_server_url, indesign_server_workdir):
 
     src = cl.factory.create("ns0:IDSP-ScriptArg")
     src.name = "source"
-    src.value = remote_idml_filename
+    src.value = remote_src_filename
 
     dst = cl.factory.create("ns0:IDSP-ScriptArg")
     dst.name = "destination"
-    dst.value = remote_indd_filename
+    dst.value = remote_dst_filename
 
     params.scriptArgs = [src, dst]
 
     shutil.copy(local_javascript_filename, remote_javascript_filename)
-    shutil.copy(idml_filename, remote_idml_filename)
+    shutil.copy(src_filename, remote_src_filename)
     response = cl.service.RunScript(params)
     # TODO check SOAP response before going any further.
 
-    response = open(remote_indd_filename, "rb").read()
+    response = open(remote_dst_filename, "rb").read()
 
     os.unlink(remote_javascript_filename)
-    os.unlink(remote_idml_filename)
-    os.unlink(remote_indd_filename)
+    os.unlink(remote_dst_filename)
+    os.unlink(remote_src_filename)
 
     return response
