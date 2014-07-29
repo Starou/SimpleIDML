@@ -30,11 +30,12 @@ Dependencies
 What is SimpleIDML ?
 ====================
 
-SimpleIDML is a Python library to manipulate Adobe® InDesign® IDML file. The main purpose being the ability to 
-compose IDML files together and produce complex documents from simple pieces and to separate the data from the structure.
+SimpleIDML is a Python library to manipulate Adobe® InDesign® IDML file. The main purpose being
+the ability to compose IDML files together and produce complex documents from simple pieces and
+to separate the data from the structure.
 
-The philosophy behind SimpleIDML is to keep separated the content and the structure and to use XML files to feed your documents by
-using the XML Structure in InDesign.
+The philosophy behind SimpleIDML is to keep separated the content and the structure and to use XML
+files to feed your documents by using the XML Structure in InDesign.
 Keeping this isolation is important to ease the debugging and to keep track of what is going on.
 
 I urge you to take a look in the *regressiontests* directory for real-world examples.
@@ -45,9 +46,10 @@ Uses cases - success story(ies)
 Le Figaro - FigaroClassifieds
 -----------------------------
 
-SimpleIDML is used in production at *Le Figaro* aside in-house tools managing the content of Classifieds Ads magazines like
-*Propriétés de France* or *Belles Maisons à louer*.
-These tools produces XML files describing the page layout (which IDML templates and sub-templates to use) and the page content.
+SimpleIDML is used in production at *Le Figaro* aside in-house tools managing the content of
+Classifieds Ads magazines like *Propriétés de France* or *Belles Maisons à louer*.
+These tools produces XML files describing the page layout (which IDML templates and sub-templates
+to use) and the page content.
 The XML files feed another tool - the one using SimpleIDML - that compose the final page.
 
 The steps of the (simplified) process of composition are:
@@ -58,22 +60,26 @@ The steps of the (simplified) process of composition are:
 4. Edit the file in InDesign ;
 5. Push the changesets back to the content management application and update the database.
 
-There is a lot of cool features in this application. You can update a part of a page already or partially composed for example.
+There is a lot of cool features in this application. You can update a part of a page already or
+partially composed for example.
 
 Architecture
 ''''''''''''
 
-These applications are web-applications. The communication is done by web-services feeding a task queue (RabbitMQ/Celery).
+These applications are web-applications. The communication is done by web-services feeding a task
+queue (RabbitMQ/Celery).
 
 The performances are quite good. Composing a document require a fraction of a second.
 
 What are IDML files ?
 =====================
 
-IDML (*InDesign Markup Language*) files are a Zip archives (Adobe calls them packages) storing essentially XML files. Adobe 
-made a descent job because those files can completely express the content of the native (binary) documents.
-This is a small revolution in the print world when it comes to automatically process files in both ways from templates and database
-(Round-trip) without using proprietary server-edition of Publishing Software.
+IDML (*InDesign Markup Language*) files are a Zip archives (Adobe calls them packages) storing
+essentially XML files. Adobe made a descent job because those files can completely express the
+content of the native (binary) documents.
+This is a small revolution in the print world when it comes to automatically process files in both
+ways from templates and database (Round-trip) without using proprietary server-edition of
+Publishing Software.
 
 What does SimpleIDML do ?
 =========================
@@ -121,15 +127,16 @@ Some attributes are *lxml.etree* Elements or Documents::
     </Root>
     
 
-*xml_structure* attribute is a representation of the XML Structure of your InDesign XML-ready document (The one you want 
-to use to populate the content with data from an external XML file having the same structure).
+*xml_structure* attribute is a representation of the XML Structure of your InDesign XML-ready 
+document (The one you want to use to populate the content with data from an external XML file
+having the same structure).
 
 
 Build package
 -------------
 
-There is a convenient script to create a IDML package from a flat directory called *simpleidml_create_package_from_dir.py*
-which should be in your PATH.
+There is a convenient script to create a IDML package from a flat directory called
+*simpleidml_create_package_from_dir.py* which should be in your PATH.
 
 
 Compose document
@@ -139,9 +146,10 @@ Compose document
 Insert elements
 '''''''''''''''
 
-Using the XML Structure you can ask SimpleIDML to insert into a document at a XML tag the content of another XML tag from
-another document. The tag paths are expressed using XPath_ syntax. Note that you should always make a copy of your idml 
-files before altering them with *shutil.copy2(src, dst)* for instance and prefix your document before using *insert_idml()*
+Using the XML Structure you can ask SimpleIDML to insert into a document at a XML tag the content
+of another XML tag from another document. The tag paths are expressed using XPath_ syntax.
+Note that you should always make a copy of your idml files before altering them with
+*shutil.copy2(src, dst)* for instance and prefix your document before using *insert_idml()*
 to avoid reference collisions.
 
 ::
