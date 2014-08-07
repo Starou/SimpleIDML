@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="Service"
+ targetNamespace="http://localhost:80/Service.wsdl"
+ xmlns:tns="http://localhost:80/Service.wsdl"
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:IDSP="http://ns.adobe.com/InDesign/soap/"
+ xmlns:SOAP="http://schemas.xmlsoap.org/wsdl/soap/"
+ xmlns:MIME="http://schemas.xmlsoap.org/wsdl/mime/"
+ xmlns:DIME="http://schemas.xmlsoap.org/ws/2002/04/dime/wsdl/"
+ xmlns:WSDL="http://schemas.xmlsoap.org/wsdl/"
+ xmlns="http://schemas.xmlsoap.org/wsdl/">
+
+<types>
+
+ <schema targetNamespace="http://ns.adobe.com/InDesign/soap/"
+  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:IDSP="http://ns.adobe.com/InDesign/soap/"
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="unqualified"
+  attributeFormDefault="unqualified">
+  <import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+  <simpleType name="Enumeration">
+   <restriction base="xsd:long">
+   </restriction>
+  </simpleType>
+  <simpleType name="Unit">
+   <restriction base="xsd:double">
+   </restriction>
+  </simpleType>
+  <simpleType name="NullObject">
+  <restriction base="xsd:long">
+   </restriction>
+  </simpleType>
+  <simpleType name="SessionID">
+   <restriction base="xsd:unsignedInt">
+   </restriction>
+  </simpleType>
+  <complexType name="IDSP-ScriptArg">
+   <sequence>
+     <element name="name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+     <element name="value" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+   </sequence>
+  </complexType>
+  <complexType name="RunScriptParameters">
+   <sequence>
+     <element name="scriptText" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+     <element name="scriptLanguage" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+     <element name="scriptFile" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+     <element name="scriptArgs" type="IDSP:IDSP-ScriptArg" minOccurs="0" maxOccurs="unbounded"/>
+   </sequence>
+  </complexType>
+  <complexType name="Data">
+   <sequence>
+     <element name="data" type="xsd:anyType" minOccurs="1" maxOccurs="1" nillable="false"/>
+   </sequence>
+  </complexType>
+  <complexType name="List">
+   <sequence>
+    <element name="item" type="IDSP:Data" minOccurs="0" maxOccurs="unbounded" nillable="true"/>
+   </sequence>
+  </complexType>
+  <complexType name="Object">
+   <sequence>
+     <element name="specifierData" type="xsd:anyType" minOccurs="1" maxOccurs="1" nillable="false"/>
+     <element name="objectType" type="xsd:unsignedLong" minOccurs="1" maxOccurs="1"/>
+     <element name="specifierForm" type="xsd:unsignedLong" minOccurs="1" maxOccurs="1"/>
+     <element name="start" type="IDSP:Object" minOccurs="0" maxOccurs="1" nillable="true"/>
+     <element name="end" type="IDSP:Object" minOccurs="0" maxOccurs="1" nillable="true"/>
+   </sequence>
+  </complexType>
+  <complexType name="ObjectList">
+   <sequence>
+    <element name="item" type="IDSP:Object" minOccurs="0" maxOccurs="unbounded" nillable="true"/>
+   </sequence>
+  </complexType>
+  <complexType name="Field">
+   <sequence>
+     <element name="id" type="xsd:unsignedLong" minOccurs="1" maxOccurs="1"/>
+     <element name="data" type="IDSP:Data" minOccurs="0" maxOccurs="1" nillable="true"/>
+   </sequence>
+  </complexType>
+  <complexType name="Record">
+   <sequence>
+    <element name="item" type="IDSP:Field" minOccurs="0" maxOccurs="unbounded" nillable="true"/>
+   </sequence>
+  </complexType>
+  <element name="sessionID" type="IDSP:SessionID"/>
+  <!-- operation request element -->
+  <element name="RunScript">
+   <complexType>
+    <sequence>
+     <element name="runScriptParameters" type="IDSP:RunScriptParameters" minOccurs="0" maxOccurs="1" nillable="true"/>
+    </sequence>
+   </complexType>
+  </element>
+  <!-- operation response element -->
+  <element name="RunScriptResponse">
+   <complexType>
+    <sequence>
+     <element name="errorNumber" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+     <element name="errorString" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+     <element name="scriptResult" type="IDSP:Data" minOccurs="0" maxOccurs="1" nillable="true"/>
+    </sequence>
+   </complexType>
+  </element>
+ <!-- operation request element -->
+  <element name="BeginSession">
+  <complexType>
+	<sequence>
+	</sequence>
+  </complexType>
+  </element>
+  <!-- operation response element -->
+  <element name="BeginSessionResponse">
+   <complexType>
+	<sequence>
+	 <element name="sessionID" type="IDSP:SessionID" minOccurs="1" maxOccurs="1"/>
+	</sequence>
+   </complexType>
+  </element>
+  <!-- operation request element -->
+  <element name="EndSession">
+   <complexType>
+	<sequence>
+	 <element name="sessionID" type="IDSP:SessionID" minOccurs="1" maxOccurs="1"/>
+	</sequence>
+   </complexType>
+  </element>
+  <!-- operation response element -->
+  <element name="Result">
+   <complexType>
+	<sequence>
+   <element name="errorCode" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+	</sequence>
+   </complexType>
+  </element>
+ </schema>
+
+</types>
+
+<message name="RunScript">
+ <part name="parameters" element="IDSP:RunScript"/>
+</message>
+
+<message name="RunScriptResponse">
+ <part name="parameters" element="IDSP:RunScriptResponse"/>
+</message>
+
+<message name="BeginSessionRequest">
+ <part name="parameters" element="IDSP:BeginSession"/>
+</message>
+
+<message name="BeginSessionResponse">
+ <part name="parameters" element="IDSP:BeginSessionResponse"/>
+</message>
+
+<message name="EndSession">
+ <part name="parameters" element="IDSP:EndSession"/>
+</message>
+
+<message name="Result">
+ <part name="parameters" element="IDSP:Result"/>
+</message>
+
+<message name="ServiceHeader">
+ <part name="sessionID" element="IDSP:sessionID"/>
+</message>
+
+<portType name="ServicePortType">
+ <operation name="RunScript">
+  <documentation>Service definition of function IDSP__RunScript</documentation>
+  <input message="tns:RunScript"/>
+  <output message="tns:RunScriptResponse"/>
+ </operation>
+  <operation name="BeginSession">
+  <documentation>Service definition of function IDSP__BeginSession</documentation>
+  <input message="tns:BeginSessionRequest"/>
+  <output message="tns:BeginSessionResponse"/>
+ </operation>
+ <operation name="EndSession">
+  <documentation>Service definition of function IDSP__EndSession</documentation>
+  <input message="tns:EndSession"/>
+  <output message="tns:Result"/>
+ </operation>
+</portType>
+
+<binding name="Service" type="tns:ServicePortType">
+ <SOAP:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+ <operation name="RunScript">
+  <SOAP:operation soapAction=""/>
+  <input>
+     <SOAP:body parts="parameters" use="literal"/>
+     <SOAP:header use="literal" message="tns:ServiceHeader" part="sessionID"/>
+  </input>
+  <output>
+     <SOAP:body parts="parameters" use="literal"/>
+  </output>
+ </operation>
+ <operation name="BeginSession">
+  <SOAP:operation soapAction=""/>
+  <input>
+	 <SOAP:body parts="parameters" use="literal"/>
+  </input>
+  <output>
+	 <SOAP:body parts="parameters" use="literal"/>
+  </output>
+ </operation>
+ <operation name="EndSession">
+  <SOAP:operation soapAction=""/>
+  <input>
+	 <SOAP:body parts="parameters" use="literal"/>
+    <SOAP:header use="literal" message="tns:ServiceHeader" part="sessionID"/>
+  </input>
+  <output>
+	 <SOAP:body parts="parameters" use="literal"/>
+  </output>
+ </operation>
+</binding>
+
+<service name="Service">
+ <documentation>gSOAP 2.7.8c generated service definition</documentation>
+ <port name="Service" binding="tns:Service">
+  <SOAP:address location="http://localhost:8082"/>
+ </port>
+</service>
+
+</definitions>
