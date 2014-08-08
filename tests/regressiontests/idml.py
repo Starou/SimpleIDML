@@ -68,7 +68,7 @@ class IdmlTestCase(SimpleTestCase):
                                                                            'RootObjectStyleGroup'])
 
         # Styles mapping.
-        self.assertEqual(idml_file.style_mapping.tostring(), 
+        self.assertEqual(idml_file.style_mapping.tostring(),
                          '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">                   </idPkg:Mapping>\n')
 
         # Fonts.
@@ -204,7 +204,7 @@ u"""<Root Self="di2">
   </module>
 </Root>
 """)
-            
+
     def test_import_xml_with_ignored_tags(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes.idml"))
@@ -234,7 +234,7 @@ u"""<Root Self="di2">
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-with-extra-nodes2.xml"), "r")
         idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
         xml = idml_file.export_xml()
-        self.assertEqual(xml, 
+        self.assertEqual(xml,
 """<Root>
   <module>
     <main_picture href="file:///steve.jpg"/>
@@ -257,7 +257,7 @@ u"""<Root Self="di2">
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-with-extra-nodes2.xml"), "r")
         idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
         xml = idml_file.export_xml()
-        self.assertMultiLineEqual(xml, 
+        self.assertMultiLineEqual(xml,
 """<Root>
   <module>
     <main_picture href="file:///steve.jpg"/>
@@ -280,7 +280,7 @@ u"""<Root Self="di2">
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-with-setcontent-false.xml"), "r")
         idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
         xml = idml_file.export_xml()
-        self.assertEqual(xml, 
+        self.assertEqual(xml,
 """<Root>
   <module>
     <main_picture href="file:///steve.jpg"/>
@@ -304,7 +304,7 @@ u"""<Root Self="di2">
         idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
         xml = idml_file.export_xml()
         # Should check that the page item has been removed from the spread (or story).
-        self.assertEqual(xml, 
+        self.assertEqual(xml,
 """<Root>
   <module>
     <main_picture/>
@@ -603,7 +603,7 @@ u"""<Root Self="maindi2">
                              namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})), 8)
 
         # Styles.
-        styles = [[style.get("Self") for style in style_group.iterchildren()] 
+        styles = [[style.get("Self") for style in style_group.iterchildren()]
                   for style_group in main_idml_file.style_groups]
         self.assertEqual(styles, [
             ['mainCharacterStyle/$ID/[No character style]',
@@ -626,9 +626,9 @@ u"""<Root Self="maindi2">
              'article1ObjectStyle/$ID/[Normal Graphics Frame]',
              'article1ObjectStyle/$ID/[Normal Text Frame]',
              'article1ObjectStyle/$ID/[Normal Grid]']])
-                         
+
         # Style mapping.
-        self.assertEqual(main_idml_file.style_mapping.tostring(), 
+        self.assertEqual(main_idml_file.style_mapping.tostring(),
                         '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">                   <XMLImportMap Self="article1di206" MarkupTag="XMLTag/MyBoldTag" MappedStyle="article1CharacterStyle/MyBoldStyle"/>\n</idPkg:Mapping>\n')
 
         # Graphics.
