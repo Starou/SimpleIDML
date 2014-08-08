@@ -321,6 +321,18 @@ You can export a .indd into a .idml as well:
     f.write(response)
     f.close()
 
+Or export a IDML or INDD as PDF:
+
+.. code-block:: python
+
+    from simple_idml.indesign import indesign
+    response = indesign.save_as("/path_to_file.indd", "pdf",
+                                "http://url-to-indesign-server:port",
+                                "/path/to/indesign-server/workdir")
+    f = open("foo.pdf", "w+")
+    f.write(response)
+    f.close()
+
 
 Revisions
 =========
@@ -331,7 +343,7 @@ Revisions
 New features
 ''''''''''''
 
-- IDML to INDD via SOAP call to InDesign Server.
+- IDML to INDD, INDD to IDML and export as PDF *via* SOAP call to a InDesign Server.
 
 
 0.91.2
