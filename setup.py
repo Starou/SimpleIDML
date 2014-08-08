@@ -27,6 +27,7 @@ setup(
     data_files=[],
     scripts=[
         'src/scripts/simpleidml_create_package_from_dir.py',
+        'src/scripts/simpleidml_indesign_save_as.py',
     ],
     classifiers=[
         'Environment :: Console',
