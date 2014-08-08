@@ -44,18 +44,23 @@ class InDesignTestCase(unittest.TestCase):
         self.assertTrue(self.runscript_mock.called)
         self.assertEqual(response, 'save_as.jsx, 4-pages.indd')
 
+        response = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"), "pdf",
+                                    "http://url-to-indesign-server:8080", WORK_DIR)
+        self.assertTrue(self.runscript_mock.called)
+        self.assertEqual(response, 'export.jsx, 4-pages.pdf')
+
 
 class OpenerDirectorMock(OpenerDirector):
     def open(self, fullurl=None, data=None, timeout=None):
         url = fullurl.get_full_url()
-        print "open url: %s" % url
         if os.path.basename(url) == 'service?wsdl':
             return open(os.path.join(SOAP_DIR, 'indesign-service.xml'), "r")
+
 
 class ServiceSelectorMock(ServiceSelector):
     def RunScript(self, params):
         script = os.path.basename(params['scriptFile'])
-        if script == 'save_as.jsx':
+        if script in ('save_as.jsx', 'export.jsx'):
             dst = params['scriptArgs'][1]['value']
             # Create the file in workdir and write something testable in it.
             fobj = open(dst, "w+")
