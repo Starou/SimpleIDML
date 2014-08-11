@@ -39,15 +39,15 @@ class InDesignTestCase(unittest.TestCase):
 
     def test_save_as(self):
         from simple_idml.indesign import indesign
-        response = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"), "indd",
-                                    "http://url-to-indesign-server:8080", WORK_DIR)
+        responses = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"), ["indd"],
+                                     "http://url-to-indesign-server:8080", WORK_DIR)
         self.assertTrue(self.runscript_mock.called)
-        self.assertEqual(response, 'save_as.jsx, 4-pages.indd')
+        self.assertEqual(responses, ['save_as.jsx, 4-pages.indd'])
 
-        response = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"), "pdf",
-                                    "http://url-to-indesign-server:8080", WORK_DIR)
+        responses = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"), ["pdf", "jpeg"],
+                                     "http://url-to-indesign-server:8080", WORK_DIR)
         self.assertTrue(self.runscript_mock.called)
-        self.assertEqual(response, 'export.jsx, 4-pages.pdf')
+        self.assertEqual(responses, ['export.jsx, 4-pages.pdf', 'export.jsx, 4-pages.jpeg'])
 
 
 class OpenerDirectorMock(OpenerDirector):

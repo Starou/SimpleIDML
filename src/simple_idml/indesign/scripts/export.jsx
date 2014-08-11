@@ -8,6 +8,9 @@ var myDocument = app.documents.item(0);
 if (format === "pdf") {
     myDocument.exportFile(ExportFormat.pdfType,
                           new File(dst_filename));
+} else if (format === "jpeg") {
+    myDocument.exportFile(ExportFormat.JPG,
+                          new File(dst_filename));
 }
 
 app.documents.item(0).close();
