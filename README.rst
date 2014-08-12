@@ -298,40 +298,46 @@ Use InDesign server SOAP interface to convert a file
 ----------------------------------------------------
 
 This require an InDesign Server and a directory that it can access in read/write.
+The ``formats`` parameter is a list of formats you want your file to be exported into.
+The supported formats are ``jpeg``, ``idml``, ``pdf``, ``indd`` and ``zip`` (this one
+returning a zipped InDesign package).
+
+Here some snippets:
 
 .. code-block:: python
 
     from simple_idml.indesign import indesign
-    response = indesign.save_as("/path_to_file.idml", "indd",
-                                "http://url-to-indesign-server:port",
-                                "/path/to/indesign-server/workdir")
-    f = open("foo.indd", "w+")
-    f.write(response)
-    f.close()
 
-You can export a .indd into a .idml as well:
+    response = indesign.save_as("/path_to_file.idml", ["indd"],
+                                "http://url-to-indesign-server:port",
+                                "/path/to/indesign-server/workdir")[0]
+    with open("my_file.indd", "w+") as f:
+        f.write(response)
+
+    response = indesign.save_as("/path_to_file.indd", ["idml"],
+                                "http://url-to-indesign-server:port",
+                                "/path/to/indesign-server/workdir")[0]
+    with open("my_file.idml", "w+") as f:
+        f.write(response)
+
+    response = indesign.save_as("/path_to_file.indd", ["pdf"],
+                                "http://url-to-indesign-server:port",
+                                "/path/to/indesign-server/workdir")[0]
+    with open("my_file.pdf", "w+") as f:
+        f.write(response)
+
+The response is a list of string because you can pass a list of formats
+and so generate several exports in a row (if performances matter):
 
 .. code-block:: python
 
     from simple_idml.indesign import indesign
-    response = indesign.save_as("/path_to_file.indd", "idml",
-                                "http://url-to-indesign-server:port",
-                                "/path/to/indesign-server/workdir")
-    f = open("foo.indd", "w+")
-    f.write(response)
-    f.close()
+    pdf_response, jpeg_response, zip_response = indesign.save_as(
+                                    "/path_to_file.indd",
+                                    ["pdf", "jpeg", "zip"],
+                                    "http://url-to-indesign-server:port",
+                                    "/path/to/indesign-server/workdir")
 
-Or export a IDML or INDD as PDF:
-
-.. code-block:: python
-
-    from simple_idml.indesign import indesign
-    response = indesign.save_as("/path_to_file.indd", "pdf",
-                                "http://url-to-indesign-server:port",
-                                "/path/to/indesign-server/workdir")
-    f = open("foo.pdf", "w+")
-    f.write(response)
-    f.close()
 
 
 Revisions
@@ -343,7 +349,8 @@ Revisions
 New features
 ''''''''''''
 
-- IDML to INDD, INDD to IDML and export as PDF *via* SOAP call to a InDesign Server.
+Add a SOAP client to call a InDesign server to get INDD file and export in various
+formats.
 
 
 0.91.2
