@@ -16,8 +16,7 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_server_work
         src_rootname = os.path.splitext(src_basename)[0]
         dst_basename = "%s.%s" % (src_rootname, dst_format)
         javascript_basename = "save_as.jsx"
-
-        if dst_format in ('pdf', 'jpeg'):
+        if dst_format in ('idml', 'pdf', 'jpeg'):
             javascript_basename = "export.jsx"
         elif dst_format == 'zip':
             javascript_basename = "package_to_print.jsx"
@@ -43,7 +42,7 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_server_work
 
         params.scriptArgs = [src, dst]
 
-        if dst_format in ('pdf', 'jpeg'):
+        if dst_format in ('idml', 'pdf', 'jpeg'):
             fmt = cl.factory.create("ns0:IDSP-ScriptArg")
             fmt.name = "format"
             fmt.value = dst_format

@@ -11,6 +11,9 @@ if (format === "pdf") {
 } else if (format === "jpeg") {
     myDocument.exportFile(ExportFormat.JPG,
                           new File(dst_filename));
+} else if (format === "idml") {
+    myDocument.exportFile(ExportFormat.INDESIGN_MARKUP,
+                          new File(dst_filename));
 }
 
 app.documents.item(0).close();
