@@ -78,13 +78,13 @@ class Proxy(object):
 
 def tree_to_etree_dom(tree):
     """Convert a tree in a elementTree dom instance.
-    
+
     >>> tree = {
     ...     "tag": "Root",
     ...     "attrs": {...},
     ...     "content": ["foo", {subtree}, "bar", ...]
     ... }
-    
+
     """
 
     def _set_node_content(node, tree):
