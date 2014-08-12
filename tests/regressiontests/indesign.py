@@ -5,6 +5,8 @@ import mock
 import os
 import shutil
 import unittest
+import zipfile
+from cStringIO import StringIO
 from urllib2 import OpenerDirector
 from suds.client import ServiceSelector
 
@@ -44,10 +46,15 @@ class InDesignTestCase(unittest.TestCase):
         self.assertTrue(self.runscript_mock.called)
         self.assertEqual(responses, ['save_as.jsx, 4-pages.indd'])
 
-        responses = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"), ["pdf", "jpeg"],
+        responses = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
+                                     ["pdf", "jpeg", "zip"],
                                      "http://url-to-indesign-server:8080", WORK_DIR)
         self.assertTrue(self.runscript_mock.called)
-        self.assertEqual(responses, ['export.jsx, 4-pages.pdf', 'export.jsx, 4-pages.jpeg'])
+        self.assertEqual(responses[:2], ['export.jsx, 4-pages.pdf',
+                                         'export.jsx, 4-pages.jpeg'])
+        zip_buf = StringIO()
+        zip_buf.write(responses[2])
+        self.assertTrue(zipfile.is_zipfile(zip_buf))
 
 
 class OpenerDirectorMock(OpenerDirector):
@@ -60,11 +67,14 @@ class OpenerDirectorMock(OpenerDirector):
 class ServiceSelectorMock(ServiceSelector):
     def RunScript(self, params):
         script = os.path.basename(params['scriptFile'])
-        if script in ('save_as.jsx', 'export.jsx'):
-            dst = params['scriptArgs'][1]['value']
-            # Create the file in workdir and write something testable in it.
-            fobj = open(dst, "w+")
-            fobj.write("%s, %s" % (script, os.path.basename(dst)))
+        dst = params['scriptArgs'][1]['value']
+        if script == 'package_to_print.jsx':
+            os.mkdir(dst)  # Create the destination dir.
+            dst = "%s.zip" % dst
+
+        # Create the file in workdir and write something testable in it.
+        fobj = open(dst, "w+")
+        fobj.write("%s, %s" % (script, os.path.basename(dst)))
 
 
 def suite():
