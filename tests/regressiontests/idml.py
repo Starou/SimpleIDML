@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import shutil
 import glob
 try:
     import unittest2 as unittest
 except ImportError:
     import unittest
-import StringIO
 from tempfile import mkdtemp
 from lxml import etree
 
@@ -514,12 +512,14 @@ u"""<Root Self="FOOdi2">
         designmap = etree.fromstring(idml_file.open("designmap.xml").read())
         self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
                          "FOOue4 FOOu102 FOOu11b FOOu139 FOOu9c")
-        self.assertEqual(designmap.xpath(".//idPkg:Story",
-                                  namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0].get("src"),
-                        "Stories/Story_FOOu139.xml")
-        self.assertEqual(designmap.xpath(".//idPkg:Spread",
-                                  namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0].get("src"),
-                        "Spreads/Spread_FOOub6.xml")
+        self.assertEqual(designmap.xpath(
+            ".//idPkg:Story",
+            namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0].get("src"),
+            "Stories/Story_FOOu139.xml")
+        self.assertEqual(designmap.xpath(
+            ".//idPkg:Spread",
+            namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0].get("src"),
+            "Spreads/Spread_FOOub6.xml")
 
         # Prefix d'un fichier avec un mapping Style/Tag XML.
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
@@ -549,6 +549,8 @@ u"""<Root Self="FOOdi2">
         self.assertEqual(idml_file.designmap.layer_nodes[0].get("Name"), "Layer 1 - 23")
 
     def test_insert_idml(self):
+        # TODO: make another test where the inserted article is a part a more complex page.
+        # So that we ensure that we only insert what is needed (Stories etc).
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                      os.path.join(OUTPUT_DIR, "4-pages.idml"))
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo.idml"),
@@ -605,7 +607,7 @@ u"""<Root Self="maindi2">
         # Designmap.xml.
         designmap = etree.fromstring(main_idml_file.open("designmap.xml", mode="r").read())
         self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
-                         "mainue4 mainu102 mainu11b mainu139 mainu9c mainudd article1u188 article1u19f article1u1db")
+                         "mainue4 mainu102 mainu11b mainu139 mainu9c mainudd article1u1db article1u188 article1u19f")
         self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
                              namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})), 8)
 
@@ -636,13 +638,12 @@ u"""<Root Self="maindi2">
 
         # Style mapping.
         self.assertEqual(main_idml_file.style_mapping.tostring(),
-                        '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">                   <XMLImportMap Self="article1di206" MarkupTag="XMLTag/MyBoldTag" MappedStyle="article1CharacterStyle/MyBoldStyle"/>\n</idPkg:Mapping>\n')
+                         '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">                   <XMLImportMap Self="article1di206" MarkupTag="XMLTag/MyBoldTag" MappedStyle="article1CharacterStyle/MyBoldStyle"/>\n</idPkg:Mapping>\n')
 
         # Graphics.
         self.assertTrue(main_idml_file.graphic.dom.xpath(".//Swatch[@Self='article1Swatch/None']"))
 
     def test_remove_content(self):
-        idml_filename = os.path.join(IDMLFILES_DIR, "article-1photo_imported-xml.idml")
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_imported-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml"))
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml"))

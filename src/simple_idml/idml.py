@@ -8,7 +8,6 @@ import copy
 from decimal import Decimal
 
 from lxml import etree
-from xml.dom.minidom import parseString
 
 from simple_idml.components import get_idml_xml_file_by_name
 from simple_idml.components import (Designmap, Spread, Story, BackingStory,
@@ -16,7 +15,7 @@ from simple_idml.components import (Designmap, Spread, Story, BackingStory,
 from simple_idml.decorators import use_working_copy
 from simple_idml.utils import increment_filename, prefix_content_filename, tree_to_etree_dom
 
-from simple_idml import IdPkgNS, BACKINGSTORY
+from simple_idml import BACKINGSTORY
 
 STORIES_DIRNAME = "Stories"
 
@@ -211,6 +210,11 @@ class IDMLPackage(zipfile.ZipFile):
             self._stories = stories
         return self._stories
 
+    def stories_for_node(self, node_path):
+        return ["%s/Story_%s.xml" % (STORIES_DIRNAME, child.get("XMLContent"))
+                for child in self.xml_structure.xpath(node_path)[0].iter()
+                if child.get("XMLContent") in self.story_ids]
+
     @property
     def story_ids(self):
         """ extract  `ID' from `Stories/Story_ID.xml'. """
@@ -221,10 +225,8 @@ class IDMLPackage(zipfile.ZipFile):
             self._story_ids = story_ids
         return self._story_ids
 
-    def stories_for_node(self, node_path):
-        return ["%s/Story_%s.xml" % (STORIES_DIRNAME, child.get("XMLContent"))
-                for child in self.xml_structure.xpath(node_path)[0].iter()
-                if child.get("XMLContent") in self.story_ids]
+    def story_ids_for_node(self, node_path):
+        return self._get_story_ids_for_stories(self.stories_for_node(node_path))
 
     def _get_story_ids_for_stories(self, stories):
         rx_story_id = re.compile(r"%s/Story_([\w]+)\.xml" % STORIES_DIRNAME)
@@ -751,19 +753,18 @@ class IDMLPackage(zipfile.ZipFile):
         story_dest_elt.append(story_src_elt_copy)
         story_dest.synchronize()
 
-        # Stories files are added.
+        # Add Story files.
         # `Stories' directory may not be present in the destination package.
         stories_dirname = os.path.join(self.working_copy_path, STORIES_DIRNAME)
         if not os.path.exists(stories_dirname):
             os.mkdir(stories_dirname)
-        # TODO: add only the stories required.
-        for filename in idml_package.stories:
+        for filename in idml_package.stories_for_node(only):
             story_cp = open(os.path.join(self.working_copy_path, filename), mode="w+")
             story_cp.write(idml_package.open(filename, mode="r").read())
             story_cp.close()
 
         # Update designmap.xml.
-        self.designmap.add_stories(idml_package.story_ids)
+        self.designmap.add_stories(idml_package.story_ids_for_node(only))
         self.designmap.synchronize()
         # BackingStory.xml ??
         self.init_lazy_references()
