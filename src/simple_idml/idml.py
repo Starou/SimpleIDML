@@ -219,10 +219,7 @@ class IDMLPackage(zipfile.ZipFile):
     def story_ids(self):
         """ extract  `ID' from `Stories/Story_ID.xml'. """
         if self._story_ids is None:
-            # Utiliser _get_story_ids_for_stories(self.stories)
-            rx_story_id = re.compile(r"%s/Story_([\w]+)\.xml" % STORIES_DIRNAME)
-            story_ids = [rx_story_id.match(elt).group(1) for elt in self.stories]
-            self._story_ids = story_ids
+            self._story_ids = self._get_story_ids_for_stories(self.stories)
         return self._story_ids
 
     def story_ids_for_node(self, node_path):
@@ -418,11 +415,11 @@ class IDMLPackage(zipfile.ZipFile):
 
     def export_as_tree(self):
         """
-        >>> tree = {
-        ...     "tag": "Root",
-        ...     "attrs": {...},
-        ...     "content": ["foo", {subtree}, "bar", ...]
-        ... }
+        tree = {
+            "tag": "Root",
+            "attrs": {...},
+            "content": ["foo", {subtree}, "bar", ...]
+        }
         """
         def _export_content_as_tree(xml_structure_node):
             content = []
@@ -448,7 +445,7 @@ class IDMLPackage(zipfile.ZipFile):
             if len(story_content_and_xmlelement_nodes):
                 # Leaf with content.
                 if len(xml_structure_node_children) == 0:
-                    content.append("".join([c.text or "" for c in story_content_and_xmlelement_nodes])) # if not XMLElement
+                    content.append("".join([c.text or "" for c in story_content_and_xmlelement_nodes]))  # if not XMLElement
                 # Node with content.
                 else:
                     xml_structure_child_node = xml_structure_node_children.pop(0)
@@ -799,7 +796,7 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def add_story_with_content(self, story_id, xml_element_id, xml_element_tag):
-        story = Story.create(self, story_id, xml_element_id, xml_element_tag, self.working_copy_path)
+        Story.create(self, story_id, xml_element_id, xml_element_tag, self.working_copy_path)
         self.designmap.add_stories([story_id])
         self.designmap.synchronize()
         self.init_lazy_references()
