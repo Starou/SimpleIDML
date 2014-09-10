@@ -48,6 +48,13 @@ class IdmlTestCase(SimpleTestCase):
                                              u'Stories/Story_u102.xml',
                                              u'Stories/Story_ue4.xml'])
 
+        # Stories given a Xpath.
+        self.assertEqual(idml_file.stories_for_node("/Root/article[1]"),
+                         [u'Stories/Story_u102.xml',
+                          u'Stories/Story_ue4.xml',
+                          u'Stories/Story_u11b.xml',
+                          u'Stories/Story_u139.xml'])
+
         # Tags.
         self.assertEqual([etree.tostring(tag) for tag in idml_file.tags],
                          ['<XMLTag Self="XMLTag/advertise" Name="advertise">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Green</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',

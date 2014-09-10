@@ -111,7 +111,7 @@ class IDMLPackage(zipfile.ZipFile):
             append_childs(source_node, structure)
             self._xml_structure = structure
         return self._xml_structure
-    
+
     def xml_structure_pretty(self):
         return etree.tostring(self.xml_structure, pretty_print=True)
 
@@ -220,6 +220,15 @@ class IDMLPackage(zipfile.ZipFile):
             self._story_ids = story_ids
         return self._story_ids
 
+    def stories_for_node(self, node_path):
+        return ["%s/Story_%s.xml" % (STORIES_DIRNAME, child.get("XMLContent"))
+                for child in self.xml_structure.xpath(node_path)[0].iter()
+                if child.get("XMLContent") in self.story_ids]
+
+    def _get_story_ids_for_stories(self, stories):
+        rx_story_id = re.compile(r"%s/Story_([\w]+)\.xml" % STORIES_DIRNAME)
+        return [rx_story_id.match(elt).group(1) for elt in stories]
+
     @property
     def referenced_layers(self):
         if self._referenced_layers is None:
@@ -309,7 +318,7 @@ class IDMLPackage(zipfile.ZipFile):
                 if style_name:
                     style_node = self.style.get_style_node_by_name(style_name)
                     nested_styles.insert(0, style_node)
-                xml_structure_node = xml_structure_node.getparent() 
+                xml_structure_node = xml_structure_node.getparent()
 
             # Merge the styles starting from the top parent like in a HTML document.
             root_style_node = nested_styles.pop(0)
@@ -353,7 +362,7 @@ class IDMLPackage(zipfile.ZipFile):
             new_xml_element = XMLElement(tag=source_node.tag)
             new_xml_element.add_content(source_node.text, parent, style_range_node)
             story.add_element(element_id, new_xml_element.element)
-            
+
             xml_structure_new_node.set("Self", new_xml_element.get("Self"))
 
             # Source may also contains some children.
@@ -405,7 +414,7 @@ class IDMLPackage(zipfile.ZipFile):
         return self
 
     def export_as_tree(self):
-        """ 
+        """
         >>> tree = {
         ...     "tag": "Root",
         ...     "attrs": {...},
@@ -540,7 +549,7 @@ class IDMLPackage(zipfile.ZipFile):
             story.clear_element_content(node.get("Self"))
             story.remove_element(node.get("Self"), synchronize=True)
             # call story.remove_xml_element_page_items() for images ?
-            
+
             spread = self.get_spread_object_by_xpath(xpath)
             if spread:
                 spread.remove_page_item(element_content_id, synchronize=True)
@@ -708,7 +717,7 @@ class IDMLPackage(zipfile.ZipFile):
           </XMLElement>
 
         o The Story_udd.xml is created.
-        o The Spread page item 'udd' is updated. 
+        o The Spread page item 'udd' is updated.
         o The designmap.xml file is updated.
 
         """
@@ -727,7 +736,7 @@ class IDMLPackage(zipfile.ZipFile):
         # To keep the document valid, the solution is to create a proxy story.
         if content_ref and (content_ref not in self.story_ids):
             self.add_story_with_content(content_ref, xml_element_dest_id, xml_element_dest.tag)
-            self.xml_element_leaf_to_node(at, content_ref) 
+            self.xml_element_leaf_to_node(at, content_ref)
             xml_element_dest = self.xml_structure.xpath(at)[0]
 
         story_dest_filename = self.get_story_by_xpath(at)
@@ -793,7 +802,7 @@ class IDMLPackage(zipfile.ZipFile):
         self.designmap.synchronize()
         self.init_lazy_references()
         return self
-    
+
     @use_working_copy
     def xml_element_leaf_to_node(self, xpath, xml_content_ref):
         spread = self.get_spread_object_by_xpath(xpath)
