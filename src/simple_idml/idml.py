@@ -215,6 +215,7 @@ class IDMLPackage(zipfile.ZipFile):
     def story_ids(self):
         """ extract  `ID' from `Stories/Story_ID.xml'. """
         if self._story_ids is None:
+            # Utiliser _get_story_ids_for_stories(self.stories)
             rx_story_id = re.compile(r"%s/Story_([\w]+)\.xml" % STORIES_DIRNAME)
             story_ids = [rx_story_id.match(elt).group(1) for elt in self.stories]
             self._story_ids = story_ids
