@@ -165,7 +165,7 @@ u"""<Root Self="di2">
     def test_get_element_content_id_by_xpath(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
         element_id = idml_file.get_element_content_id_by_xpath("/Root/module/main_picture")
-        self.assertEqual(element_id, "udf")
+        self.assertEqual(element_id, "u14a")
 
     def test_import_xml(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
@@ -177,7 +177,7 @@ u"""<Root Self="di2">
         self.assertXMLEqual(xml,
 """<Root>
   <module>
-    <main_picture href="file:///steve.jpg"/>
+    <main_picture href="file:../../IDML/media/bouboune.jpg"/>
     <headline>The Life Aquatic with Steve Zissou</headline>
     <Story>
       <article>While oceanographer and documentarian <bold>Steve Zissou (Bill Murray) is working on his latest documentary at sea, his best friend Esteban du Plantier (Seymour Cassel)</bold> is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark's destruction.
@@ -191,15 +191,15 @@ u"""<Root Self="di2">
 
     def test_import_xml_nested_tags(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
-                     os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
-        idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
+                     os.path.join(OUTPUT_DIR, "article-1photo_import-xml-nested-tags.idml"))
+        idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-nested-tags.idml"))
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-nested-tags.xml"), "r")
         idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
         xml = idml_file.export_xml()
         self.assertMultiLineEqual(xml,
 """<Root>
   <module>
-    <main_picture href="file:///steve.jpg"/>
+    <main_picture href="file:../../IDML/media/bouboune.jpg"/>
     <headline>The Life Aquatic with Steve Zissou</headline>
     <Story>
       <article>While oceanographer and documentarian <bold>Steve Zissou (Bill Murray) is <sup>working</sup> on his latest documentary at sea, his best friend <italique>Esteban du Plantier</italique> (Seymour Cassel)</bold> is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark's destruction.
@@ -220,7 +220,7 @@ u"""<Root Self="di2">
         self.assertEqual(xml,
 """<Root>
   <module>
-    <main_picture href="file:///steve.jpg"/>
+    <main_picture href="file:../../IDML/media/bouboune.jpg"/>
     <headline>The Life Aquatic with Steve Zissou</headline>
     <Story>
       <article>While oceanographer and documentarian <bold>Steve Zissou (Bill Murray) is working on his latest documentary at sea, his best friend Esteban du Plantier (Seymour Cassel)</bold> is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark's destruction.
@@ -242,7 +242,7 @@ u"""<Root Self="di2">
         self.assertEqual(xml,
 """<Root>
   <module>
-    <main_picture href="file:///steve.jpg"/>
+    <main_picture href="file:../../IDML/media/bouboune.jpg"/>
     <headline>The Life Aquatic with Steve Zissou</headline>
     <Story>
       <article><italique>While oceanographer and documentarian</italique><bold>Steve Zissou (Bill Murray) is working on his latest documentary at sea, his best friend Esteban du Plantier (Seymour Cassel)</bold> is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark's destruction.
@@ -256,8 +256,8 @@ u"""<Root Self="di2">
 
     def test_import_xml_on_prefixed_package(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
-                     os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes2.idml"))
-        idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes2.idml"))
+                     os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes2-prefixed.idml"))
+        idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes2-prefixed.idml"))
         idml_file = idml_file.prefix("myprefix")
         xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-with-extra-nodes2.xml"), "r")
         idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
@@ -265,7 +265,7 @@ u"""<Root Self="di2">
         self.assertMultiLineEqual(xml,
 """<Root>
   <module>
-    <main_picture href="file:///steve.jpg"/>
+    <main_picture href="file:../../IDML/media/bouboune.jpg"/>
     <headline>The Life Aquatic with Steve Zissou</headline>
     <Story>
       <article><italique>While oceanographer and documentarian</italique><bold>Steve Zissou (Bill Murray) is working on his latest documentary at sea, his best friend Esteban du Plantier (Seymour Cassel)</bold> is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark's destruction.
@@ -288,7 +288,7 @@ u"""<Root Self="di2">
         self.assertEqual(xml,
 """<Root>
   <module>
-    <main_picture href="file:///steve.jpg"/>
+    <main_picture href="file:../../IDML/media/bouboune.jpg"/>
     <headline simpleidml-setcontent="false">THE HEADLINE HERE</headline>
     <Story>
       <article>While oceanographer and documentarian <bold>Steve Zissou (Bill Murray) is working on his latest documentary at sea, his best friend Esteban du Plantier (Seymour Cassel)</bold> is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark's destruction.
@@ -405,10 +405,10 @@ u"""<Root Self="di2">
     def test_export_xml(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
         xml = idml_file.export_xml()
-        self.assertEqual(xml,
+        self.assertMultiLineEqual(xml,
 """<Root>
   <module>
-    <main_picture/>
+    <main_picture href="file:///Users/stan/Dropbox/Projets/Slashdev/SimpleIDML/repos/git/simpleidml/tests/regressiontests/IDML/media/default.jpg"/>
     <headline>THE HEADLINE HERE</headline>
     <Story>
       <article>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt.</article>
@@ -552,11 +552,11 @@ u"""<Root Self="FOOdi2">
         # TODO: make another test where the inserted article is a part a more complex page.
         # So that we ensure that we only insert what is needed (Stories etc).
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
-                     os.path.join(OUTPUT_DIR, "4-pages.idml"))
+                     os.path.join(OUTPUT_DIR, "4-pages-insert-article-1-photo.idml"))
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo.idml"))
 
-        main_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages.idml"))
+        main_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages-insert-article-1-photo.idml"))
         article_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo.idml"))
 
         # Always start by prefixing packages to avoid collision.
@@ -786,7 +786,7 @@ u"""<Root Self="FOOdi2">
             ('Properties', {}),
             ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
             ('Rectangle',
-            {'GradientFillStart': '0 0', 'GradientStrokeStart': '0 0', 'ContentType': 'GraphicType', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]', 'Self': 'article1u182', 'GradientStrokeHiliteLength': '0', 'GradientStrokeAngle': '0', 'GradientStrokeHiliteAngle': '0', 'GradientFillLength': '0', 'GradientStrokeLength': '0', 'ItemTransform': '1 0 0 1 109.417322834645740 -76.62992125984261', 'ItemLayer': 'article1ua4', 'LocalDisplaySetting': 'Default', 'StoryTitle': '$ID/', 'Name': '$ID/', 'Visible': 'true', 'GradientFillHiliteAngle': '0', 'GradientFillHiliteLength': '0', 'Locked': 'false'}),
+            {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]', 'Self': 'article1u182', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'GradientStrokeHiliteLength': '0', 'LastUpdatedInterfaceChangeCount': '', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'GradientFillStart': '0 0', 'Locked': 'false', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 109.417322834645740 -76.62992125984261', 'StoryTitle': '$ID/', 'GradientStrokeLength': '0', 'GradientFillHiliteAngle': '0', 'ContentType': 'GraphicType', 'GradientFillHiliteLength': '0', 'GradientStrokeAngle': '0', 'Visible': 'true', 'TargetInterfaceChangeCount': ''}),
             ('Properties', {}),
             ('PathGeometry', {}),
             ('GeometryPathType', {'PathOpen': 'false'}),
@@ -803,18 +803,39 @@ u"""<Root Self="FOOdi2">
             {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
             ('Properties', {}),
             ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+            ('ContourOption',
+            {'ContourType': 'SameAsClipping', 'IncludeInsideEdges': 'false', 'ContourPathName': '$ID/'}),
             ('InCopyExportOption',
             {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
-            ('FrameFittingOption',
-            {'LeftCrop': '144.56692913385828', 'TopCrop': '58.582677165354326', 'RightCrop': '-402.46456692913387', 'BottomCrop': '-198.46456692913392'}),
+            ('FrameFittingOption', {'FittingOnEmptyFrame': 'FillProportionally'}),
             ('ObjectExportOption',
-            {'ApplyTagType': 'TagFromStructure', 'ImageSpaceBefore': '0', 'CustomImageAlignment': 'false', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomImageSizeOption': 'SizeRelativeToPageWidth', 'SpaceUnit': 'CssEm', 'GIFOptionsInterlaced': 'true', 'AltTextSourceType': 'SourceXMLStructure', 'GIFOptionsPalette': 'AdaptivePalette', 'CustomActualText': '$ID/', 'CustomImageConversion': 'false', 'JPEGOptionsFormat': 'BaselineEncoding', 'UseImagePageBreak': 'false', 'ImageConversionType': 'JPEG', 'ImagePageBreak': 'PageBreakBefore', 'JPEGOptionsQuality': 'High', 'ImageSpaceAfter': '0', 'ImageAlignment': 'AlignLeft', 'CustomAltText': '$ID/', 'ImageExportResolution': 'Ppi300'}),
+            {'GIFOptionsPalette': 'AdaptivePalette', 'JPEGOptionsFormat': 'BaselineEncoding', 'CustomImageAlignment': 'false', 'UseOriginalImage': 'false', 'CustomWidthType': 'DefaultWidth', 'ImagePageBreak': 'PageBreakBefore', 'AltTextSourceType': 'SourceXMLStructure', 'UseImagePageBreak': 'false', 'GIFOptionsInterlaced': 'true', 'ImageExportResolution': 'Ppi300', 'ImageSpaceBefore': '0', 'CustomHeightType': 'DefaultHeight', 'JPEGOptionsQuality': 'High', 'CustomLayout': 'false', 'ImageAlignment': 'AlignLeft', 'UseExistingImage': 'false', 'CustomLayoutType': 'AlignmentAndSpacing', 'ImageConversionType': 'JPEG', 'SpaceUnit': 'CssPixel', 'CustomImageConversion': 'false', 'ApplyTagType': 'TagFromStructure', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomAltText': '$ID/', 'CustomActualText': '$ID/', 'CustomHeight': '$ID/', 'EpubType': '$ID/', 'ImageSpaceAfter': '0', 'CustomWidth': '$ID/'}),
             ('Properties', {}),
             ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
             ('ActualMetadataProperty',
             {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+            ('Image',
+            {'GradientFillAngle': '0', 'Space': '$ID/#Links_RGB', 'Self': 'article1u216', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]', 'LastUpdatedInterfaceChangeCount': '', 'ImageRenderingIntent': 'UseColorSettings', 'LocalDisplaySetting': 'Default', 'GradientFillStart': '0 0', 'Name': '$ID/', 'ItemTransform': '0.8544476494893585 0 0 0.8544476494893584 144.56692913385828 58.582677165354326', 'GradientFillHiliteAngle': '0', 'GradientFillHiliteLength': '0', 'ImageTypeName': '$ID/JPEG', 'EffectivePpi': '84 84', 'Visible': 'true', 'TargetInterfaceChangeCount': '', 'ActualPpi': '72 72'}),
+            ('Properties', {}),
+            ('Profile', {'type': 'string'}),
+            ('GraphicBounds', {'Bottom': '360', 'Top': '0', 'Right': '303', 'Left': '0'}),
+            ('TextWrapPreference',
+            {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
+            ('Properties', {}),
+            ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+            ('ContourOption',
+            {'ContourType': 'SameAsClipping', 'IncludeInsideEdges': 'false', 'ContourPathName': '$ID/'}),
+            ('MetadataPacketPreference', {}),
+            ('Properties', {}),
+            ('Contents', {}),
+            ('Link',
+            {'ImportPolicy': 'NoAutoImport', 'LinkImportStamp': 'file 129767622980000000 27644', 'CanPackage': 'true', 'LinkResourceModified': 'false', 'AssetID': '$ID/', 'ShowInUI': 'true', 'Self': 'article1u21a', 'LinkImportTime': '2014-09-24T14:47:22', 'LinkResourceSize': '0~6bfc', 'AssetURL': '$ID/', 'ExportPolicy': 'NoAutoExport', 'LinkResourceURI': 'file:/Users/stan/Dropbox/Projets/Slashdev/SimpleIDML/repos/git/simpleidml/tests/regressiontests/IDML/media/default.jpg', 'LinkImportModificationTime': '2012-03-21T01:11:38', 'CanUnembed': 'true', 'LinkClientID': '257', 'StoredState': 'Normal', 'LinkClassID': '35906', 'CanEmbed': 'true', 'LinkObjectModified': 'false', 'LinkResourceFormat': '$ID/JPEG'}),
+            ('ClippingPathSettings',
+            {'Index': '-1', 'ClippingType': 'None', 'AppliedPathName': '$ID/', 'RestrictToFrame': 'false', 'InvertPath': 'false', 'UseHighResolutionImage': 'true', 'InsetFrame': '0', 'IncludeInsideEdges': 'false', 'Threshold': '25', 'Tolerance': '2'}),
+            ('ImageIOPreference',
+            {'ApplyPhotoshopClippingPath': 'true', 'AlphaChannelName': '$ID/', 'AllowAutoEmbedding': 'true'}),
             ('TextFrame',
-            {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[Normal Text Frame]', 'Self': 'article1u185', 'GradientFillLength': '0', 'Locked': 'false', 'GradientStrokeHiliteLength': '0', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 329.480314960629896 148.34645669291330', 'ContentType': 'TextType', 'GradientFillHiliteAngle': '0', 'GradientStrokeLength': '0', 'GradientFillHiliteLength': '0', 'ParentStory': 'article1u188', 'GradientStrokeAngle': '0', 'Visible': 'true'}),
+            {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[Normal Text Frame]', 'Self': 'article1u185', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'Locked': 'false', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'GradientStrokeHiliteLength': '0', 'LastUpdatedInterfaceChangeCount': '', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 329.480314960629896 148.34645669291330', 'GradientStrokeLength': '0', 'GradientFillHiliteAngle': '0', 'ContentType': 'TextType', 'GradientFillHiliteLength': '0', 'ParentStory': 'article1u188', 'GradientStrokeAngle': '0', 'Visible': 'true', 'TargetInterfaceChangeCount': ''}),
             ('Properties', {}),
             ('PathGeometry', {}),
             ('GeometryPathType', {'PathOpen': 'false'}),
@@ -827,13 +848,20 @@ u"""<Root Self="FOOdi2">
             {'RightDirection': '182.83464566929132 -0.9448818897638205', 'Anchor': '182.83464566929132 -0.9448818897638205', 'LeftDirection': '182.83464566929132 -0.9448818897638205'}),
             ('PathPointType',
             {'RightDirection': '182.83464566929132 -19.842519685039377', 'Anchor': '182.83464566929132 -19.842519685039377', 'LeftDirection': '182.83464566929132 -19.842519685039377'}),
-            ('TextFramePreference', {'TextColumnFixedWidth': '258.89763779527556'}),
+            ('TextFramePreference',
+            {'UseMinimumHeightForAutoSizing': 'false', 'TextColumnFixedWidth': '258.89763779527556', 'TextColumnCount': '1', 'UseNoLineBreaksForAutoSizing': 'false', 'AutoSizingReferencePoint': 'CenterPoint', 'TextColumnMaxWidth': '0', 'AutoSizingType': 'Off', 'UseMinimumWidthForAutoSizing': 'false', 'MinimumWidthForAutoSizing': '0', 'MinimumHeightForAutoSizing': '0'}),
             ('TextWrapPreference',
             {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
             ('Properties', {}),
             ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+            ('ObjectExportOption',
+            {'GIFOptionsPalette': 'AdaptivePalette', 'JPEGOptionsFormat': 'BaselineEncoding', 'CustomImageAlignment': 'false', 'UseOriginalImage': 'false', 'CustomWidthType': 'DefaultWidth', 'ImagePageBreak': 'PageBreakBefore', 'AltTextSourceType': 'SourceXMLStructure', 'UseImagePageBreak': 'false', 'GIFOptionsInterlaced': 'true', 'ImageExportResolution': 'Ppi300', 'ImageSpaceBefore': '0', 'CustomHeightType': 'DefaultHeight', 'JPEGOptionsQuality': 'High', 'CustomLayout': 'false', 'ImageAlignment': 'AlignLeft', 'UseExistingImage': 'false', 'CustomLayoutType': 'AlignmentAndSpacing', 'ImageConversionType': 'JPEG', 'SpaceUnit': 'CssPixel', 'CustomImageConversion': 'false', 'ApplyTagType': 'TagFromStructure', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomAltText': '$ID/', 'CustomActualText': '$ID/', 'CustomHeight': '$ID/', 'EpubType': '$ID/', 'ImageSpaceAfter': '0', 'CustomWidth': '$ID/'}),
+            ('Properties', {}),
+            ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+            ('ActualMetadataProperty',
+            {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
             ('TextFrame',
-            {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[Normal Text Frame]', 'Self': 'article1u19c', 'GradientFillLength': '0', 'Locked': 'false', 'GradientStrokeHiliteLength': '0', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 390.425196850393686 216.37795275590547', 'ContentType': 'TextType', 'GradientFillHiliteAngle': '0', 'GradientStrokeLength': '0', 'GradientFillHiliteLength': '0', 'ParentStory': 'article1u19f', 'GradientStrokeAngle': '0', 'Visible': 'true'}),
+            {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[Normal Text Frame]', 'Self': 'article1u19c', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'Locked': 'false', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'GradientStrokeHiliteLength': '0', 'LastUpdatedInterfaceChangeCount': '', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 390.425196850393686 216.37795275590547', 'GradientStrokeLength': '0', 'GradientFillHiliteAngle': '0', 'ContentType': 'TextType', 'GradientFillHiliteLength': '0', 'ParentStory': 'article1u19f', 'GradientStrokeAngle': '0', 'Visible': 'true', 'TargetInterfaceChangeCount': ''}),
             ('Properties', {}),
             ('PathGeometry', {}),
             ('GeometryPathType', {'PathOpen': 'false'}),
@@ -847,13 +875,19 @@ u"""<Root Self="FOOdi2">
             ('PathPointType',
             {'RightDirection': '121.88976377952753 -64.25196850393701', 'Anchor': '121.88976377952753 -64.25196850393701', 'LeftDirection': '121.88976377952753 -64.25196850393701'}),
             ('TextFramePreference',
-            {'TextColumnCount': '2', 'TextColumnFixedWidth': '123.44881889763778'}),
+            {'UseMinimumHeightForAutoSizing': 'false', 'TextColumnFixedWidth': '123.44881889763778', 'TextColumnCount': '2', 'UseNoLineBreaksForAutoSizing': 'false', 'AutoSizingReferencePoint': 'CenterPoint', 'TextColumnMaxWidth': '0', 'AutoSizingType': 'Off', 'UseMinimumWidthForAutoSizing': 'false', 'MinimumWidthForAutoSizing': '0', 'MinimumHeightForAutoSizing': '0'}),
             ('TextWrapPreference',
             {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
             ('Properties', {}),
             ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+            ('ObjectExportOption',
+            {'GIFOptionsPalette': 'AdaptivePalette', 'JPEGOptionsFormat': 'BaselineEncoding', 'CustomImageAlignment': 'false', 'UseOriginalImage': 'false', 'CustomWidthType': 'DefaultWidth', 'ImagePageBreak': 'PageBreakBefore', 'AltTextSourceType': 'SourceXMLStructure', 'UseImagePageBreak': 'false', 'GIFOptionsInterlaced': 'true', 'ImageExportResolution': 'Ppi300', 'ImageSpaceBefore': '0', 'CustomHeightType': 'DefaultHeight', 'JPEGOptionsQuality': 'High', 'CustomLayout': 'false', 'ImageAlignment': 'AlignLeft', 'UseExistingImage': 'false', 'CustomLayoutType': 'AlignmentAndSpacing', 'ImageConversionType': 'JPEG', 'SpaceUnit': 'CssPixel', 'CustomImageConversion': 'false', 'ApplyTagType': 'TagFromStructure', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomAltText': '$ID/', 'CustomActualText': '$ID/', 'CustomHeight': '$ID/', 'EpubType': '$ID/', 'ImageSpaceAfter': '0', 'CustomWidth': '$ID/'}),
+            ('Properties', {}),
+            ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+            ('ActualMetadataProperty',
+            {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
             ('TextFrame',
-            {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]', 'Self': 'article1u1d4', 'GradientFillLength': '0', 'Locked': 'false', 'GradientStrokeHiliteLength': '0', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 107.716535433070840 -42.51968503937020', 'ContentType': 'TextType', 'GradientFillHiliteAngle': '0', 'GradientStrokeLength': '0', 'GradientFillHiliteLength': '0', 'ParentStory': 'article1u1db', 'GradientStrokeAngle': '0', 'Visible': 'true'}),
+            {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]', 'Self': 'article1u1d4', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'Locked': 'false', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'GradientStrokeHiliteLength': '0', 'LastUpdatedInterfaceChangeCount': '', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 107.716535433070840 -42.51968503937020', 'GradientStrokeLength': '0', 'GradientFillHiliteAngle': '0', 'ContentType': 'TextType', 'GradientFillHiliteLength': '0', 'ParentStory': 'article1u1db', 'GradientStrokeAngle': '0', 'Visible': 'true', 'TargetInterfaceChangeCount': ''}),
             ('Properties', {}),
             ('PathGeometry', {}),
             ('GeometryPathType', {'PathOpen': 'false'}),
@@ -866,56 +900,18 @@ u"""<Root Self="FOOdi2">
             {'RightDirection': '409.13385826771633 310.8661417322836', 'Anchor': '409.13385826771633 310.8661417322836', 'LeftDirection': '409.13385826771633 310.8661417322836'}),
             ('PathPointType',
             {'RightDirection': '409.13385826771633 19.84251968503935', 'Anchor': '409.13385826771633 19.84251968503935', 'LeftDirection': '409.13385826771633 19.84251968503935'}),
-            ('TextFramePreference', {'TextColumnFixedWidth': '267.4015748031494'}),
+            ('TextFramePreference',
+            {'UseMinimumHeightForAutoSizing': 'false', 'TextColumnFixedWidth': '267.4015748031494', 'TextColumnCount': '1', 'UseNoLineBreaksForAutoSizing': 'false', 'AutoSizingReferencePoint': 'CenterPoint', 'TextColumnMaxWidth': '0', 'AutoSizingType': 'Off', 'UseMinimumWidthForAutoSizing': 'false', 'MinimumWidthForAutoSizing': '0', 'MinimumHeightForAutoSizing': '0'}),
             ('TextWrapPreference',
             {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
             ('Properties', {}),
-            ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'})
-        ])
-
-        self.assertEqual([(elt.tag, elt.attrib) for elt in main_idml_file.spreads_objects[1].dom.iter()], [
-            ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
-             {'DOMVersion': '7.5'}),
-            ('Spread',
-             {'PageTransitionDirection': 'NotApplicable', 'BindingLocation': '1', 'PageTransitionDuration': 'Medium', 'ShowMasterItems': 'true', 'PageTransitionType': 'None', 'PageCount': '2', 'Self': 'mainubc', 'AllowPageShuffle': 'true', 'ItemTransform': '1 0 0 1 0 939.6850393700788', 'FlattenerOverride': 'Default'}),
-            ('FlattenerPreference',
-             {'ConvertAllTextToOutlines': 'false', 'GradientAndMeshResolution': '150', 'ConvertAllStrokesToOutlines': 'false', 'ClipComplexRegions': 'false', 'LineArtAndTextResolution': '300'}),
+            ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+            ('ObjectExportOption',
+            {'GIFOptionsPalette': 'AdaptivePalette', 'JPEGOptionsFormat': 'BaselineEncoding', 'CustomImageAlignment': 'false', 'UseOriginalImage': 'false', 'CustomWidthType': 'DefaultWidth', 'ImagePageBreak': 'PageBreakBefore', 'AltTextSourceType': 'SourceXMLStructure', 'UseImagePageBreak': 'false', 'GIFOptionsInterlaced': 'true', 'ImageExportResolution': 'Ppi300', 'ImageSpaceBefore': '0', 'CustomHeightType': 'DefaultHeight', 'JPEGOptionsQuality': 'High', 'CustomLayout': 'false', 'ImageAlignment': 'AlignLeft', 'UseExistingImage': 'false', 'CustomLayoutType': 'AlignmentAndSpacing', 'ImageConversionType': 'JPEG', 'SpaceUnit': 'CssPixel', 'CustomImageConversion': 'false', 'ApplyTagType': 'TagFromStructure', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomAltText': '$ID/', 'CustomActualText': '$ID/', 'CustomHeight': '$ID/', 'EpubType': '$ID/', 'ImageSpaceAfter': '0', 'CustomWidth': '$ID/'}),
             ('Properties', {}),
-            ('RasterVectorBalance', {'type': 'double'}),
-            ('Page',
-             {'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName', 'Name': '2', 'Self': 'mainuc1', 'UseMasterGrid': 'true', 'MasterPageTransform': '1 0 0 1 0 0', 'TabOrder': '', 'OverrideList': '', 'ItemTransform': '1 0 0 1 -566.9291338582677 -379.8425196850394', 'GridStartingPoint': 'TopOutside', 'GeometricBounds': '0 0 759.6850393700788 566.9291338582677', 'AppliedMaster': 'uca'}),
-            ('Properties', {}),
-            ('Descriptor', {'type': 'list'}),
-            ('ListItem', {'type': 'string'}),
-            ('ListItem', {'type': 'enumeration'}),
-            ('ListItem', {'type': 'boolean'}),
-            ('ListItem', {'type': 'boolean'}),
-            ('ListItem', {'type': 'long'}),
-            ('ListItem', {'type': 'string'}),
-            ('PageColor', {'type': 'enumeration'}),
-            ('MarginPreference',
-             {'ColumnCount': '1', 'Right': '36', 'Bottom': '36', 'Top': '36', 'ColumnGutter': '12', 'ColumnsPositions': '0 494.92913385826773', 'ColumnDirection': 'Horizontal', 'Left': '36'}),
-            ('GridDataInformation',
-             {'LineAki': '9', 'FontStyle': 'Regular', 'PointSize': '12', 'CharacterAki': '0', 'GridAlignment': 'AlignEmCenter', 'LineAlignment': 'LeftOrTopLineJustify', 'HorizontalScale': '100', 'CharacterAlignment': 'AlignEmCenter', 'VerticalScale': '100'}),
-            ('Properties', {}),
-            ('AppliedFont', {'type': 'string'}),
-            ('Page',
-             {'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName', 'Name': '3', 'Self': 'mainuc2', 'UseMasterGrid': 'true', 'MasterPageTransform': '1 0 0 1 0 0', 'TabOrder': '', 'OverrideList': '', 'ItemTransform': '1 0 0 1 0 -379.8425196850394', 'GridStartingPoint': 'TopOutside', 'GeometricBounds': '0 0 759.6850393700788 566.9291338582677', 'AppliedMaster': 'uca'}),
-            ('Properties', {}),
-            ('Descriptor', {'type': 'list'}),
-            ('ListItem', {'type': 'string'}),
-            ('ListItem', {'type': 'enumeration'}),
-            ('ListItem', {'type': 'boolean'}),
-            ('ListItem', {'type': 'boolean'}),
-            ('ListItem', {'type': 'long'}),
-            ('ListItem', {'type': 'string'}),
-            ('PageColor', {'type': 'enumeration'}),
-            ('MarginPreference',
-             {'ColumnCount': '1', 'Right': '36', 'Bottom': '36', 'Top': '36', 'ColumnGutter': '12', 'ColumnsPositions': '0 494.92913385826773', 'ColumnDirection': 'Horizontal', 'Left': '36'}),
-            ('GridDataInformation',
-             {'LineAki': '9', 'FontStyle': 'Regular', 'PointSize': '12', 'CharacterAki': '0', 'GridAlignment': 'AlignEmCenter', 'LineAlignment': 'LeftOrTopLineJustify', 'HorizontalScale': '100', 'CharacterAlignment': 'AlignEmCenter', 'VerticalScale': '100'}),
-            ('Properties', {}),
-            ('AppliedFont', {'type': 'string'})
+            ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+            ('ActualMetadataProperty',
+            {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'})
         ])
 
         self.assertEqual([(elt.tag, elt.attrib) for elt in main_idml_file.spreads_objects[2].dom.iter()], [
@@ -947,29 +943,28 @@ u"""<Root Self="FOOdi2">
         ])
 
         # The XML Structure has integrated the new file.
-        self.assertXMLEqual(unicode(main_idml_file.xml_structure_pretty()),
-u"""<Root Self="maindi2">
-  <article XMLContent="mainu102" Self="maindi2i3">
-    <Story XMLContent="mainue4" Self="maindi2i3i1">
+        self.assertXMLEqual(unicode(main_idml_file.xml_structure_pretty()), """<Root Self="maindi2">
+  <article Self="maindi2i3" XMLContent="mainu102">
+    <Story Self="maindi2i3i1" XMLContent="mainue4">
       <title Self="maindi2i3i1i1"/>
       <subtitle Self="maindi2i3i1i2"/>
     </Story>
-    <content XMLContent="mainu11b" Self="maindi2i3i2"/>
-    <illustration XMLContent="mainu135" Self="maindi2i3i3"/>
-    <description XMLContent="mainu139" Self="maindi2i3i4"/>
+    <content Self="maindi2i3i2" XMLContent="mainu11b"/>
+    <illustration Self="maindi2i3i3" XMLContent="mainu135"/>
+    <description Self="maindi2i3i4" XMLContent="mainu139"/>
   </article>
-  <article XMLContent="mainudb" Self="maindi2i4"/>
-  <article XMLContent="mainudd" Self="maindi2i5">
-    <module XMLContent="article1u1db" Self="article1di3i12">
-      <main_picture XMLContent="article1u182" Self="article1di3i12i1"/>
-      <headline XMLContent="article1u188" Self="article1di3i12i2"/>
-      <Story XMLContent="article1u19f" Self="article1di3i12i3">
+  <article Self="maindi2i4" XMLContent="mainudb"/>
+  <article Self="maindi2i5" XMLContent="mainudd">
+    <module Self="article1di3i12" XMLContent="article1u1db">
+      <main_picture Self="article1di3i12i1" XMLContent="article1u216"/>
+      <headline Self="article1di3i12i2" XMLContent="article1u188"/>
+      <Story Self="article1di3i12i3" XMLContent="article1u19f">
         <article Self="article1di3i12i3i2"/>
         <informations Self="article1di3i12i3i1"/>
       </Story>
     </module>
   </article>
-  <advertise XMLContent="mainudf" Self="maindi2i6"/>
+  <advertise Self="maindi2i6" XMLContent="mainudf"/>
 </Root>
 """)
 
@@ -1006,8 +1001,8 @@ u"""<Root Self="maindi2">
              'article1ObjectStyle/$ID/[Normal Grid]']])
 
         # Style mapping.
-        self.assertEqual(main_idml_file.style_mapping.tostring(),
-                         '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">                   <XMLImportMap Self="article1di206" MarkupTag="XMLTag/MyBoldTag" MappedStyle="article1CharacterStyle/MyBoldStyle"/>\n</idPkg:Mapping>\n')
+        self.assertEqual(main_idml_file.style_mapping.character_style_mapping,
+                         {'MyBoldTag': 'article1CharacterStyle/MyBoldStyle'})
 
         # Graphics.
         self.assertTrue(main_idml_file.graphic.dom.xpath(".//Swatch[@Self='article1Swatch/None']"))
