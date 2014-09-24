@@ -549,8 +549,6 @@ u"""<Root Self="FOOdi2">
         self.assertEqual(idml_file.designmap.layer_nodes[0].get("Name"), "Layer 1 - 23")
 
     def test_insert_idml(self):
-        # TODO: make another test where the inserted article is a part a more complex page.
-        # So that we ensure that we only insert what is needed (Stories etc).
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                      os.path.join(OUTPUT_DIR, "4-pages-insert-article-1-photo.idml"))
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo.idml"),
@@ -577,9 +575,11 @@ u"""<Root Self="FOOdi2">
                                                   'Stories/Story_mainudd.xml',
                                                   'Stories/Story_mainue4.xml'])
 
+        # Spreads
         self.assertEqual(main_idml_file.spreads, ['Spreads/Spread_mainub6.xml',
                                                   'Spreads/Spread_mainubc.xml',
                                                   'Spreads/Spread_mainuc3.xml'])
+
         self.assertEqual([(elt.tag, elt.attrib) for elt in main_idml_file.spreads_objects[0].dom.iter()], [
             ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
             {'DOMVersion': '7.5'}),
@@ -913,6 +913,131 @@ u"""<Root Self="FOOdi2">
             ('ActualMetadataProperty',
             {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'})
         ])
+
+        self.assertEqual([(elt.tag, elt.attrib) for elt in main_idml_file.spreads_objects[2].dom.iter()], [
+            ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
+              {'DOMVersion': '7.5'}),
+             ('Spread',
+              {'PageTransitionDirection': 'NotApplicable', 'BindingLocation': '1', 'PageTransitionDuration': 'Medium', 'ShowMasterItems': 'true', 'PageTransitionType': 'None', 'PageCount': '1', 'Self': 'mainuc3', 'AllowPageShuffle': 'true', 'ItemTransform': '1 0 0 1 0 1879.3700787401576', 'FlattenerOverride': 'Default'}),
+             ('FlattenerPreference',
+              {'ConvertAllTextToOutlines': 'false', 'GradientAndMeshResolution': '150', 'ConvertAllStrokesToOutlines': 'false', 'ClipComplexRegions': 'false', 'LineArtAndTextResolution': '300'}),
+             ('Properties', {}),
+             ('RasterVectorBalance', {'type': 'double'}),
+             ('Page',
+              {'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName', 'Name': '4', 'Self': 'mainuc8', 'UseMasterGrid': 'true', 'MasterPageTransform': '1 0 0 1 0 0', 'TabOrder': '', 'OverrideList': '', 'ItemTransform': '1 0 0 1 -566.9291338582677 -379.8425196850394', 'GridStartingPoint': 'TopOutside', 'GeometricBounds': '0 0 759.6850393700788 566.9291338582677', 'AppliedMaster': 'uca'}),
+             ('Properties', {}),
+             ('Descriptor', {'type': 'list'}),
+             ('ListItem', {'type': 'string'}),
+             ('ListItem', {'type': 'enumeration'}),
+             ('ListItem', {'type': 'boolean'}),
+             ('ListItem', {'type': 'boolean'}),
+             ('ListItem', {'type': 'long'}),
+             ('ListItem', {'type': 'string'}),
+             ('PageColor', {'type': 'enumeration'}),
+             ('MarginPreference',
+              {'ColumnCount': '1', 'Right': '36', 'Bottom': '36', 'Top': '36', 'ColumnGutter': '12', 'ColumnsPositions': '0 494.92913385826773', 'ColumnDirection': 'Horizontal', 'Left': '36'}),
+             ('GridDataInformation',
+              {'LineAki': '9', 'FontStyle': 'Regular', 'PointSize': '12', 'CharacterAki': '0', 'GridAlignment': 'AlignEmCenter', 'LineAlignment': 'LeftOrTopLineJustify', 'HorizontalScale': '100', 'CharacterAlignment': 'AlignEmCenter', 'VerticalScale': '100'}),
+             ('Properties', {}),
+             ('AppliedFont', {'type': 'string'})
+        ])
+
+        # The XML Structure has integrated the new file.
+        self.assertXMLEqual(unicode(main_idml_file.xml_structure_pretty()), """<Root Self="maindi2">
+  <article Self="maindi2i3" XMLContent="mainu102">
+    <Story Self="maindi2i3i1" XMLContent="mainue4">
+      <title Self="maindi2i3i1i1"/>
+      <subtitle Self="maindi2i3i1i2"/>
+    </Story>
+    <content Self="maindi2i3i2" XMLContent="mainu11b"/>
+    <illustration Self="maindi2i3i3" XMLContent="mainu135"/>
+    <description Self="maindi2i3i4" XMLContent="mainu139"/>
+  </article>
+  <article Self="maindi2i4" XMLContent="mainudb"/>
+  <article Self="maindi2i5" XMLContent="mainudd">
+    <module Self="article1di3i12" XMLContent="article1u1db">
+      <main_picture Self="article1di3i12i1" XMLContent="article1u216"/>
+      <headline Self="article1di3i12i2" XMLContent="article1u188"/>
+      <Story Self="article1di3i12i3" XMLContent="article1u19f">
+        <article Self="article1di3i12i3i2"/>
+        <informations Self="article1di3i12i3i1"/>
+      </Story>
+    </module>
+  </article>
+  <advertise Self="maindi2i6" XMLContent="mainudf"/>
+</Root>
+""")
+
+        # Designmap.xml.
+        designmap = etree.fromstring(main_idml_file.open("designmap.xml", mode="r").read())
+        self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
+                         "mainue4 mainu102 mainu11b mainu139 mainu9c mainudd article1u1db article1u188 article1u19f")
+        self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
+                             namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})), 8)
+
+        # Styles.
+        styles = [[style.get("Self") for style in style_group.iterchildren()]
+                  for style_group in main_idml_file.style_groups]
+        self.assertEqual(styles, [
+            ['mainCharacterStyle/$ID/[No character style]',
+             'article1CharacterStyle/$ID/[No character style]',
+             'article1CharacterStyle/MyBoldStyle'],
+            ['mainParagraphStyle/$ID/[No paragraph style]',
+             'mainParagraphStyle/$ID/NormalParagraphStyle',
+             'article1ParagraphStyle/$ID/[No paragraph style]',
+             'article1ParagraphStyle/$ID/NormalParagraphStyle'],
+            ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
+            ['mainTableStyle/$ID/[No table style]',
+             'mainTableStyle/$ID/[Basic Table]',
+             'article1TableStyle/$ID/[No table style]',
+             'article1TableStyle/$ID/[Basic Table]'],
+            ['mainObjectStyle/$ID/[None]',
+             'mainObjectStyle/$ID/[Normal Graphics Frame]',
+             'mainObjectStyle/$ID/[Normal Text Frame]',
+             'mainObjectStyle/$ID/[Normal Grid]',
+             'article1ObjectStyle/$ID/[None]',
+             'article1ObjectStyle/$ID/[Normal Graphics Frame]',
+             'article1ObjectStyle/$ID/[Normal Text Frame]',
+             'article1ObjectStyle/$ID/[Normal Grid]']])
+
+        # Style mapping.
+        self.assertEqual(main_idml_file.style_mapping.character_style_mapping,
+                         {'MyBoldTag': 'article1CharacterStyle/MyBoldStyle'})
+
+        # Graphics.
+        self.assertTrue(main_idml_file.graphic.dom.xpath(".//Swatch[@Self='article1Swatch/None']"))
+
+    def test_insert_idml_with_complex_source(self):
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
+                     os.path.join(OUTPUT_DIR, "4-pages-insert-article-1-photo-complex.idml"))
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "2articles-1photo.idml"),
+                     os.path.join(OUTPUT_DIR, "2articles-1photo.idml"))
+
+        main_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages-insert-article-1-photo-complex.idml"))
+        article_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "2articles-1photo.idml"))
+
+        # Always start by prefixing packages to avoid collision.
+        main_idml_file = main_idml_file.prefix("main")
+        article_idml_file = article_idml_file.prefix("article1")
+
+        main_idml_file = main_idml_file.insert_idml(article_idml_file,
+                                                    at="/Root/article[3]",
+                                                    only="/Root/module[1]")
+
+        # Stories.
+        self.assertEqual(main_idml_file.stories, ['Stories/Story_article1u188.xml',
+                                                  'Stories/Story_article1u19f.xml',
+                                                  'Stories/Story_article1u1db.xml',
+                                                  'Stories/Story_mainu102.xml',
+                                                  'Stories/Story_mainu11b.xml',
+                                                  'Stories/Story_mainu139.xml',
+                                                  'Stories/Story_mainudd.xml',
+                                                  'Stories/Story_mainue4.xml'])
+
+        # Spreads
+        self.assertEqual(main_idml_file.spreads, ['Spreads/Spread_mainub6.xml',
+                                                  'Spreads/Spread_mainubc.xml',
+                                                  'Spreads/Spread_mainuc3.xml'])
 
         self.assertEqual([(elt.tag, elt.attrib) for elt in main_idml_file.spreads_objects[2].dom.iter()], [
             ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
