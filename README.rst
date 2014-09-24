@@ -127,7 +127,7 @@ Some attributes are *lxml.etree* Elements or Documents::
     </Root>
     
 
-`xml_structure` attribute is a representation of the XML Structure of your InDesign XML-ready
+``xml_structure`` attribute is a representation of the XML Structure of your InDesign XML-ready
 document (The one you want to use to populate the content with data from an external XML file
 having the same structure).
 
@@ -149,7 +149,7 @@ Insert elements
 Using the XML Structure you can ask SimpleIDML to insert into a document at a XML tag the content
 of another XML tag from another document. The tag paths are expressed using XPath_ syntax.
 Note that you should always make a copy of your idml files before altering them with
-`shutil.copy2(src, dst)` for instance and prefix your document before using `insert_idml()`
+``shutil.copy2(src, dst)`` for instance and prefix your document before using ``insert_idml()``
 to avoid reference collisions.
 
 ::
@@ -284,12 +284,12 @@ Exporting as XML:
 
 You can as well import XML file into your InDesign® documents. The following rules applies:
 
-- A node having the attribute `simpleidml-setcontent="false"` will not update the content of the
+- A node having the attribute ``simpleidml-setcontent="false"`` will not update the content of the
   corresponding element into the idml document (but its children will be updated).
-- A node having the attribute `simpleidml-ignorecontent"true"` will not update the content of the
+- A node having the attribute ``simpleidml-ignorecontent"true"`` will not update the content of the
   corresponding element into the idml document **and** its children.
 - In a *ignorecontent* context the content of a child node can be turned on with the
-  `simpleidml-forcecontent="true"` flag.
+  ``simpleidml-forcecontent="true"`` flag.
 - Images references are passed by the *href* attribute. An empty value will remove the
   corresponding page items into the document.
 - Nested tag will be created if they are mapped with a *character-style*.
