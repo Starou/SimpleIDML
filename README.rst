@@ -347,6 +347,16 @@ and so generate several exports in a row (if performances matter):
 Revisions
 =========
 
+0.91.6
+------
+
+New features
+''''''''''''
+
+Add the ``simpleidml-ignorecontent`` and ``simpleidml-forcecontent`` tags (XML attributes) allowing one
+to carefully exclude a node and its children during the import XML process.
+
+
 0.91.3
 ------
 
