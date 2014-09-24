@@ -284,12 +284,16 @@ Exporting as XML:
 
 You can as well import XML file into your InDesign® documents. The following rules applies:
 
-- A node having the attribute *simpleidml-setcontent="false"* will not impact the corresponding
-  element into the idml document (but its children will be) ;
-- images references are passed by the *href* attribute. An empty value will remove the
-  corresponding page items into the document ;
-- nested tag will be created if they are mapped with a character-style ;
-- the style applied to the newly created tag is a combinaison of the parent character-styles and
+- A node having the attribute *simpleidml-setcontent="false"* will not update the content of the
+  corresponding element into the idml document (but its children will be updated).
+- A node having the attribute *simpleidml-ignorecontent"true"* will not update the content of the
+  corresponding element into the idml document **and** its children.
+- In a *ignorecontent* context the content of a child node can be turned on with the
+  *simpleidml-forcecontent="true"* flag.
+- Images references are passed by the *href* attribute. An empty value will remove the
+  corresponding page items into the document.
+- Nested tag will be created if they are mapped with a *character-style*.
+- The style applied to the newly created tag is a combinaison of the parent character-styles and
   the mapped one.
 
 Please take a look into the tests for in-depth examples.
