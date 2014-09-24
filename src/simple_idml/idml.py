@@ -15,7 +15,7 @@ from simple_idml.components import (Designmap, Spread, Story, BackingStory,
 from simple_idml.decorators import use_working_copy
 from simple_idml.utils import increment_filename, prefix_content_filename, tree_to_etree_dom
 
-from simple_idml import BACKINGSTORY
+from simple_idml import BACKINGSTORY, SETCONTENT_TAG, IGNORECONTENT_TAG, FORCECONTENT_TAG
 
 STORIES_DIRNAME = "Stories"
 
@@ -381,14 +381,14 @@ class IDMLPackage(zipfile.ZipFile):
         def _import_node(source_node, at=None, element_id=None, story=None, ignorecontent_parent_flag=False):
             element_id = element_id or self.xml_structure.xpath(at)[0].get("Self")
             items = dict(source_node.items())
-            if ignorecontent_parent_flag and not (items.get("simpleidml-forcecontent") == "true"):
+            if ignorecontent_parent_flag and not (items.get(FORCECONTENT_TAG) == "true"):
                 return
             if items:
                 _set_attributes(at, element_id, items)
-            if not (items.get("simpleidml-setcontent") == "false"):
+            if not (items.get(SETCONTENT_TAG) == "false"):
                 _set_content(at, element_id, source_node.text or "", story)
 
-            ignorecontent = (items.get("simpleidml-ignorecontent") == "true")
+            ignorecontent = (items.get(IGNORECONTENT_TAG) == "true")
             source_node_children = source_node.getchildren()
             if len(source_node_children):
                 source_node_children_tags = [n.tag for n in source_node_children]
