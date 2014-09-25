@@ -316,7 +316,7 @@ class Story(IDMLXMLFile):
         self.name = name
         self.node_name = "Story"
         self._node = None
-    
+
     @classmethod
     def create(cls, idml_package, story_id, xml_element_id, xml_element_tag, working_copy_path):
         dirname = os.path.join(working_copy_path, STORIES_DIRNAME)
@@ -804,7 +804,7 @@ class XMLElement(Proxy):
         properties_node = etree.SubElement(style_range_node, "Properties")
 
         for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization"):
-            if parent_style_node.get(attr) is not None: 
+            if parent_style_node.get(attr) is not None:
                 style_range_node.set(attr, parent_style_node.get(attr))
 
         for attr in ("Leading", "AppliedFont"):

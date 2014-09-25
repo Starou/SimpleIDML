@@ -674,18 +674,20 @@ class IDMLPackage(zipfile.ZipFile):
     def _add_spread_elements_from_idml(self, idml_package, at, only, translation):
         """ Append idml_package spread elements into self.spread[0] <Spread> node. """
 
-        # There should be only one spread in the idml_package.
-        spread_src = idml_package.spreads_objects[0]
         spread_dest_filename = self.get_spread_by_xpath(at)
         spread_dest = Spread(self, spread_dest_filename, self.working_copy_path)
         spread_dest_elt = spread_dest.dom.xpath("./Spread")[0]
 
-        for child in spread_src.dom.xpath("./Spread")[0].iterchildren():
-            if child.tag in ["Page", "FlattenerPreference"]:
+        for node in idml_package.xml_structure.xpath(only)[0].iter():
+            if node.get("XMLContent") is None:
                 continue
-            child_copy = copy.deepcopy(child)
-            self.apply_translation_to_element(child_copy, translation)
-            spread_dest_elt.append(child_copy)
+            spread_elt = idml_package.get_spread_elem_by_id(node.get("XMLContent"))
+            # Image element are included in a Rectangle.
+            if spread_elt.tag == "Image":
+                spread_elt = spread_elt.getparent()
+            spread_elt_copy = copy.deepcopy(spread_elt)
+            self.apply_translation_to_element(spread_elt_copy, translation)
+            spread_dest_elt.append(spread_elt_copy)
         spread_dest.synchronize()
         self.init_lazy_references()
 
@@ -846,17 +848,42 @@ class IDMLPackage(zipfile.ZipFile):
         return new_spread
 
     def get_spread_object_by_xpath(self, xpath):
+        elt_id = self.xml_structure.xpath(xpath)[0].get("XMLContent")
+        return self.get_spread_object_by_id(elt_id)
+
+    def get_spread_object_by_id(self, elt_id):
+        """elt_id is the `XMLContent' attribute value in the xml_structure (Stories).
+
+        Spread element matches Story one with the ParentStory or the Self attribute value."""
+
         result = None
-        ref = self.xml_structure.xpath(xpath)[0].get("XMLContent")
         for spread in self.spreads_objects:
             if (
-                spread.get_element_by_id(ref, tag="*") is not None or
-                spread.get_element_by_id(ref, tag="*", attr="ParentStory") is not None
+                spread.get_element_by_id(elt_id, tag="*") is not None or
+                spread.get_element_by_id(elt_id, tag="*", attr="ParentStory") is not None
             ):
                 result = spread
+            # FIXME: That's ugly. return spread here ?
             if result:
                 break
         return result
+
+    def get_spread_elem_by_xpath(self, xpath):
+        """Return the spread etree.Element matching the xml_structure's xpath. """
+        spread = self.get_spread_object_by_xpath(xpath)
+        elt_id = self.xml_structure.xpath(xpath)[0].get("XMLContent")
+        elt = spread.get_element_by_id(elt_id, tag="*")
+        if elt is None:
+            elt = spread.get_element_by_id(elt_id, tag="*", attr="ParentStory")
+        return elt
+
+    def get_spread_elem_by_id(self, elt_id):
+        """Return the spread etree.Element designed by XMLContent value. """
+        spread = self.get_spread_object_by_id(elt_id)
+        elt = spread.get_element_by_id(elt_id, tag="*")
+        if elt is None:
+            elt = spread.get_element_by_id(elt_id, tag="*", attr="ParentStory")
+        return elt
 
     def get_spread_by_xpath(self, xpath):
         spread = self.get_spread_object_by_xpath(xpath)
@@ -897,15 +924,6 @@ class IDMLPackage(zipfile.ZipFile):
 
     def get_element_content_id_by_xpath(self, xpath):
         return self.xml_structure.xpath(xpath)[0].get("XMLContent")
-
-    def get_spread_elem_by_xpath(self, xpath):
-        """Return the spread etree.Element designed by XMLElement xpath. """
-        spread = self.get_spread_object_by_xpath(xpath)
-        elt_id = self.xml_structure.xpath(xpath)[0].get("XMLContent")
-        elt = spread.get_element_by_id(elt_id, tag="*")
-        if elt is None:
-            elt = spread.get_element_by_id(elt_id, tag="*", attr="ParentStory")
-        return elt
 
     def get_elem_point_position(self, elem, point_index=0):
         point = elem.xpath("Properties/PathGeometry/GeometryPathType/PathPointArray/PathPointType")[point_index]

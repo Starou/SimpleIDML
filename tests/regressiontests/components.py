@@ -269,16 +269,8 @@ class StyleTestCase(unittest.TestCase):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), mode="r")
         style = Style(idml_file)
         style_node = style.get_style_node_by_name("CharacterStyle/bold")
-        self.assertEqual(etree.tostring(style_node, pretty_print=True).replace("\t", " "),
-# Don't remove trailing space !
-"""<CharacterStyle xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" Self="CharacterStyle/bold" Imported="false" KeyboardShortcut="0 0" Name="bold" FontStyle="Bold">
-   <Properties>
-    <BasedOn type="string">$ID/[No character style]</BasedOn>
-    <PreviewColor type="enumeration">Nothing</PreviewColor>
-   </Properties>
-  </CharacterStyle>
-  
-""")
+        self.assertEqual(etree.tostring(style_node, pretty_print=True).replace("\t", " ").replace("\n", ""),
+                         """<CharacterStyle xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" Self="CharacterStyle/bold" Imported="false" KeyboardShortcut="0 0" Name="bold" FontStyle="Bold">   <Properties>    <BasedOn type="string">$ID/[No character style]</BasedOn>    <PreviewColor type="enumeration">Nothing</PreviewColor>   </Properties>  </CharacterStyle>  """)
 
 
 class StyleMappingTestCase(unittest.TestCase):
@@ -286,9 +278,9 @@ class StyleMappingTestCase(unittest.TestCase):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), mode="r")
         style_mapping = StyleMapping(idml_file)
         self.assertEqual(
-            [line.strip() for line in style_mapping.tostring().split("\n")], 
+            [line.strip() for line in style_mapping.tostring().split("\n")],
             ["<?xml version='1.0' encoding='UTF-8' standalone='yes'?>",
-             '<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">',
+             '<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="10.0">',
              '<XMLImportMap Self="did2" MarkupTag="XMLTag/bold" MappedStyle="CharacterStyle/bold"/>',
              '<XMLImportMap Self="di13f" MarkupTag="XMLTag/italique" MappedStyle="CharacterStyle/italique"/>',
              '<XMLImportMap Self="di141" MarkupTag="XMLTag/sup" MappedStyle="CharacterStyle/sup"/>',
@@ -355,7 +347,7 @@ class XMLElementTestCase(unittest.TestCase):
         self.assertEqual(picture_elt.get_attribute("bar"), "hello")
 
         # Set multiples attributes at once.
-        picture_elt.set_attributes({"href": "file:///maison.jpg", 
+        picture_elt.set_attributes({"href": "file:///maison.jpg",
                                     "style": "fancy"})
         self.assertEqual(picture_elt.get_attribute("href"), "file:///maison.jpg")
         self.assertEqual(picture_elt.get_attribute("style"), "fancy")
@@ -442,7 +434,7 @@ class XMLElementTestCase(unittest.TestCase):
                         <AppliedFont type="string">Adobe Garamond</AppliedFont>
                     </Properties>
 </CharacterStyleRange>
-""")                         
+""")
 
         # Style specify the font style and size : parent font-face is added.
         style_node = etree.fromstring("""
@@ -460,7 +452,7 @@ class XMLElementTestCase(unittest.TestCase):
                         <AppliedFont type="string">Adobe Garamond</AppliedFont>
                     </Properties>
 </CharacterStyleRange>
-""")                         
+""")
 
         # Style specify the font style, font-face and size.
         style_node = etree.fromstring("""
@@ -478,12 +470,12 @@ class XMLElementTestCase(unittest.TestCase):
   <Properties><Leading type="unit">10</Leading>
                         </Properties>
 </CharacterStyleRange>
-""")                         
+""")
 
     def test_get_character_style_range(self):
         elt = XMLElement(etree.fromstring("""
             <XMLElement Self="di3i4i1i2i2i2" MarkupTag="XMLTag/texte">
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/MyFancyStyle" 
+                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/MyFancyStyle"
                                           FontStyle="Semibold" PointSize="9" HorizontalScale="90" Tracking="-30">
                     <Properties>
                         <Leading type="unit">10</Leading>
@@ -491,7 +483,7 @@ class XMLElementTestCase(unittest.TestCase):
                     </Properties>
                     <Content>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </Content>
                 </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" 
+                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
                                           FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
                     <Properties>
                         <Leading type="unit">10</Leading>
