@@ -1511,6 +1511,38 @@ u"""<Root Self="FOOdi2">
         # Graphics.
         self.assertTrue(main_idml_file.graphic.dom.xpath(".//Swatch[@Self='article1Swatch/None']"))
 
+    def test_insert_idml_without_picture(self):
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
+                     os.path.join(OUTPUT_DIR, "4-pages-insert-article-0-photo-complex.idml"))
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "2articles-0photo.idml"),
+                     os.path.join(OUTPUT_DIR, "2articles-0photo.idml"))
+
+        main_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages-insert-article-0-photo-complex.idml"))
+        article_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "2articles-0photo.idml"))
+
+        # Always start by prefixing packages to avoid collision.
+        main_idml_file = main_idml_file.prefix("main")
+        article_idml_file = article_idml_file.prefix("article1")
+
+        main_idml_file = main_idml_file.insert_idml(article_idml_file,
+                                                    at="/Root/article[3]",
+                                                    only="/Root/module[1]")
+
+        # Stories.
+        self.assertEqual(main_idml_file.stories, ['Stories/Story_article1u188.xml',
+                                                  'Stories/Story_article1u19f.xml',
+                                                  'Stories/Story_article1u1db.xml',
+                                                  'Stories/Story_mainu102.xml',
+                                                  'Stories/Story_mainu11b.xml',
+                                                  'Stories/Story_mainu139.xml',
+                                                  'Stories/Story_mainudd.xml',
+                                                  'Stories/Story_mainue4.xml'])
+
+        # Spreads
+        self.assertEqual(main_idml_file.spreads, ['Spreads/Spread_mainub6.xml',
+                                                  'Spreads/Spread_mainubc.xml',
+                                                  'Spreads/Spread_mainuc3.xml'])
+
     def test_remove_content(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_imported-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml"))
