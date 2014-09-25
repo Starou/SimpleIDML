@@ -334,7 +334,7 @@ u"""<Root Self="di2">
         self.assertXMLEqual(xml,
 """<Root>
   <module>
-    <main_picture href="file:///steve.jpg"/>
+    <main_picture href="file:../../IDML/media/bouboune.jpg"/>
     <headline>The Life Aquatic with Steve Zissou</headline>
     <Story simpleidml-ignorecontent="true">
       <article>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt.</article>
@@ -355,7 +355,7 @@ u"""<Root Self="di2">
         self.assertXMLEqual(xml,
 """<Root>
   <module>
-    <main_picture href="file:///steve.jpg"/>
+    <main_picture href="file:../../IDML/media/bouboune.jpg"/>
     <headline>The Life Aquatic with Steve Zissou</headline>
     <Story simpleidml-ignorecontent="true">
       <article>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt.</article>
@@ -376,12 +376,34 @@ u"""<Root Self="di2">
         self.assertXMLEqual(xml,
 """<Root>
   <module>
-    <main_picture href="file:///steve.jpg"/>
+    <main_picture href="file:../../IDML/media/bouboune.jpg"/>
     <headline>The Life Aquatic with Steve Zissou</headline>
     <Story simpleidml-ignorecontent="true">
       <article simpleidml-forcecontent="true">While oceanographer and documentarian <bold>Steve Zissou (Bill Murray) is working on his latest documentary at sea, his best friend Esteban du Plantier (Seymour Cassel)</bold> is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark's destruction.
             The crew aboard Zissou's research vessel <italique>Belafonte</italique> includes <italique>Pel&#233; dos Santos (Seu Jorge)</italique>, a safety expert and Brazilian musician who sings David Bowie songs in Portuguese, and Klaus Daimler (Willem Dafoe), the German second-in-command who viewed Zissou and Esteban as father figures</article>
       <informations>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt.</informations>
+    </Story>
+  </module>
+</Root>
+""")
+        xml_file.close()
+
+    def test_import_xml_force_content3(self):
+        """Forcecontent flag is not a direct child of ignorecontent flag. """
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
+                     os.path.join(OUTPUT_DIR, "article-1photo_import-xml-forcecontent3.idml"))
+        idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-forcecontent3.idml"))
+        xml_file = open(os.path.join(XML_DIR, "article-1photo_import-xml-forcecontent3.xml"), "r")
+        idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
+        xml = idml_file.export_xml()
+        self.assertXMLEqual(xml,
+"""<Root>
+  <module simpleidml-ignorecontent="true">
+    <main_picture href="file:///Users/stan/Dropbox/Projets/Slashdev/SimpleIDML/repos/git/simpleidml/tests/regressiontests/IDML/media/default.jpg"/>
+    <headline>THE HEADLINE HERE</headline>
+    <Story>
+      <article>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt.</article>
+      <informations simpleidml-forcecontent="true">The Life Aquatic with Steve Zissou is an American comedy-drama film directed, written, and co-produced by Wes Anderson.</informations>
     </Story>
   </module>
 </Root>

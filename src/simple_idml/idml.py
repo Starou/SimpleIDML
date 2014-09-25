@@ -381,14 +381,15 @@ class IDMLPackage(zipfile.ZipFile):
         def _import_node(source_node, at=None, element_id=None, story=None, ignorecontent_parent_flag=False):
             element_id = element_id or self.xml_structure.xpath(at)[0].get("Self")
             items = dict(source_node.items())
-            if ignorecontent_parent_flag and not (items.get(FORCECONTENT_TAG) == "true"):
-                return
-            if items:
-                _set_attributes(at, element_id, items)
-            if not (items.get(SETCONTENT_TAG) == "false"):
-                _set_content(at, element_id, source_node.text or "", story)
 
-            ignorecontent = (items.get(IGNORECONTENT_TAG) == "true")
+            forcecontent = (items.get(FORCECONTENT_TAG) == "true")
+            if not ignorecontent_parent_flag or forcecontent:
+                if items:
+                    _set_attributes(at, element_id, items)
+                if not (items.get(SETCONTENT_TAG) == "false"):
+                    _set_content(at, element_id, source_node.text or "", story)
+
+            ignorecontent = (items.get(IGNORECONTENT_TAG) == "true") or (ignorecontent_parent_flag and not forcecontent)
             source_node_children = source_node.getchildren()
             if len(source_node_children):
                 source_node_children_tags = [n.tag for n in source_node_children]
@@ -411,7 +412,7 @@ class IDMLPackage(zipfile.ZipFile):
                                          ignorecontent_parent_flag=ignorecontent)
                             destination_node_child = next(destination_node_children, None)
                         # Source does not match destination. It is added, but only if the tag is mapped to a style.
-                        elif source_child.tag in self.style_mapping.character_style_mapping.keys():
+                        elif not ignorecontent and source_child.tag in self.style_mapping.character_style_mapping.keys():
                             _import_new_node(source_child, at, element_id)
 
         _import_node(source_node, at)
