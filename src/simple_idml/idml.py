@@ -843,19 +843,9 @@ class IDMLPackage(zipfile.ZipFile):
         # The spread synchronization is done outside.
         return new_spread
 
-    # TODO factoriser avec get_spread_object_by_id()
     def get_spread_object_by_xpath(self, xpath):
-        result = None
-        ref = self.xml_structure.xpath(xpath)[0].get("XMLContent")
-        for spread in self.spreads_objects:
-            if (
-                spread.get_element_by_id(ref, tag="*") is not None or
-                spread.get_element_by_id(ref, tag="*", attr="ParentStory") is not None
-            ):
-                result = spread
-            if result:
-                break
-        return result
+        elt_id = self.xml_structure.xpath(xpath)[0].get("XMLContent")
+        return self.get_spread_object_by_id(elt_id)
 
     def get_spread_object_by_id(self, elt_id):
         """elt_id is the `XMLContent' attribute value in the xml_structure (Stories).
