@@ -648,8 +648,8 @@ class IDMLPackage(zipfile.ZipFile):
         at_transform_x, at_transform_y = self.get_elem_translation(at_elem)
 
         only_elem = idml_package.get_spread_elem_by_xpath(only)
-        # <Image> don't store positional information, so we use the parent <Rectangle>.
-        if only_elem.tag == "Image":
+        # <Image> and <EPS> don't store positional informations, so we use the parent <Rectangle>.
+        if only_elem.tag in ["Image", "EPS"]:
             only_elem = only_elem.getparent()
         only_rel_pos_x, only_rel_pos_y = idml_package.get_elem_point_position(only_elem, 0)
         only_transform_x, only_transform_y = idml_package.get_elem_translation(only_elem)
@@ -678,8 +678,8 @@ class IDMLPackage(zipfile.ZipFile):
             if node.get("XMLContent") is None:
                 continue
             spread_elt = idml_package.get_spread_elem_by_id(node.get("XMLContent"))
-            # Image element are included in a Rectangle.
-            if spread_elt.tag == "Image":
+            # Image and EPS element are included in a Rectangle.
+            if spread_elt.tag in ["Image", "EPS"]:
                 spread_elt = spread_elt.getparent()
             spread_elt_copy = copy.deepcopy(spread_elt)
             self.apply_translation_to_element(spread_elt_copy, translation)
