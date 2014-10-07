@@ -15,7 +15,7 @@ from simple_idml.components import (Designmap, Spread, Story, BackingStory,
 from simple_idml.decorators import use_working_copy
 from simple_idml.utils import increment_filename, prefix_content_filename, tree_to_etree_dom
 
-from simple_idml import BACKINGSTORY
+from simple_idml import BACKINGSTORY, SETCONTENT_TAG, IGNORECONTENT_TAG, FORCECONTENT_TAG
 
 STORIES_DIRNAME = "Stories"
 
@@ -378,14 +378,18 @@ class IDMLPackage(zipfile.ZipFile):
                 story.add_content_to_element(element_id, source_node.tail, parent)
             story.synchronize()
 
-        def _import_node(source_node, at=None, element_id=None, story=None):
+        def _import_node(source_node, at=None, element_id=None, story=None, ignorecontent_parent_flag=False):
             element_id = element_id or self.xml_structure.xpath(at)[0].get("Self")
             items = dict(source_node.items())
-            if items:
-                _set_attributes(at, element_id, items)
-            if not (items.get("simpleidml-setcontent") == "false"):
-                _set_content(at, element_id, source_node.text or "", story)
 
+            forcecontent = (items.get(FORCECONTENT_TAG) == "true")
+            if not ignorecontent_parent_flag or forcecontent:
+                if items:
+                    _set_attributes(at, element_id, items)
+                if not (items.get(SETCONTENT_TAG) == "false"):
+                    _set_content(at, element_id, source_node.text or "", story)
+
+            ignorecontent = (items.get(IGNORECONTENT_TAG) == "true") or (ignorecontent_parent_flag and not forcecontent)
             source_node_children = source_node.getchildren()
             if len(source_node_children):
                 source_node_children_tags = [n.tag for n in source_node_children]
@@ -396,18 +400,19 @@ class IDMLPackage(zipfile.ZipFile):
                 # we can call a map() on _import_node().
                 # FIXME: what if source_node.text exists ?
                 if destination_node_children_tags == source_node_children_tags:
-                    map(_import_node, source_node_children,
-                        [self.xml_structure_tree.getpath(c) for c in destination_node.iterchildren()])
+                    map(lambda s, d: _import_node(s, at=d, ignorecontent_parent_flag=ignorecontent),
+                        source_node_children, [self.xml_structure_tree.getpath(c) for c in destination_node.iterchildren()])
                 # Step-by-step iteration.
                 else:
                     destination_node_child = next(destination_node_children, None)
                     for i, source_child in enumerate(source_node_children):
                         # Source and destination match.
                         if destination_node_child is not None and source_child.tag == destination_node_child.tag:
-                            _import_node(source_child, self.xml_structure_tree.getpath(destination_node_child))
+                            _import_node(source_child, at=self.xml_structure_tree.getpath(destination_node_child),
+                                         ignorecontent_parent_flag=ignorecontent)
                             destination_node_child = next(destination_node_children, None)
                         # Source does not match destination. It is added, but only if the tag is mapped to a style.
-                        elif source_child.tag in self.style_mapping.character_style_mapping.keys():
+                        elif not ignorecontent and source_child.tag in self.style_mapping.character_style_mapping.keys():
                             _import_new_node(source_child, at, element_id)
 
         _import_node(source_node, at)
