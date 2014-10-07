@@ -343,6 +343,17 @@ and so generate several exports in a row (if performances matter):
 Revisions
 =========
 
+0.91.5.5
+--------
+
+
+Bugfixes
+''''''''
+
+- <EPS> elements in Spread weren't handled correctly.
+- All spread elements were added in the destination package when using ``insert_idml()``.
+
+
 0.91.3
 ------
 
