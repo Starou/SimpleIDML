@@ -869,25 +869,25 @@ def get_idml_xml_file_by_name(idml_package, name, working_copy_path=None):
         klass = Spread
     elif dirname == "Stories":
         klass = Story
-    elif name == os.path.join("XML", "BackingStory.xml"):
+    elif name == "XML/BackingStory.xml":
         kwargs.pop("name")
         klass = BackingStory
-    elif name == os.path.join("Resources", "Fonts.xml"):
+    elif name == "Resources/Fonts.xml":
         kwargs.pop("name")
         klass = Fonts
-    elif name == os.path.join("Resources", "Graphic.xml"):
+    elif name == "Resources/Graphic.xml":
         kwargs.pop("name")
         klass = Graphic
-    elif name == os.path.join("Resources", "Preferences.xml"):
+    elif name == "Resources/Preferences.xml":
         kwargs.pop("name")
         klass = Preferences
-    elif name == os.path.join("Resources", "Styles.xml"):
+    elif name == "Resources/Styles.xml":
         kwargs.pop("name")
         klass = Style
-    elif name == os.path.join("XML", "Tags.xml"):
+    elif name == "XML/Tags.xml":
         kwargs.pop("name")
         klass = Tags
-    elif name == os.path.join("XML", "Mapping.xml"):
+    elif name == "XML/Mapping.xml":
         kwargs.pop("name")
         klass = StyleMapping
 
