@@ -52,6 +52,7 @@ def use_working_copy(view_func):
 
         # swap working_copy with initial IDML Package.
         new_filename = idml_package.filename
+        idml_package.close()
         os.unlink(idml_package.filename)
         os.rename(tmp_package.filename, new_filename)
         shutil.rmtree(tmp_filename)
