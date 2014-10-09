@@ -5,7 +5,7 @@ import unittest
 REGRESSION_TEST_DIRNAME = 'regressiontests'
 REGRESSION_TEST_DIR = os.path.join(os.path.dirname(__file__), REGRESSION_TEST_DIRNAME)
 
-sys.path.insert(0, '../src/')
+sys.path.insert(0, os.path.join('..', 'src'))
 
 
 def load_suite_tests(only=None):
