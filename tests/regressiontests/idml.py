@@ -96,6 +96,7 @@ u"""<Root Self="di2">
   <advertise XMLContent="udf" Self="di2i6"/>
 </Root>
 """)
+        idml_file.close()
 
         # Test a file with a slighly different structure
         idml_file = os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml")
@@ -114,6 +115,7 @@ u"""<Root Self="di2">
   </page>
 </Root>
 """)
+        idml_file.close()
 
     def test_get_story_by_xpath(self):
         idml_file = os.path.join(IDMLFILES_DIR, "4-pages.idml")
@@ -123,6 +125,7 @@ u"""<Root Self="di2">
         self.assertEqual(idml_file.get_story_by_xpath("/Root/article[1]/Story"), "Stories/Story_ue4.xml")
         self.assertEqual(idml_file.get_story_by_xpath("/Root/article[1]/Story/title"), "Stories/Story_ue4.xml")
         self.assertEqual(idml_file.get_story_by_xpath("/Root/article[1]/illustration"), "Stories/Story_u102.xml")
+        idml_file.close()
 
     def test_namelist(self):
         # The namelist can be inherited from ZipFile or computed from the working copy.
@@ -136,6 +139,7 @@ u"""<Root Self="di2">
         idml_file.init_lazy_references()
 
         working_copy_namelist = idml_file.namelist()
+        idml_file.close()
         self.assertEqual(set(zipfile_namelist), set(working_copy_namelist))
 
         shutil.rmtree(idml_working_copy)
@@ -152,20 +156,24 @@ u"""<Root Self="di2">
             u'Stories/Story_u102.xml',
             u'Stories/Story_ue4.xml',
         ])
+        idml_file.close()
 
     def test_referenced_layers(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
         self.assertEqual(idml_file.referenced_layers, ['u2db', 'ua4'])
+        idml_file.close()
 
     def test_get_spread_object_by_xpath(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
         spread = idml_file.get_spread_object_by_xpath("/Root/module/main_picture")
         self.assertEqual(spread.name, "Spreads/Spread_ud8.xml")
+        idml_file.close()
 
     def test_get_element_content_id_by_xpath(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
         element_id = idml_file.get_element_content_id_by_xpath("/Root/module/main_picture")
         self.assertEqual(element_id, "u14a")
+        idml_file.close()
 
     def test_import_xml(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
@@ -188,6 +196,7 @@ u"""<Root Self="di2">
 </Root>
 """)
         xml_file.close()
+        idml_file.close()
 
     def test_import_xml_nested_tags(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
@@ -209,6 +218,7 @@ u"""<Root Self="di2">
   </module>
 </Root>
 """)
+        idml_file.close()
 
     def test_import_xml_with_ignored_tags(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
@@ -231,6 +241,7 @@ u"""<Root Self="di2">
 </Root>
 """)
         xml_file.close()
+        idml_file.close()
 
         # Idem with a style tag at the very beginning of the text.
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
@@ -253,6 +264,7 @@ u"""<Root Self="di2">
 </Root>
 """)
         xml_file.close()
+        idml_file.close()
 
     def test_import_xml_on_prefixed_package(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
@@ -276,6 +288,7 @@ u"""<Root Self="di2">
 </Root>
 """)
         xml_file.close()
+        idml_file.close()
 
     def test_import_xml_with_setcontent_false(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
@@ -299,6 +312,7 @@ u"""<Root Self="di2">
 </Root>
 """)
         xml_file.close()
+        idml_file.close()
 
     def test_import_xml_without_picture(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
@@ -323,6 +337,7 @@ u"""<Root Self="di2">
 </Root>
 """)
         xml_file.close()
+        idml_file.close()
 
     def test_import_xml_ignore_content(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
@@ -344,6 +359,7 @@ u"""<Root Self="di2">
 </Root>
 """)
         xml_file.close()
+        idml_file.close()
 
     def test_import_xml_force_content(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
@@ -365,6 +381,7 @@ u"""<Root Self="di2">
 </Root>
 """)
         xml_file.close()
+        idml_file.close()
 
     def test_import_xml_force_content2(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
@@ -387,6 +404,7 @@ u"""<Root Self="di2">
 </Root>
 """)
         xml_file.close()
+        idml_file.close()
 
     def test_import_xml_force_content3(self):
         """Forcecontent flag is not a direct child of ignorecontent flag. """
@@ -409,6 +427,7 @@ u"""<Root Self="di2">
 </Root>
 """)
         xml_file.close()
+        idml_file.close()
 
     def test_export_as_tree(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_imported-nested-xml.idml"))
@@ -487,6 +506,7 @@ u"""<Root Self="di2">
                 }
             ],
         })
+        idml_file.close()
 
     def test_export_xml(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
@@ -518,6 +538,7 @@ u"""<Root Self="di2">
   </module>
 </Root>
 """)
+        idml_file.close()
 
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo-with-attributes.idml"))
         xml = idml_file.export_xml()
@@ -533,6 +554,7 @@ u"""<Root>
   </module>
 </Root>
 """)
+        idml_file.close()
 
     def test_export_xml_with_nested_nodes(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_imported-nested-xml.idml"))
@@ -549,6 +571,7 @@ u"""<Root>
   </module>
 </Root>
 """)
+        idml_file.close()
 
     def test_prefix(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
@@ -606,6 +629,7 @@ u"""<Root Self="FOOdi2">
             ".//idPkg:Spread",
             namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0].get("src"),
             "Spreads/Spread_FOOub6.xml")
+        idml_file.close()
 
         # Prefix d'un fichier avec un mapping Style/Tag XML.
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
@@ -614,6 +638,7 @@ u"""<Root Self="FOOdi2">
 
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-prefixed.idml"))
         idml_file = idml_file.prefix("FOO")
+        idml_file.close()
 
     def test_is_prefixed(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"))
@@ -625,6 +650,7 @@ u"""<Root Self="FOOdi2">
         idml_file = idml_file.prefix("foo")
         self.assertTrue(idml_file.is_prefixed("foo"))
         self.assertFalse(idml_file.is_prefixed("bar"))
+        idml_file.close()
 
     def test_suffix_layers(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
@@ -633,6 +659,7 @@ u"""<Root Self="FOOdi2">
         idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages.idml"))
         idml_file = idml_file.suffix_layers(" - 23")
         self.assertEqual(idml_file.designmap.layer_nodes[0].get("Name"), "Layer 1 - 23")
+        idml_file.close()
 
     def test_insert_idml(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
@@ -1092,6 +1119,9 @@ u"""<Root Self="FOOdi2">
 
         # Graphics.
         self.assertTrue(main_idml_file.graphic.dom.xpath(".//Swatch[@Self='article1Swatch/None']"))
+
+        main_idml_file.close()
+        article_idml_file.close()
 
     def test_insert_idml_with_complex_source(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
@@ -1597,6 +1627,9 @@ u"""<Root Self="FOOdi2">
         # Graphics.
         self.assertTrue(main_idml_file.graphic.dom.xpath(".//Swatch[@Self='article1Swatch/None']"))
 
+        main_idml_file.close()
+        article_idml_file.close()
+
     def test_insert_idml_without_picture(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                      os.path.join(OUTPUT_DIR, "4-pages-insert-article-0-photo-complex.idml"))
@@ -1629,6 +1662,9 @@ u"""<Root Self="FOOdi2">
                                                   'Spreads/Spread_mainubc.xml',
                                                   'Spreads/Spread_mainuc3.xml'])
 
+        main_idml_file.close()
+        article_idml_file.close()
+
     def test_remove_content(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_imported-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml"))
@@ -1643,6 +1679,7 @@ u"""<Root Self="di3">
   </module>
 </Root>
 """)
+        idml_file.close()
 
     def test_add_page_from_idml(self):
         edito_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-edito.idml")
@@ -1688,6 +1725,9 @@ u"""<Root Self="editodi2">
   </page>
 </Root>
 """)
+        edito_idml_file.close()
+        courrier_idml_file.close()
+	new_idml.close()
 
     def test_add_pages_from_idml(self):
         edito_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-edito.idml")
@@ -1715,7 +1755,7 @@ u"""<Root Self="editodi2">
             (bloc_notes_idml_file, 1, "/Root", "/Root/page[1]"),
             (bloc_notes2_idml_file, 2, "/Root", "/Root/page[2]"),
         ]
-
+	edito_idml_file.debug = True
         new_idml = edito_idml_file.add_pages_from_idml(packages_to_add)
         os.unlink(courrier_idml_filename)
         os.unlink(bloc_notes_idml_filename)
@@ -1725,6 +1765,12 @@ u"""<Root Self="editodi2">
         self.assertEqual(new_idml.spreads, ['Spreads/Spread_editoub6.xml',
                                             'Spreads/Spread_editoubc.xml',
                                             'Spreads/Spread_editoubd.xml'])
+
+        edito_idml_file.close()
+        courrier_idml_file.close()
+        bloc_notes_idml_file.close()
+        bloc_notes2_idml_file.close()
+	new_idml.close()
 
     def test_add_pages_from_idml_to_template(self):
         # Now we use an empty document to hold the pages.
@@ -1755,6 +1801,10 @@ u"""<Root Self="editodi2">
         ]
 
         magazineA_idml_file = magazineA_idml_file.add_pages_from_idml(packages_to_add)
+        edito_idml_file.close()
+        courrier_idml_file.close()
+        bloc_notes_idml_file.close()
+
         os.unlink(edito_idml_filename)
         os.unlink(courrier_idml_filename)
         os.unlink(bloc_notes_idml_filename)
@@ -1762,6 +1812,8 @@ u"""<Root Self="editodi2">
         self.assertEqual(len(magazineA_idml_file.pages), 4)
         # FIXME Broken.
         self.assertEqual(magazineA_idml_file.spreads, ['Spreads/Spread_magub6.xml', 'Spreads/Spread_magub7.xml'])
+
+        magazineA_idml_file.close()
 
 
 def suite():
