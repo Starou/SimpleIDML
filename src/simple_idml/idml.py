@@ -58,13 +58,15 @@ class IDMLPackage(zipfile.ZipFile):
         if not self.working_copy_path:
             return zipfile.ZipFile.namelist(self)
         else:
-            trailing_slash_wc = "%s/" % self.working_copy_path
             namelist = []
             for root, dirs, filenames in os.walk(self.working_copy_path):
-                trailing_slash_root = "%s/" % root
-                rel_root = trailing_slash_root.replace(trailing_slash_wc, "")
+                rel_root = root.replace(self.working_copy_path, "")[1:]
                 for filename in filenames:
-                    namelist.append("%s%s" % (rel_root, filename))
+                    namelist.append("%(rel_root)s%(sep)s%(filename)s" % {
+                        'rel_root': rel_root,
+                        'sep': rel_root and "/" or "",
+                        'filename': filename
+                    })
             return namelist
 
     def contentfile_namelist(self):
