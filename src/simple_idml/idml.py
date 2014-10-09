@@ -36,9 +36,6 @@ class IDMLPackage(zipfile.ZipFile):
             hex(id(self))
         )
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-
     def init_lazy_references(self):
         self._xml_structure = None
         self._xml_structure_tree = None

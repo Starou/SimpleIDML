@@ -630,12 +630,12 @@ u"""<Root Self="FOOdi2">
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo.idml"))
 
-        main_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages-insert-article-1-photo.idml"))
-        article_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo.idml"))
+        with IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages-insert-article-1-photo.idml")) as main_idml_file,\
+            IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo.idml")) as article_idml_file:
 
         # Always start by prefixing packages to avoid collision.
-        with  main_idml_file.prefix("main") as main_idml_file,\
-            article_idml_file.prefix("article1") as article_idml_file:
+            main_idml_file = main_idml_file.prefix("main")
+            article_idml_file = article_idml_file.prefix("article1")
 
             main_idml_file = main_idml_file.insert_idml(article_idml_file,
                                                         at="/Root/article[3]",
@@ -1706,10 +1706,6 @@ u"""<Root Self="editodi2">
                 (bloc_notes2_idml_file, 2, "/Root", "/Root/page[2]"),
             ]
             with edito_idml_file.add_pages_from_idml(packages_to_add) as new_idml:
-                os.unlink(courrier_idml_filename)
-                os.unlink(bloc_notes_idml_filename)
-                os.unlink(bloc_notes2_idml_filename)
-
                 self.assertEqual(len(new_idml.pages), 5)
                 self.assertEqual(new_idml.spreads, ['Spreads/Spread_editoub6.xml',
                                                     'Spreads/Spread_editoubc.xml',
@@ -1744,10 +1740,6 @@ u"""<Root Self="editodi2">
             ]
 
             magazineA_idml_file = magazineA_idml_file.add_pages_from_idml(packages_to_add)
-
-            os.unlink(edito_idml_filename)
-            os.unlink(courrier_idml_filename)
-            os.unlink(bloc_notes_idml_filename)
 
             self.assertEqual(len(magazineA_idml_file.pages), 4)
             # FIXME Broken.
