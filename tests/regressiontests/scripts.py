@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
+import platform
 import shutil
 import tempfile
 import glob
 import unittest
-import json
-import re
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 OUTPUT_DIR = os.path.join(CURRENT_DIR, "outputs", "scripts")
+
+PYTHON_EXE = "python"
+if platform.system() == "Windows":
+    PYTHON_EXE = "python.exe"
 
 
 class CreatePackageTestCase(unittest.TestCase):
@@ -33,10 +35,15 @@ class CreatePackageTestCase(unittest.TestCase):
     def test_create_package_from_dir(self):
         flat_package_filename = os.path.join(IDMLFILES_DIR, "\"article-1photo.idml Folder\"")
         destination_filename = os.path.join(OUTPUT_DIR, "article-1photo_2.idml")
-
         args = [flat_package_filename, destination_filename]
-        os.popen(('export PYTHONPATH="../src":$PYTHONPATH && '
-                  'python ../src/scripts/simpleidml_create_package_from_dir.py %s' % " ".join(args)), "w")
+
+        os.popen(('export PYTHONPATH="%(path)s":$PYTHONPATH && '
+                  '%(python)s %(script)s %(args)s' % {
+                      'path': os.path.join('..', 'src'),
+                      'python': PYTHON_EXE,
+                      'script': os.path.join('..', 'src', 'scripts', 'simpleidml_create_package_from_dir.py'),
+                      'args': " ".join(args)
+                  }), "w")
 
         self.assertEqual(os.listdir(OUTPUT_DIR), ['article-1photo_2.idml'])
 
