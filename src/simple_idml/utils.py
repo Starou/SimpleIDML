@@ -37,7 +37,12 @@ def increment_filename(filename):
 
         result = "%s%s" % (root_start, root_end)
 
-    return os.path.join(dirname, "%s%s" % (result, ext))
+    return "%(dirname)s%(sep)s%(root)s%(ext)s" % {
+        'dirname': dirname,
+        'sep': dirname and "/" or "",
+        'root': result,
+        'ext': ext
+    }
 
 
 def prefix_content_filename(filename, prefix, mode):
