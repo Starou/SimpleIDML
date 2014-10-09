@@ -1757,6 +1757,11 @@ u"""<Root Self="editodi2">
         ]
 	edito_idml_file.debug = True
         new_idml = edito_idml_file.add_pages_from_idml(packages_to_add)
+
+        courrier_idml_file.close()
+        bloc_notes_idml_file.close()
+        bloc_notes2_idml_file.close()
+
         os.unlink(courrier_idml_filename)
         os.unlink(bloc_notes_idml_filename)
         os.unlink(bloc_notes2_idml_filename)
@@ -1767,9 +1772,6 @@ u"""<Root Self="editodi2">
                                             'Spreads/Spread_editoubd.xml'])
 
         edito_idml_file.close()
-        courrier_idml_file.close()
-        bloc_notes_idml_file.close()
-        bloc_notes2_idml_file.close()
 	new_idml.close()
 
     def test_add_pages_from_idml_to_template(self):
