@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 try:
     import unittest2 as unittest
 except ImportError:
@@ -9,20 +10,20 @@ except ImportError:
 class UtilsTestCase(unittest.TestCase):
     def test_increment_filename(self):
         from simple_idml.utils import increment_filename
-        filename = "/path/to/myfile.txt"
-        self.assertEqual(increment_filename(filename), "/path/to/myfilf.txt")
+        filename = os.path.join("/", "path", "to", "myfile.txt")
+        self.assertEqual(increment_filename(filename), os.path.join("/", "path", "to", "myfilf.txt"))
 
-        filename = "/path/to/myfilez.txt"
-        self.assertEqual(increment_filename(filename), "/path/to/myfileza.txt")
+        filename = os.path.join("/", "path", "to", "myfilez.txt")
+        self.assertEqual(increment_filename(filename), os.path.join("/", "path", "to", "myfileza.txt"))
 
-        filename = "/path/to/myfileZ.txt"
-        self.assertEqual(increment_filename(filename), "/path/to/myfileZa.txt")
+        filename = os.path.join("/", "path", "to", "myfileZ.txt")
+        self.assertEqual(increment_filename(filename), os.path.join("/", "path", "to", "myfileZa.txt"))
 
-        filename = "/path/to/myfile-200.txt"
-        self.assertEqual(increment_filename(filename), "/path/to/myfile-201.txt")
+        filename = os.path.join("/", "path", "to", "myfile-200.txt")
+        self.assertEqual(increment_filename(filename), os.path.join("/", "path", "to", "myfile-201.txt"))
 
-        filename = "/path/to/myfile-299.txt"
-        self.assertEqual(increment_filename(filename), "/path/to/myfile-300.txt")
+        filename = os.path.join("/", "path", "to", "myfile-299.txt")
+        self.assertEqual(increment_filename(filename), os.path.join("/", "path", "to", "myfile-300.txt"))
 
     def test_increment_xmltag_id(self):
         from simple_idml.utils import increment_xmltag_id
@@ -45,7 +46,7 @@ class UtilsTestCase(unittest.TestCase):
         src = "Stories/Story_u139.xml"
         result = prefix_content_filename(src, "MyPrefix", "ref")
         self.assertEqual(result, "Stories/Story_MyPrefixu139.xml")
-        
+
         src = "Spreads/Spread_ub6.xml"
         result = prefix_content_filename(src, "MyPrefix", "ref")
         self.assertEqual(result, "Spreads/Spread_MyPrefixub6.xml")
@@ -54,7 +55,7 @@ class UtilsTestCase(unittest.TestCase):
         src = "Story_u139.xml"
         result = prefix_content_filename(src, "MyPrefix", "filename")
         self.assertEqual(result, "Story_MyPrefixu139.xml")
-        
+
         src = "Spread_ub6.xml"
         result = prefix_content_filename(src, "MyPrefix", "filename")
         self.assertEqual(result, "Spread_MyPrefixub6.xml")
@@ -142,7 +143,7 @@ class UtilsTestCase(unittest.TestCase):
             ],
         }
         dom = tree_to_etree_dom(tree)
-        self.assertMultiLineEqual(etree.tostring(dom, pretty_print=True), 
+        self.assertMultiLineEqual(etree.tostring(dom, pretty_print=True),
 """<Root>
   <module>
     <main_picture href="file:///steve.jpg"/>
