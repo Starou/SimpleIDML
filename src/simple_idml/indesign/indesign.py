@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import ntpath
 import os
 import shutil
 import zipfile
@@ -9,10 +10,19 @@ CURRENT_DIR = os.path.abspath(os.path.split(__file__)[0])
 SCRIPTS_DIR = os.path.join(CURRENT_DIR, "scripts")
 
 
-def save_as(src_filename, dst_formats, indesign_server_url, indesign_server_workdir):
+def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_workdir,
+            indesign_server_workdir, indesign_server_path_style="posix"):
     """SOAP call to an InDesign Server to make one or more conversions. """
 
+    server_path_mod = os.path
+    if indesign_server_path_style == "windows":
+        server_path_mod = ntpath
+
     def _save_as(dst_format):
+        """
+        o *_client_copy_filename : path/to/file as seen by the SOAP client.
+        o *_server_copy_filename : localized/path/to/file as seen by the InDesign Server.
+        """
         src_rootname = os.path.splitext(src_basename)[0]
         dst_basename = "%s.%s" % (src_rootname, dst_format)
         javascript_basename = "save_as.jsx"
@@ -22,23 +32,26 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_server_work
             javascript_basename = "package_to_print.jsx"
             dst_basename = src_rootname  # a directory.
 
-        local_javascript_filename = os.path.join(SCRIPTS_DIR, javascript_basename)
-        remote_javascript_filename = os.path.join(indesign_server_workdir, javascript_basename)
-        remote_dst_filename = os.path.join(indesign_server_workdir, dst_basename)
+        javascript_master_filename = os.path.join(SCRIPTS_DIR, javascript_basename)
+        javascript_client_copy_filename = os.path.join(indesign_client_workdir, javascript_basename)
+        response_client_copy_filename = os.path.join(indesign_client_workdir, dst_basename)
 
-        shutil.copy(local_javascript_filename, remote_javascript_filename)
+        javascript_server_copy_filename = server_path_mod.join(indesign_server_workdir, javascript_basename)
+        response_server_copy_filename = server_path_mod.join(indesign_server_workdir, dst_basename)
+
+        shutil.copy(javascript_master_filename, javascript_client_copy_filename)
 
         params = cl.factory.create("ns0:RunScriptParameters")
         params.scriptLanguage = 'javascript'
-        params.scriptFile = remote_javascript_filename
+        params.scriptFile = javascript_server_copy_filename
 
         src = cl.factory.create("ns0:IDSP-ScriptArg")
         src.name = "source"
-        src.value = remote_src_filename
+        src.value = src_server_copy_filename
 
         dst = cl.factory.create("ns0:IDSP-ScriptArg")
         dst.name = "destination"
-        dst.value = remote_dst_filename
+        dst.value = response_server_copy_filename
 
         params.scriptArgs = [src, dst]
 
@@ -51,28 +64,31 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_server_work
         response = cl.service.RunScript(params)
 
         if dst_format == 'zip':
-            # Zip the tree generated in remote_dst_filename and
+            # Zip the tree generated in response_client_copy_filename and
             # make that variable point on that zip file.
-            zip_filename = "%s.zip" % remote_dst_filename
-            zip_tree(remote_dst_filename, zip_filename)
-            shutil.rmtree(remote_dst_filename)
-            remote_dst_filename = zip_filename
+            zip_filename = "%s.zip" % response_client_copy_filename
+            zip_tree(response_client_copy_filename, zip_filename)
+            shutil.rmtree(response_client_copy_filename)
+            response_client_copy_filename = zip_filename
 
-        response = open(remote_dst_filename, "rb").read()
+        response = open(response_client_copy_filename, "rb").read()
 
-        os.unlink(remote_dst_filename)
-        os.unlink(remote_javascript_filename)
+        os.unlink(response_client_copy_filename)
+        os.unlink(javascript_client_copy_filename)
 
         return response
 
+    ##
+
     src_basename = os.path.basename(src_filename)
-    remote_src_filename = os.path.join(indesign_server_workdir, src_basename)
-    shutil.copy(src_filename, remote_src_filename)
+    src_client_copy_filename = os.path.join(indesign_client_workdir, src_basename)
+    src_server_copy_filename = server_path_mod.join(indesign_server_workdir, src_basename)
+    shutil.copy(src_filename, src_client_copy_filename)
 
     cl = Client("%s/service?wsdl" % indesign_server_url)
     responses = map(lambda fmt: _save_as(fmt), dst_formats)
 
-    os.unlink(remote_src_filename)
+    os.unlink(src_client_copy_filename)
 
     return responses
 
