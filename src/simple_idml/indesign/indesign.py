@@ -70,8 +70,7 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_work
             # Zip the tree generated in response_client_copy_filename and
             # make that variable point on that zip file.
             zip_filename = "%s.zip" % response_client_copy_filename
-            zip_tree(response_client_copy_filename, zip_filename)
-            shutil.rmtree(response_client_copy_filename)
+            _zip_dir(response_client_copy_filename, zip_filename, ftp_params)
             response_client_copy_filename = zip_filename
 
         response = _read(response_client_copy_filename, ftp_params)
@@ -118,6 +117,16 @@ def _unlink(filename, ftp_params=None):
     ftp.quit()
 
 
+def _rmtree(tree, ftp_params=None):
+    if not ftp_params:
+        shutil.rmtree(tree)
+        return
+    ftp = FTP(*ftp_params["auth"])
+    ftp.set_pasv(ftp_params["passive"])
+    ftp.rmd(tree)
+    ftp.quit()
+
+
 def _read(filename, ftp_params=None):
     response = ""
 
@@ -134,6 +143,14 @@ def _read(filename, ftp_params=None):
             response = r.read()
 
     return response
+
+
+def _zip_dir(dirname, zip_filename, ftp_params=None):
+    # FTP: copy the dirname in a NamedTemporary
+    if ftp_params:
+        pass
+    zip_tree(dirname, zip_filename)
+    _rmtree(dirname, ftp_params)
 
 
 def zip_tree(tree, destination):
