@@ -2,11 +2,14 @@
 
 import ntpath
 import os
+import shlex
 import shutil
+import subprocess
 import zipfile
 from ftplib import FTP
 from io import BytesIO
 from suds.client import Client
+from tempfile import mkstemp
 
 CURRENT_DIR = os.path.abspath(os.path.split(__file__)[0])
 SCRIPTS_DIR = os.path.join(CURRENT_DIR, "scripts")
@@ -65,7 +68,6 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_work
 
         response = cl.service.RunScript(params)
 
-        # FIXME: FTP.
         if dst_format == 'zip':
             # Zip the tree generated in response_client_copy_filename and
             # make that variable point on that zip file.
@@ -146,11 +148,26 @@ def _read(filename, ftp_params=None):
 
 
 def _zip_dir(dirname, zip_filename, ftp_params=None):
-    # FTP: copy the dirname in a NamedTemporary
     if ftp_params:
-        pass
+        # Work locally in a temporary directory.
+        # and then upload the zip to the ftp.
+        ftp_dirname = dirname
+        ftp_zip_filename = zip_filename
+        dirname = mkstemp()[1]
+        zip_filename = os.path.join(dirname, os.path.basename(ftp_zip_filename))
+        cmd = 'wget -r --no-passive-ftp --ftp-user="%(user)s" --ftp-password="%(passwd)s" %(url)s/%(ftp_dirname)s -P %(dst)s -nH -q' % {
+            'user': ftp_params[1],
+            'passwd': ftp_params[2],
+            'url': ftp_params[0],
+            'ftp_dirname': ftp_dirname,
+            'dst': dirname
+        }
+        subprocess.Popen(shlex.split(cmd))
+        _copy(zip_filename, ftp_zip_filename, ftp_params)
+        _rmtree(ftp_dirname, ftp_params)
+
     zip_tree(dirname, zip_filename)
-    _rmtree(dirname, ftp_params)
+    shutil.rmtree(dirname)
 
 
 def zip_tree(tree, destination):
