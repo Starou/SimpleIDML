@@ -139,7 +139,7 @@ def _read(filename, ftp_params=None):
         with BytesIO() as r:
             ftp = FTP(*ftp_params["auth"])
             ftp.set_pasv(ftp_params["passive"])
-            ftp.retrbinary(filename, r.write)
+            ftp.retrbinary('RETR %s' % filename, r.write)
             ftp.quit()
             r.seek(0)
             response = r.read()
