@@ -4,6 +4,8 @@ import ntpath
 import os
 import shutil
 import zipfile
+from ftplib import FTP
+from io import BytesIO
 from suds.client import Client
 
 CURRENT_DIR = os.path.abspath(os.path.split(__file__)[0])
@@ -11,7 +13,7 @@ SCRIPTS_DIR = os.path.join(CURRENT_DIR, "scripts")
 
 
 def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_workdir,
-            indesign_server_workdir, indesign_server_path_style="posix"):
+            indesign_server_workdir, indesign_server_path_style="posix", ftp_params=None):
     """SOAP call to an InDesign Server to make one or more conversions. """
 
     server_path_mod = os.path
@@ -39,7 +41,7 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_work
         javascript_server_copy_filename = server_path_mod.join(indesign_server_workdir, javascript_basename)
         response_server_copy_filename = server_path_mod.join(indesign_server_workdir, dst_basename)
 
-        shutil.copy(javascript_master_filename, javascript_client_copy_filename)
+        _copy(javascript_master_filename, javascript_client_copy_filename, ftp_params)
 
         params = cl.factory.create("ns0:RunScriptParameters")
         params.scriptLanguage = 'javascript'
@@ -63,6 +65,7 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_work
 
         response = cl.service.RunScript(params)
 
+        # FIXME: FTP.
         if dst_format == 'zip':
             # Zip the tree generated in response_client_copy_filename and
             # make that variable point on that zip file.
@@ -71,10 +74,10 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_work
             shutil.rmtree(response_client_copy_filename)
             response_client_copy_filename = zip_filename
 
-        response = open(response_client_copy_filename, "rb").read()
+        response = _read(response_client_copy_filename, ftp_params)
 
-        os.unlink(response_client_copy_filename)
-        os.unlink(javascript_client_copy_filename)
+        _unlink(response_client_copy_filename, ftp_params)
+        _unlink(javascript_client_copy_filename, ftp_params)
 
         return response
 
@@ -83,14 +86,50 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_work
     src_basename = os.path.basename(src_filename)
     src_client_copy_filename = os.path.join(indesign_client_workdir, src_basename)
     src_server_copy_filename = server_path_mod.join(indesign_server_workdir, src_basename)
-    shutil.copy(src_filename, src_client_copy_filename)
+    _copy(src_filename, src_client_copy_filename, ftp_params)
 
     cl = Client("%s/service?wsdl" % indesign_server_url)
     responses = map(lambda fmt: _save_as(fmt), dst_formats)
 
-    os.unlink(src_client_copy_filename)
+    _unlink(src_client_copy_filename, ftp_params)
 
     return responses
+
+
+def _copy(src_filename, dst_filename, ftp_params=None):
+    if not ftp_params:
+        shutil.copy(src_filename, dst_filename)
+        return
+    ftp = FTP(*ftp_params)
+    with open(src_filename, "rb") as f:
+        ftp.storbinary('STOR %s' % dst_filename, f)
+        ftp.quit()
+
+
+def _unlink(filename, ftp_params=None):
+    if not ftp_params:
+        os.unlink(filename)
+        return
+    ftp = FTP(*ftp_params)
+    ftp.delete(filename)
+    ftp.quit()
+
+
+def _read(filename, ftp_params=None):
+    response = ""
+
+    if not ftp_params:
+        with open(filename, "rb") as f:
+            response = f.read()
+    else:
+        with BytesIO() as r:
+            ftp = FTP(*ftp_params)
+            ftp.retrbinary(filename, r.write)
+            ftp.quit()
+            r.seek(0)
+            response = r.read()
+
+    return response
 
 
 def zip_tree(tree, destination):
