@@ -89,6 +89,7 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_work
     _copy(src_filename, src_client_copy_filename, ftp_params)
 
     cl = Client("%s/service?wsdl" % indesign_server_url)
+    cl.set_options(location=indesign_server_url)
     responses = map(lambda fmt: _save_as(fmt), dst_formats)
 
     _unlink(src_client_copy_filename, ftp_params)
