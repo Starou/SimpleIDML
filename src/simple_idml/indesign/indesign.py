@@ -100,8 +100,9 @@ def _copy(src_filename, dst_filename, ftp_params=None):
     if not ftp_params:
         shutil.copy(src_filename, dst_filename)
         return
-    ftp = FTP(*ftp_params)
     with open(src_filename, "rb") as f:
+        ftp = FTP(*ftp_params["auth"])
+        ftp.set_pasv(ftp_params["passive"])
         ftp.storbinary('STOR %s' % dst_filename, f)
         ftp.quit()
 
@@ -110,7 +111,8 @@ def _unlink(filename, ftp_params=None):
     if not ftp_params:
         os.unlink(filename)
         return
-    ftp = FTP(*ftp_params)
+    ftp = FTP(*ftp_params["auth"])
+    ftp.set_pasv(ftp_params["passive"])
     ftp.delete(filename)
     ftp.quit()
 
@@ -123,7 +125,8 @@ def _read(filename, ftp_params=None):
             response = f.read()
     else:
         with BytesIO() as r:
-            ftp = FTP(*ftp_params)
+            ftp = FTP(*ftp_params["auth"])
+            ftp.set_pasv(ftp_params["passive"])
             ftp.retrbinary(filename, r.write)
             ftp.quit()
             r.seek(0)
