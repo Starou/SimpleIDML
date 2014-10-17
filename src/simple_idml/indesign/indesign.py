@@ -105,7 +105,13 @@ def _copy(src_filename, dst_filename, ftp_params=None):
     with open(src_filename, "rb") as f:
         ftp = FTP(*ftp_params["auth"])
         ftp.set_pasv(ftp_params["passive"])
-        ftp.storbinary('STOR %s' % dst_filename, f)
+        try:
+            ftp.storbinary('STOR %s' % dst_filename, f)
+        except BaseException, e:
+            print "Cannot STOR %s" % dst_filename
+            ftp.quit()
+            raise e
+
         ftp.quit()
 
 

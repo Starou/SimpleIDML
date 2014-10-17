@@ -301,7 +301,8 @@ Please take a look into the tests for in-depth examples.
 Use InDesign server SOAP interface to convert a file
 ----------------------------------------------------
 
-This require an InDesign Server and a directory that it can access in read/write.
+This require an *InDesign Server* and a directory that it can access in read/write.
+The same directory must be accessible by the client either by the filesystem or by FTP.
 The ``formats`` parameter is a list of formats you want your file to be exported into.
 The supported formats are ``jpeg``, ``idml``, ``pdf``, ``indd`` and ``zip`` (this one
 returning a zipped InDesign package).
@@ -314,18 +315,21 @@ Here some snippets:
 
     response = indesign.save_as("/path_to_file.idml", ["indd"],
                                 "http://url-to-indesign-server:port",
+                                "/path/to/client/workdir",
                                 "/path/to/indesign-server/workdir")[0]
     with open("my_file.indd", "w+") as f:
         f.write(response)
 
     response = indesign.save_as("/path_to_file.indd", ["idml"],
                                 "http://url-to-indesign-server:port",
+                                "/path/to/client/workdir",
                                 "/path/to/indesign-server/workdir")[0]
     with open("my_file.idml", "w+") as f:
         f.write(response)
 
     response = indesign.save_as("/path_to_file.indd", ["pdf"],
                                 "http://url-to-indesign-server:port",
+                                "/path/to/client/workdir",
                                 "/path/to/indesign-server/workdir")[0]
     with open("my_file.pdf", "w+") as f:
         f.write(response)
@@ -340,9 +344,22 @@ and so generate several exports in a row (if performances matter):
                                     "/path_to_file.indd",
                                     ["pdf", "jpeg", "zip"],
                                     "http://url-to-indesign-server:port",
+                                    "/path/to/client/workdir",
                                     "/path/to/indesign-server/workdir")
 
+If the InDesign Server instance runs on a Windows machine, set the
+``indesign_server_path_style`` parameter to ``"windows"``.
 
+If the client access to the working directory *via* FTP, you must specify that
+in the ``ftp_params`` parameter:
+
+
+.. code-block:: python
+
+    {
+        'auth': ("ftp://ftp.foo.org", "user_account", "s3cret-pa55word"),
+        'passive': False
+    }
 
 Revisions
 =========
@@ -353,8 +370,17 @@ Revisions
 New features
 ''''''''''''
 
-Add the ``simpleidml-ignorecontent`` and ``simpleidml-forcecontent`` tags (XML attributes) allowing one
-to carefully exclude a node and its children during the import XML process.
+- Add the ``simpleidml-ignorecontent`` and ``simpleidml-forcecontent`` tags (XML attributes)
+  allowing one to carefully exclude a node and its children during the import XML process.
+- ``indesign.save_as()`` now works with a client working directory over a FTP.
+  This require ``wget`` to be on your system if you want to create zip packages.
+
+
+Backward incompatibilities
+''''''''''''''''''''''''''
+
+- ``indesign.save_as()`` require both a client workdir and a server workdir parameter.
+
 
 0.91.5.5
 --------
