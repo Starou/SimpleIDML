@@ -361,6 +361,10 @@ in the ``ftp_params`` parameter:
         'passive': False
     }
 
+A script (``simpleidml_indesign_save_as``) that wraps that function should be installed
+in your PATH.
+
+
 Revisions
 =========
 

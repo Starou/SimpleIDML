@@ -16,7 +16,8 @@ SCRIPTS_DIR = os.path.join(CURRENT_DIR, "scripts")
 
 
 def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_workdir,
-            indesign_server_workdir, indesign_server_path_style="posix", ftp_params=None):
+            indesign_server_workdir, indesign_server_path_style="posix",
+            clean_workdir=True, ftp_params=None):
     """SOAP call to an InDesign Server to make one or more conversions. """
 
     server_path_mod = os.path
@@ -77,8 +78,9 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_work
 
         response = _read(response_client_copy_filename, ftp_params)
 
-        _unlink(response_client_copy_filename, ftp_params)
-        _unlink(javascript_client_copy_filename, ftp_params)
+        if clean_workdir:
+            _unlink(response_client_copy_filename, ftp_params)
+            _unlink(javascript_client_copy_filename, ftp_params)
 
         return response
 
@@ -93,7 +95,8 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_work
     cl.set_options(location=indesign_server_url)
     responses = map(lambda fmt: _save_as(fmt), dst_formats)
 
-    _unlink(src_client_copy_filename, ftp_params)
+    if clean_workdir:
+        _unlink(src_client_copy_filename, ftp_params)
 
     return responses
 

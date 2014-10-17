@@ -23,6 +23,8 @@ def main():
                       help="Directory where temporary files are written, as seen by the InDesign server.")
     parser.add_option("--server-path-style", dest="server_path_style", default="posix",
                       help="[posix|windows] according to the OS running InDesign Server.")
+    parser.add_option("--no-clean-workdir", dest="no_clean_workdir", action="store_true", default=False,
+                      help="Do not clean the working directory when finished.")
     parser.add_option("--ftp-url", dest="ftp_url", default="",
                       help=("The FTP server for the workir."
                             " It must be on the filesystem of the InDesign Server."))
@@ -49,7 +51,7 @@ def main():
 
         responses = indesign.save_as(src, formats, options.url, options.client_workdir,
                                      options.server_workdir, options.server_path_style,
-                                     ftp_params)
+                                     not options.no_clean_workdir, ftp_params)
 
         def _save_as(response, dst):
             with open(dst, mode="w+") as fobj:
