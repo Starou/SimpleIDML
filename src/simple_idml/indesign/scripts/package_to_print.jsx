@@ -27,11 +27,11 @@ var params = {
      includingHiddenLayers: false,
      ignorePreflightErrors: true,
      creatingReport: true,
-     includeIDML: true,
+     includeIDML: false,
      includePDF: false,
      PDFStyle: "",
      versionComments: "",
-     forceSave: true
+     forceSave: false
 };
 
 var myDocument = app.documents.item(0);
