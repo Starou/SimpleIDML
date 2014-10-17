@@ -27,13 +27,14 @@ var params = {
      includingHiddenLayers: false,
      ignorePreflightErrors: true,
      creatingReport: true,
-     includeIDML: false,
+     includeIDML: true,
      includePDF: false,
      PDFStyle: "",
      versionComments: "",
-     forceSave: false
+     forceSave: true
 };
 
 var myDocument = app.documents.item(0);
 
-createPackage(dst_dir, myDocument, params)
+createPackage(dst_dir, myDocument, params);
+myDocument.close();
