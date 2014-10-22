@@ -6,7 +6,7 @@ if (!app.scriptArgs.isDefined("source")) {
     var dst_file = new File(app.scriptArgs.get("destination"));
 }
 
-app.open(src_file, false);
+app.open(src_file);
 var myDocument = app.documents.item(0);
 myDocument.save(dst_file);
 app.documents.item(0).close();
