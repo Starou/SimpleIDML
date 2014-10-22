@@ -45,7 +45,7 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_work
         javascript_server_copy_filename = server_path_mod.join(indesign_server_workdir, javascript_basename)
         response_server_copy_filename = server_path_mod.join(indesign_server_workdir, dst_basename)
 
-        _copy(javascript_master_filename, javascript_client_copy_filename, ftp_params)
+        _copy(javascript_master_filename, javascript_client_copy_filename, ftp_params, src_open_mode="r")
 
         params = cl.factory.create("ns0:RunScriptParameters")
         params.scriptLanguage = 'javascript'
@@ -101,15 +101,20 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_work
     return responses
 
 
-def _copy(src_filename, dst_filename, ftp_params=None):
+def _copy(src_filename, dst_filename, ftp_params=None, src_open_mode="rb"):
     if not ftp_params:
         shutil.copy(src_filename, dst_filename)
         return
-    with open(src_filename, "rb") as f:
+
+    with open(src_filename, src_open_mode) as f:
         ftp = ftplib.FTP(*ftp_params["auth"])
         ftp.set_pasv(ftp_params["passive"])
+        command = 'STOR %s' % dst_filename
         try:
-            ftp.storbinary('STOR %s' % dst_filename, f)
+            if "b" in src_open_mode:
+                ftp.storbinary(command, f)
+            else:
+                ftp.storlines(command, f)
         except BaseException, e:
             print "Cannot STOR %s" % dst_filename
             ftp.quit()
@@ -224,4 +229,3 @@ def rmtree_ftp(ftp, path):
         ftp.rmd(path)
     except ftplib.all_errors as e:
         raise e
-
