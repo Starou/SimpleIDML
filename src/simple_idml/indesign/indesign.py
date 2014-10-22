@@ -30,7 +30,7 @@ def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_work
         o *_server_copy_filename : localized/path/to/file as seen by the InDesign Server.
         """
         src_rootname = os.path.splitext(src_basename)[0]
-        dst_basename = "%s.%s" % (src_rootname, dst_format)
+        dst_basename = "%sTMP.%s" % (src_rootname, dst_format)
         javascript_basename = "save_as.jsx"
         if dst_format in ('idml', 'pdf', 'jpeg'):
             javascript_basename = "export.jsx"
