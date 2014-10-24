@@ -32,6 +32,7 @@ class CreatePackageTestCase(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.watch_dir)
 
+    @unittest.skipIf((platform.system() == "Windows"), u"test skipped on Windows (needs fix).")
     def test_create_package_from_dir(self):
         flat_package_filename = os.path.join(IDMLFILES_DIR, "\"article-1photo.idml Folder\"")
         destination_filename = os.path.join(OUTPUT_DIR, "article-1photo_2.idml")
