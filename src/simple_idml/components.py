@@ -342,8 +342,8 @@ class Story(IDMLXMLFile):
        "xml_element_tag": xml_element_tag,
        "xml_element_id": xml_element_id})
 
-        story.fobj.flush()
-        story.fobj.seek(0)
+        story.fobj.close()
+        story._fobj = None
         return story
 
     @property
@@ -558,7 +558,7 @@ class Style(IDMLXMLFile):
 
     def style_groups(self):
         """ Groups are `RootCharacterStyleGroup', `RootParagraphStyleGroup' etc. """
-        return [elt for elt in self.dom.xpath("/idPkg:Styles/*", namespaces={'idPkg':IdPkgNS})
+        return [elt for elt in self.dom.xpath("/idPkg:Styles/*", namespaces={'idPkg': IdPkgNS})
                 if re.match(r"^.+Group$", elt.tag)]
 
     def get_root(self):
