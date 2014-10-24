@@ -18,6 +18,23 @@ IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 XML_DIR = os.path.join(CURRENT_DIR, "XML")
 OUTPUT_DIR = os.path.join(CURRENT_DIR, "outputs", "simpleIDML")
 
+IDPKG_NS = "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"
+
+
+def memory_dump():
+    import gc
+    import sys
+    dump = {}
+    for obj in gc.get_objects():
+        i = id(obj)
+        size = sys.getsizeof(obj, 0)
+        #    referrers = [id(o) for o in gc.get_referrers(obj) if hasattr(o, '__class__')]
+        referents = [id(o) for o in gc.get_referents(obj) if hasattr(o, '__class__')]
+        if hasattr(obj, '__class__'):
+            cls = obj.__class__
+            dump.setdefault(cls.__name__, []).append({'id': i, 'obj': obj, 'size': size, 'referents': referents, 'class': str(cls)})
+    return dump
+
 
 class IdmlTestCase(SimpleTestCase):
     def setUp(self):
@@ -32,49 +49,51 @@ class IdmlTestCase(SimpleTestCase):
             os.makedirs(OUTPUT_DIR)
 
     def test_idml_package(self):
-        idml_file = os.path.join(IDMLFILES_DIR, "4-pages.idml")
-        with IDMLPackage(idml_file) as idml_file:
+        idml_filename = os.path.join(IDMLFILES_DIR, "4-pages.idml")
+        with IDMLPackage(idml_filename) as idml_file:
 
             # Spreads.
             self.assertEqual(idml_file.spreads, [u'Spreads/Spread_ub6.xml',
-                                                u'Spreads/Spread_ubc.xml',
-                                                u'Spreads/Spread_uc3.xml'])
+                                                 u'Spreads/Spread_ubc.xml',
+                                                 u'Spreads/Spread_uc3.xml'])
 
             # Stories.
             self.assertEqual(idml_file.stories, [u'Stories/Story_u139.xml',
-                                                u'Stories/Story_u11b.xml',
-                                                u'Stories/Story_u102.xml',
-                                                u'Stories/Story_ue4.xml'])
+                                                 u'Stories/Story_u11b.xml',
+                                                 u'Stories/Story_u102.xml',
+                                                 u'Stories/Story_ue4.xml'])
 
             # Stories given a Xpath.
             self.assertEqual(idml_file.stories_for_node("/Root/article[1]"),
-                            [u'Stories/Story_u102.xml',
-                            u'Stories/Story_ue4.xml',
-                            u'Stories/Story_u11b.xml',
-                            u'Stories/Story_u139.xml'])
+                             [u'Stories/Story_u102.xml',
+                              u'Stories/Story_ue4.xml',
+                              u'Stories/Story_u11b.xml',
+                              u'Stories/Story_u139.xml'])
 
             # Tags.
             self.assertEqual([etree.tostring(tag) for tag in idml_file.tags],
-                            ['<XMLTag Self="XMLTag/advertise" Name="advertise">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Green</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                            '<XMLTag Self="XMLTag/article" Name="article">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Red</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                            '<XMLTag Self="XMLTag/content" Name="content">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Magenta</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                            '<XMLTag Self="XMLTag/description" Name="description">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Gray</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                            '<XMLTag Self="XMLTag/illustration" Name="illustration">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Cyan</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                            '<XMLTag Self="XMLTag/Root" Name="Root">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">LightBlue</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                            '<XMLTag Self="XMLTag/Story" Name="Story">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">BrickRed</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                            '<XMLTag Self="XMLTag/subtitle" Name="subtitle">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Yellow</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                            '<XMLTag Self="XMLTag/title" Name="title">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Blue</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n'])
+                             ['<XMLTag Self="XMLTag/advertise" Name="advertise">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Green</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                              '<XMLTag Self="XMLTag/article" Name="article">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Red</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                              '<XMLTag Self="XMLTag/content" Name="content">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Magenta</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                              '<XMLTag Self="XMLTag/description" Name="description">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Gray</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                              '<XMLTag Self="XMLTag/illustration" Name="illustration">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Cyan</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                              '<XMLTag Self="XMLTag/Root" Name="Root">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">LightBlue</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                              '<XMLTag Self="XMLTag/Story" Name="Story">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">BrickRed</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                              '<XMLTag Self="XMLTag/subtitle" Name="subtitle">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Yellow</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
+                              '<XMLTag Self="XMLTag/title" Name="title">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Blue</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n'])
 
             # Styles.
-            self.assertEqual([style.tag for style in idml_file.style_groups], ['RootCharacterStyleGroup',
-                                                                            'RootParagraphStyleGroup',
-                                                                            'RootCellStyleGroup',
-                                                                            'RootTableStyleGroup',
-                                                                            'RootObjectStyleGroup'])
+            self.assertEqual([style.tag for style in idml_file.style_groups], [
+                'RootCharacterStyleGroup',
+                'RootParagraphStyleGroup',
+                'RootCellStyleGroup',
+                'RootTableStyleGroup',
+                'RootObjectStyleGroup'
+            ])
 
             # Styles mapping.
             self.assertEqual(idml_file.style_mapping.tostring(),
-                            '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">                   </idPkg:Mapping>\n')
+                             '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">                   </idPkg:Mapping>\n')
 
             # Fonts.
             self.assertEqual([font.get("Name") for font in idml_file.font_families], ['Minion Pro', 'Myriad Pro', 'Kozuka Mincho Pro', 'Vollkorn'])
@@ -98,8 +117,8 @@ u"""<Root Self="di2">
 """)
 
         # Test a file with a slighly different structure
-        idml_file = os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml")
-        with IDMLPackage(idml_file) as idml_file:
+        idml_filename = os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml")
+        with IDMLPackage(idml_filename) as idml_file:
             self.assertXMLEqual(etree.tostring(idml_file.xml_structure, pretty_print=True),
 """<Root Self="di2">
   <page Self="di2ib">
@@ -116,8 +135,8 @@ u"""<Root Self="di2">
 """)
 
     def test_get_story_by_xpath(self):
-        idml_file = os.path.join(IDMLFILES_DIR, "4-pages.idml")
-        with IDMLPackage(idml_file) as idml_file:
+        idml_filename = os.path.join(IDMLFILES_DIR, "4-pages.idml")
+        with IDMLPackage(idml_filename) as idml_file:
             self.assertEqual(idml_file.get_story_by_xpath("/Root"), "XML/BackingStory.xml")
             self.assertEqual(idml_file.get_story_by_xpath("/Root/article[1]"), "Stories/Story_u102.xml")
             self.assertEqual(idml_file.get_story_by_xpath("/Root/article[1]/Story"), "Stories/Story_ue4.xml")
@@ -126,8 +145,8 @@ u"""<Root Self="di2">
 
     def test_namelist(self):
         # The namelist can be inherited from ZipFile or computed from the working copy.
-        idml_file = os.path.join(IDMLFILES_DIR, "4-pages.idml")
-        with IDMLPackage(idml_file) as idml_file:
+        idml_filename = os.path.join(IDMLFILES_DIR, "4-pages.idml")
+        with IDMLPackage(idml_filename) as idml_file:
             zipfile_namelist = idml_file.namelist()
 
             idml_working_copy = mkdtemp()
@@ -141,8 +160,8 @@ u"""<Root Self="di2">
             shutil.rmtree(idml_working_copy)
 
     def test_contentfile_namelist(self):
-        idml_file = os.path.join(IDMLFILES_DIR, "4-pages.idml")
-        with IDMLPackage(idml_file) as idml_file:
+        idml_filename = os.path.join(IDMLFILES_DIR, "4-pages.idml")
+        with IDMLPackage(idml_filename) as idml_file:
             self.assertEqual(idml_file.contentfile_namelist(), [
                 u'Spreads/Spread_ub6.xml',
                 u'Spreads/Spread_ubc.xml',
@@ -172,10 +191,10 @@ u"""<Root Self="di2">
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml")) as idml_file,\
-            open(os.path.join(XML_DIR, "article-1photo_import-xml.xml"), "r") as xml_file:
-            idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
-            xml = idml_file.export_xml()
-            self.assertXMLEqual(xml,
+             open(os.path.join(XML_DIR, "article-1photo_import-xml.xml"), "r") as xml_file:
+            with idml_file.import_xml(xml_file.read(), at="/Root/module[1]") as f:
+                xml = f.export_xml()
+                self.assertXMLEqual(xml,
 """<Root>
   <module>
     <main_picture href="file:../../IDML/media/bouboune.jpg"/>
@@ -193,10 +212,10 @@ u"""<Root Self="di2">
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-nested-tags.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-nested-tags.idml")) as idml_file,\
-            open(os.path.join(XML_DIR, "article-1photo_import-xml-nested-tags.xml"), "r") as xml_file:
-            idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
-            xml = idml_file.export_xml()
-            self.assertMultiLineEqual(xml,
+             open(os.path.join(XML_DIR, "article-1photo_import-xml-nested-tags.xml"), "r") as xml_file:
+            with idml_file.import_xml(xml_file.read(), at="/Root/module[1]") as f:
+                xml = f.export_xml()
+                self.assertMultiLineEqual(xml,
 """<Root>
   <module>
     <main_picture href="file:../../IDML/media/bouboune.jpg"/>
@@ -214,10 +233,10 @@ u"""<Root Self="di2">
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes.idml")) as idml_file,\
-            open(os.path.join(XML_DIR, "article-1photo_import-xml-with-extra-nodes.xml"), "r") as xml_file:
-            idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
-            xml = idml_file.export_xml()
-            self.assertEqual(xml,
+             open(os.path.join(XML_DIR, "article-1photo_import-xml-with-extra-nodes.xml"), "r") as xml_file:
+            with idml_file.import_xml(xml_file.read(), at="/Root/module[1]") as f:
+                xml = f.export_xml()
+                self.assertEqual(xml,
 """<Root>
   <module>
     <main_picture href="file:../../IDML/media/bouboune.jpg"/>
@@ -235,10 +254,10 @@ u"""<Root Self="di2">
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes2.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes2.idml")) as idml_file,\
-            open(os.path.join(XML_DIR, "article-1photo_import-xml-with-extra-nodes2.xml"), "r") as xml_file:
-            idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
-            xml = idml_file.export_xml()
-            self.assertEqual(xml,
+             open(os.path.join(XML_DIR, "article-1photo_import-xml-with-extra-nodes2.xml"), "r") as xml_file:
+            with idml_file.import_xml(xml_file.read(), at="/Root/module[1]") as f:
+                xml = f.export_xml()
+                self.assertEqual(xml,
 """<Root>
   <module>
     <main_picture href="file:../../IDML/media/bouboune.jpg"/>
@@ -256,11 +275,11 @@ u"""<Root Self="di2">
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes2-prefixed.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-extra-nodes2-prefixed.idml")) as idml_file,\
-            open(os.path.join(XML_DIR, "article-1photo_import-xml-with-extra-nodes2.xml"), "r") as xml_file:
-            idml_file = idml_file.prefix("myprefix")
-            idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
-            xml = idml_file.export_xml()
-            self.assertMultiLineEqual(xml,
+             open(os.path.join(XML_DIR, "article-1photo_import-xml-with-extra-nodes2.xml"), "r") as xml_file:
+            with idml_file.prefix("myprefix") as prefixed_f:
+                with prefixed_f.import_xml(xml_file.read(), at="/Root/module[1]") as f:
+                    xml = f.export_xml()
+                    self.assertMultiLineEqual(xml,
 """<Root>
   <module>
     <main_picture href="file:../../IDML/media/bouboune.jpg"/>
@@ -278,11 +297,11 @@ u"""<Root Self="di2">
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-setcontent-false.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-with-setcontent-false.idml")) as idml_file,\
-            open(os.path.join(XML_DIR, "article-1photo_import-xml-with-setcontent-false.xml"), "r") as xml_file:
-            idml_file = idml_file.prefix("myprefix")
-            idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
-            xml = idml_file.export_xml()
-            self.assertEqual(xml,
+             open(os.path.join(XML_DIR, "article-1photo_import-xml-with-setcontent-false.xml"), "r") as xml_file:
+            with idml_file.prefix("myprefix") as prefixed_f:
+                with prefixed_f.import_xml(xml_file.read(), at="/Root/module[1]") as f:
+                    xml = f.export_xml()
+                    self.assertEqual(xml,
 """<Root>
   <module>
     <main_picture href="file:../../IDML/media/bouboune.jpg"/>
@@ -300,12 +319,12 @@ u"""<Root Self="di2">
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-without-picture.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-without-picture.idml")) as idml_file,\
-            open(os.path.join(XML_DIR, "article-1photo_import-xml-without-picture.xml"), "r") as xml_file:
-            idml_file = idml_file.prefix("myprefix")
-            idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
-            xml = idml_file.export_xml()
-            # Should check that the page item has been removed from the spread (or story).
-            self.assertEqual(xml,
+             open(os.path.join(XML_DIR, "article-1photo_import-xml-without-picture.xml"), "r") as xml_file:
+            with idml_file.prefix("myprefix") as prefixed_f:
+                with prefixed_f.import_xml(xml_file.read(), at="/Root/module[1]") as f:
+                    xml = f.export_xml()
+                    # Should check that the page item has been removed from the spread (or story).
+                    self.assertEqual(xml,
 """<Root>
   <module>
     <main_picture/>
@@ -323,10 +342,10 @@ u"""<Root Self="di2">
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-ignorecontent.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-ignorecontent.idml")) as idml_file,\
-            open(os.path.join(XML_DIR, "article-1photo_import-xml-ignorecontent.xml"), "r") as xml_file:
-            idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
-            xml = idml_file.export_xml()
-            self.assertXMLEqual(xml,
+             open(os.path.join(XML_DIR, "article-1photo_import-xml-ignorecontent.xml"), "r") as xml_file:
+            with idml_file.import_xml(xml_file.read(), at="/Root/module[1]") as f:
+                xml = f.export_xml()
+                self.assertXMLEqual(xml,
 """<Root>
   <module>
     <main_picture href="file:../../IDML/media/bouboune.jpg"/>
@@ -343,10 +362,10 @@ u"""<Root Self="di2">
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-forcecontent.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-forcecontent.idml")) as idml_file,\
-            open(os.path.join(XML_DIR, "article-1photo_import-xml-forcecontent.xml"), "r") as xml_file:
-            idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
-            xml = idml_file.export_xml()
-            self.assertXMLEqual(xml,
+             open(os.path.join(XML_DIR, "article-1photo_import-xml-forcecontent.xml"), "r") as xml_file:
+            with idml_file.import_xml(xml_file.read(), at="/Root/module[1]") as f:
+                xml = f.export_xml()
+                self.assertXMLEqual(xml,
 """<Root>
   <module>
     <main_picture href="file:../../IDML/media/bouboune.jpg"/>
@@ -363,10 +382,10 @@ u"""<Root Self="di2">
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-forcecontent2.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-forcecontent2.idml")) as idml_file,\
-            open(os.path.join(XML_DIR, "article-1photo_import-xml-forcecontent2.xml"), "r") as xml_file:
-            idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
-            xml = idml_file.export_xml()
-            self.assertXMLEqual(xml,
+             open(os.path.join(XML_DIR, "article-1photo_import-xml-forcecontent2.xml"), "r") as xml_file:
+            with idml_file.import_xml(xml_file.read(), at="/Root/module[1]") as f:
+                xml = f.export_xml()
+                self.assertXMLEqual(xml,
 """<Root>
   <module>
     <main_picture href="file:../../IDML/media/bouboune.jpg"/>
@@ -386,9 +405,9 @@ u"""<Root Self="di2">
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-forcecontent3.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-forcecontent3.idml")) as idml_file,\
             open(os.path.join(XML_DIR, "article-1photo_import-xml-forcecontent3.xml"), "r") as xml_file:
-            idml_file = idml_file.import_xml(xml_file.read(), at="/Root/module[1]")
-            xml = idml_file.export_xml()
-            self.assertXMLEqual(xml,
+            with idml_file.import_xml(xml_file.read(), at="/Root/module[1]") as f:
+                xml = f.export_xml()
+                self.assertXMLEqual(xml,
 """<Root>
   <module simpleidml-ignorecontent="true">
     <main_picture href="file:///Users/stan/Dropbox/Projets/Slashdev/SimpleIDML/repos/git/simpleidml/tests/regressiontests/IDML/media/default.jpg"/>
@@ -547,29 +566,33 @@ u"""<Root>
 
         with IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages.idml")) as idml_file:
             self.assertRaises(BaseException, idml_file.prefix, "bad-prefix")
-            idml_file = idml_file.prefix("FOO")
+            with idml_file.prefix("FOO") as prefixed_f:
 
-            # Spreads.
-            self.assertEqual(idml_file.spreads, ['Spreads/Spread_FOOub6.xml',
-                                                'Spreads/Spread_FOOubc.xml',
-                                                'Spreads/Spread_FOOuc3.xml'])
-            spread = etree.fromstring(idml_file.open("Spreads/Spread_FOOub6.xml").read())
-            self.assertEqual(spread.xpath(".//Spread[1]")[0].get("Self"), "FOOub6")
-            self.assertEqual(spread.xpath(".//Spread[1]/Page[1]")[0].get("Self"), "FOOubb")
-            self.assertEqual(spread.xpath(".//Spread[1]/TextFrame[1]")[0].get("Self"), "FOOud8")
-            self.assertEqual(spread.xpath(".//Spread[1]/TextFrame[1]")[0].get("ParentStory"), "FOOu102")
+                # Spreads.
+                self.assertEqual(prefixed_f.spreads, ['Spreads/Spread_FOOub6.xml',
+                                                    'Spreads/Spread_FOOubc.xml',
+                                                    'Spreads/Spread_FOOuc3.xml'])
 
-            # Stories.
-            self.assertEqual(idml_file.stories, ['Stories/Story_FOOu102.xml',
-                                                'Stories/Story_FOOu11b.xml',
-                                                'Stories/Story_FOOu139.xml',
-                                                'Stories/Story_FOOue4.xml'])
-            story = etree.fromstring(idml_file.open("Stories/Story_FOOu102.xml").read())
-            self.assertEqual(story.xpath("//CharacterStyleRange")[0].get("AppliedCharacterStyle"),
-                            "FOOCharacterStyle/$ID/[No character style]")
+                with prefixed_f.open("Spreads/Spread_FOOub6.xml") as f:
+                    spread = etree.fromstring(f.read())
+                    self.assertEqual(spread.xpath(".//Spread[1]")[0].get("Self"), "FOOub6")
+                    self.assertEqual(spread.xpath(".//Spread[1]/Page[1]")[0].get("Self"), "FOOubb")
+                    self.assertEqual(spread.xpath(".//Spread[1]/TextFrame[1]")[0].get("Self"), "FOOud8")
+                    self.assertEqual(spread.xpath(".//Spread[1]/TextFrame[1]")[0].get("ParentStory"), "FOOu102")
 
-            # XML Structure.
-            self.assertXMLEqual(unicode(idml_file.xml_structure_pretty()),
+                # Stories.
+                self.assertEqual(prefixed_f.stories, ['Stories/Story_FOOu102.xml',
+                                                    'Stories/Story_FOOu11b.xml',
+                                                    'Stories/Story_FOOu139.xml',
+                                                    'Stories/Story_FOOue4.xml'])
+
+                with prefixed_f.open("Stories/Story_FOOu102.xml") as f:
+                    story = etree.fromstring(f.read())
+                    self.assertEqual(story.xpath("//CharacterStyleRange")[0].get("AppliedCharacterStyle"),
+                                    "FOOCharacterStyle/$ID/[No character style]")
+
+                # XML Structure.
+                self.assertXMLEqual(unicode(prefixed_f.xml_structure_pretty()),
 u"""<Root Self="FOOdi2">
   <article XMLContent="FOOu102" Self="FOOdi2i3">
     <Story XMLContent="FOOue4" Self="FOOdi2i3i1">
@@ -586,24 +609,25 @@ u"""<Root Self="FOOdi2">
 </Root>
 """)
             # designmap.xml
-            designmap = etree.fromstring(idml_file.open("designmap.xml").read())
-            self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
-                            "FOOue4 FOOu102 FOOu11b FOOu139 FOOu9c")
-            self.assertEqual(designmap.xpath(
-                ".//idPkg:Story",
-                namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0].get("src"),
-                "Stories/Story_FOOu139.xml")
-            self.assertEqual(designmap.xpath(
-                ".//idPkg:Spread",
-                namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})[0].get("src"),
-                "Spreads/Spread_FOOub6.xml")
+                with prefixed_f.open("designmap.xml") as f:
+                    designmap = etree.fromstring(f.read())
+                    self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
+                                    "FOOue4 FOOu102 FOOu11b FOOu139 FOOu9c")
+                    self.assertEqual(designmap.xpath(".//idPkg:Story",
+                                                    namespaces={'idPkg': IDPKG_NS})[0].get("src"),
+                                    "Stories/Story_FOOu139.xml")
+                    self.assertEqual(designmap.xpath(".//idPkg:Spread",
+                                                    namespaces={'idPkg': IDPKG_NS})[0].get("src"),
+                                    "Spreads/Spread_FOOub6.xml")
+
 
         # Prefix d'un fichier avec un mapping Style/Tag XML.
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-prefixed.idml"))
 
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml-prefixed.idml")) as idml_file:
-            idml_file = idml_file.prefix("FOO")
+            with idml_file.prefix("FOO") as prefixed_f:
+                pass
 
     def test_is_prefixed(self):
         with IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml")) as idml_file:
@@ -612,17 +636,17 @@ u"""<Root Self="FOOdi2">
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                      os.path.join(OUTPUT_DIR, "4-pages.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages.idml")) as idml_file:
-            idml_file = idml_file.prefix("foo")
-            self.assertTrue(idml_file.is_prefixed("foo"))
-            self.assertFalse(idml_file.is_prefixed("bar"))
+            with idml_file.prefix("foo") as prefixed_f:
+                self.assertTrue(prefixed_f.is_prefixed("foo"))
+                self.assertFalse(prefixed_f.is_prefixed("bar"))
 
     def test_suffix_layers(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                      os.path.join(OUTPUT_DIR, "4-pages.idml"))
 
         with IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages.idml")) as idml_file:
-            idml_file = idml_file.suffix_layers(" - 23")
-            self.assertEqual(idml_file.designmap.layer_nodes[0].get("Name"), "Layer 1 - 23")
+            with idml_file.suffix_layers(" - 23") as f:
+                self.assertEqual(f.designmap.layer_nodes[0].get("Name"), "Layer 1 - 23")
 
     def test_insert_idml(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
@@ -631,395 +655,1230 @@ u"""<Root Self="FOOdi2">
                      os.path.join(OUTPUT_DIR, "article-1photo.idml"))
 
         with IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages-insert-article-1-photo.idml")) as main_idml_file,\
-            IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo.idml")) as article_idml_file:
+             IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo.idml")) as article_idml_file:
 
-        # Always start by prefixing packages to avoid collision.
-            main_idml_file = main_idml_file.prefix("main")
-            article_idml_file = article_idml_file.prefix("article1")
+            # Always start by prefixing packages to avoid collision.
+            with main_idml_file.prefix("main") as prefixed_main,\
+                 article_idml_file.prefix("article1") as prefixed_article:
 
-            main_idml_file = main_idml_file.insert_idml(article_idml_file,
-                                                        at="/Root/article[3]",
-                                                        only="/Root/module[1]")
+                with prefixed_main.insert_idml(prefixed_article,
+                                               at="/Root/article[3]",
+                                               only="/Root/module[1]") as f:
 
-            # Stories.
-            self.assertEqual(main_idml_file.stories, ['Stories/Story_article1u188.xml',
-                                                    'Stories/Story_article1u19f.xml',
-                                                    'Stories/Story_article1u1db.xml',
-                                                    'Stories/Story_mainu102.xml',
-                                                    'Stories/Story_mainu11b.xml',
-                                                    'Stories/Story_mainu139.xml',
-                                                    'Stories/Story_mainudd.xml',
-                                                    'Stories/Story_mainue4.xml'])
+                    # Stories.
+                    self.assertEqual(f.stories, ['Stories/Story_article1u188.xml',
+                                                 'Stories/Story_article1u19f.xml',
+                                                 'Stories/Story_article1u1db.xml',
+                                                 'Stories/Story_mainu102.xml',
+                                                 'Stories/Story_mainu11b.xml',
+                                                 'Stories/Story_mainu139.xml',
+                                                 'Stories/Story_mainudd.xml',
+                                                 'Stories/Story_mainue4.xml'])
 
-            # Spreads
-            self.assertEqual(main_idml_file.spreads, ['Spreads/Spread_mainub6.xml',
-                                                    'Spreads/Spread_mainubc.xml',
-                                                    'Spreads/Spread_mainuc3.xml'])
+                    # Spreads
+                    self.assertEqual(f.spreads, ['Spreads/Spread_mainub6.xml',
+                                                 'Spreads/Spread_mainubc.xml',
+                                                 'Spreads/Spread_mainuc3.xml'])
 
-            self.assertEqual([(elt.tag, elt.attrib) for elt in main_idml_file.spreads_objects[0].dom.iter()], [
-                ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
-                {'DOMVersion': '7.5'}),
-                ('Spread',
-                {'PageTransitionDirection': 'NotApplicable', 'BindingLocation': '0', 'PageTransitionDuration': 'Medium', 'ShowMasterItems': 'true', 'PageTransitionType': 'None', 'PageCount': '1', 'Self': 'mainub6', 'AllowPageShuffle': 'true', 'ItemTransform': '1 0 0 1 0 0', 'FlattenerOverride': 'Default'}),
-                ('FlattenerPreference',
-                {'ConvertAllTextToOutlines': 'false', 'GradientAndMeshResolution': '150', 'ConvertAllStrokesToOutlines': 'false', 'ClipComplexRegions': 'false', 'LineArtAndTextResolution': '300'}),
-                ('Properties', {}),
-                ('RasterVectorBalance', {'type': 'double'}),
-                ('Page',
-                {'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName', 'Name': '1', 'Self': 'mainubb', 'UseMasterGrid': 'true', 'MasterPageTransform': '1 0 0 1 0 0', 'TabOrder': '', 'OverrideList': '', 'ItemTransform': '1 0 0 1 0 -379.8425196850394', 'GridStartingPoint': 'TopOutside', 'GeometricBounds': '0 0 759.6850393700788 566.9291338582677', 'AppliedMaster': 'uca'}),
-                ('Properties', {}),
-                ('Descriptor', {'type': 'list'}),
-                ('ListItem', {'type': 'string'}),
-                ('ListItem', {'type': 'enumeration'}),
-                ('ListItem', {'type': 'boolean'}),
-                ('ListItem', {'type': 'boolean'}),
-                ('ListItem', {'type': 'long'}),
-                ('ListItem', {'type': 'string'}),
-                ('PageColor', {'type': 'enumeration'}),
-                ('MarginPreference',
-                {'ColumnCount': '1', 'Right': '36', 'Bottom': '36', 'Top': '36', 'ColumnGutter': '12', 'ColumnsPositions': '0 494.92913385826773', 'ColumnDirection': 'Horizontal', 'Left': '36'}),
-                ('GridDataInformation',
-                {'LineAki': '9', 'FontStyle': 'Regular', 'PointSize': '12', 'CharacterAki': '0', 'GridAlignment': 'AlignEmCenter', 'LineAlignment': 'LeftOrTopLineJustify', 'HorizontalScale': '100', 'CharacterAlignment': 'AlignEmCenter', 'VerticalScale': '100'}),
-                ('Properties', {}),
-                ('AppliedFont', {'type': 'string'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]', 'Self': 'mainud8', 'GradientFillLength': '0', 'Locked': 'false', 'GradientStrokeHiliteLength': '0', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'mainub3', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 0 0', 'ContentType': 'TextType', 'GradientFillHiliteAngle': '0', 'GradientStrokeLength': '0', 'GradientFillHiliteLength': '0', 'ParentStory': 'mainu102', 'GradientStrokeAngle': '0', 'Visible': 'true'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771654 -329.76377952755905', 'Anchor': '49.13385826771654 -329.76377952755905', 'LeftDirection': '49.13385826771654 -329.76377952755905'}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771654 -38.74015748031496', 'Anchor': '49.13385826771654 -38.74015748031496', 'LeftDirection': '49.13385826771654 -38.74015748031496'}),
-                ('PathPointType',
-                {'RightDirection': '516.8503937007873 -38.74015748031496', 'Anchor': '516.8503937007873 -38.74015748031496', 'LeftDirection': '516.8503937007873 -38.74015748031496'}),
-                ('PathPointType',
-                {'RightDirection': '516.8503937007873 -329.76377952755905', 'Anchor': '516.8503937007873 -329.76377952755905', 'LeftDirection': '516.8503937007873 -329.76377952755905'}),
-                ('TextFramePreference', {'TextColumnFixedWidth': '467.71653543307076'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('Rectangle',
-                {'GradientFillStart': '0 0', 'GradientStrokeStart': '0 0', 'ContentType': 'GraphicType', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]', 'Self': 'mainudb', 'GradientStrokeHiliteLength': '0', 'GradientStrokeAngle': '0', 'GradientStrokeHiliteAngle': '0', 'GradientFillLength': '0', 'GradientStrokeLength': '0', 'ItemTransform': '1 0 0 1 2.842170943040401e-14 307.0866141732283', 'ItemLayer': 'mainub3', 'LocalDisplaySetting': 'Default', 'StoryTitle': '$ID/', 'Name': '$ID/', 'Visible': 'true', 'GradientFillHiliteAngle': '0', 'GradientFillHiliteLength': '0', 'Locked': 'false'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771654 -329.76377952755905', 'Anchor': '49.13385826771654 -329.76377952755905', 'LeftDirection': '49.13385826771654 -329.76377952755905'}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771654 -38.74015748031496', 'Anchor': '49.13385826771654 -38.74015748031496', 'LeftDirection': '49.13385826771654 -38.74015748031496'}),
-                ('PathPointType',
-                {'RightDirection': '236.22047244094495 -38.74015748031496', 'Anchor': '236.22047244094495 -38.74015748031496', 'LeftDirection': '236.22047244094495 -38.74015748031496'}),
-                ('PathPointType',
-                {'RightDirection': '236.22047244094495 -329.76377952755905', 'Anchor': '236.22047244094495 -329.76377952755905', 'LeftDirection': '236.22047244094495 -329.76377952755905'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('InCopyExportOption',
-                {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
-                ('FrameFittingOption',
-                {'LeftCrop': '49.13385826771654', 'TopCrop': '-329.76377952755905', 'RightCrop': '-235.22047244094495', 'BottomCrop': '39.74015748031496'}),
-                ('ObjectExportOption',
-                {'ApplyTagType': 'TagFromStructure', 'ImageSpaceBefore': '0', 'CustomImageAlignment': 'false', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomImageSizeOption': 'SizeRelativeToPageWidth', 'SpaceUnit': 'CssEm', 'GIFOptionsInterlaced': 'true', 'AltTextSourceType': 'SourceXMLStructure', 'GIFOptionsPalette': 'AdaptivePalette', 'CustomActualText': '$ID/', 'CustomImageConversion': 'false', 'JPEGOptionsFormat': 'BaselineEncoding', 'UseImagePageBreak': 'false', 'ImageConversionType': 'JPEG', 'ImagePageBreak': 'PageBreakBefore', 'JPEGOptionsQuality': 'High', 'ImageSpaceAfter': '0', 'ImageAlignment': 'AlignLeft', 'CustomAltText': '$ID/', 'ImageExportResolution': 'Ppi300'}),
-                ('Properties', {}),
-                ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('ActualMetadataProperty',
-                {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]', 'Self': 'mainuddToNode', 'GradientFillLength': '0', 'Locked': 'false', 'GradientStrokeHiliteLength': '0', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'mainub3', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 200.31496062992122 307.0866141732282', 'GradientStrokeLength': '0', 'GradientFillHiliteAngle': '0', 'ContentType': 'TextType', 'GradientFillHiliteLength': '0', 'ParentStory': 'mainudd', 'GradientStrokeAngle': '0', 'Visible': 'true'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771655 -329.76377952755905', 'Anchor': '49.13385826771655 -329.76377952755905', 'LeftDirection': '49.13385826771655 -329.76377952755905'}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771655 -38.740157480314764', 'Anchor': '49.13385826771655 -38.740157480314764', 'LeftDirection': '49.13385826771655 -38.740157480314764'}),
-                ('PathPointType',
-                {'RightDirection': '316.53543307086596 -38.740157480314764', 'Anchor': '316.53543307086596 -38.740157480314764', 'LeftDirection': '316.53543307086596 -38.740157480314764'}),
-                ('PathPointType',
-                {'RightDirection': '316.53543307086596 -329.76377952755905', 'Anchor': '316.53543307086596 -329.76377952755905', 'LeftDirection': '316.53543307086596 -329.76377952755905'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('Rectangle',
-                {'GradientFillStart': '0 0', 'GradientStrokeStart': '0 0', 'ContentType': 'GraphicType', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]', 'Self': 'mainudf', 'GradientStrokeHiliteLength': '0', 'GradientStrokeAngle': '0', 'GradientStrokeHiliteAngle': '0', 'GradientFillLength': '0', 'GradientStrokeLength': '0', 'ItemTransform': '1 0 0 1 0 0', 'ItemLayer': 'mainub3', 'LocalDisplaySetting': 'Default', 'StoryTitle': '$ID/', 'Name': '$ID/', 'Visible': 'true', 'GradientFillHiliteAngle': '0', 'GradientFillHiliteLength': '0', 'Locked': 'false'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771657 278.74015748031496', 'Anchor': '49.13385826771657 278.74015748031496', 'LeftDirection': '49.13385826771657 278.74015748031496'}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771657 332.5984251968504', 'Anchor': '49.13385826771657 332.5984251968504', 'LeftDirection': '49.13385826771657 332.5984251968504'}),
-                ('PathPointType',
-                {'RightDirection': '516.8503937007873 332.5984251968504', 'Anchor': '516.8503937007873 332.5984251968504', 'LeftDirection': '516.8503937007873 332.5984251968504'}),
-                ('PathPointType',
-                {'RightDirection': '516.8503937007873 278.74015748031496', 'Anchor': '516.8503937007873 278.74015748031496', 'LeftDirection': '516.8503937007873 278.74015748031496'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('InCopyExportOption',
-                {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
-                ('FrameFittingOption',
-                {'LeftCrop': '49.13385826771657', 'TopCrop': '278.74015748031496', 'RightCrop': '-515.8503937007873', 'BottomCrop': '-331.5984251968504'}),
-                ('ObjectExportOption',
-                {'ApplyTagType': 'TagFromStructure', 'ImageSpaceBefore': '0', 'CustomImageAlignment': 'false', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomImageSizeOption': 'SizeRelativeToPageWidth', 'SpaceUnit': 'CssEm', 'GIFOptionsInterlaced': 'true', 'AltTextSourceType': 'SourceXMLStructure', 'GIFOptionsPalette': 'AdaptivePalette', 'CustomActualText': '$ID/', 'CustomImageConversion': 'false', 'JPEGOptionsFormat': 'BaselineEncoding', 'UseImagePageBreak': 'false', 'ImageConversionType': 'JPEG', 'ImagePageBreak': 'PageBreakBefore', 'JPEGOptionsQuality': 'High', 'ImageSpaceAfter': '0', 'ImageAlignment': 'AlignLeft', 'CustomAltText': '$ID/', 'ImageExportResolution': 'Ppi300'}),
-                ('Properties', {}),
-                ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('ActualMetadataProperty',
-                {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[Normal Text Frame]', 'Self': 'mainuf6', 'GradientFillLength': '0', 'Locked': 'false', 'GradientStrokeHiliteLength': '0', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'mainub3', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 277.3228346456692 -310.86614173228344', 'ContentType': 'TextType', 'GradientFillHiliteAngle': '0', 'GradientStrokeLength': '0', 'GradientFillHiliteLength': '0', 'ParentStory': 'mainue4', 'GradientStrokeAngle': '0', 'Visible': 'true'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '-192.28346456692918 -18.897637795275614', 'Anchor': '-192.28346456692918 -18.897637795275614', 'LeftDirection': '-192.28346456692918 -18.897637795275614'}),
-                ('PathPointType',
-                {'RightDirection': '-192.28346456692918 11.338582677165391', 'Anchor': '-192.28346456692918 11.338582677165391', 'LeftDirection': '-192.28346456692918 11.338582677165391'}),
-                ('PathPointType',
-                {'RightDirection': '192.28346456692913 11.338582677165391', 'Anchor': '192.28346456692913 11.338582677165391', 'LeftDirection': '192.28346456692913 11.338582677165391'}),
-                ('PathPointType',
-                {'RightDirection': '192.28346456692913 -18.897637795275614', 'Anchor': '192.28346456692913 -18.897637795275614', 'LeftDirection': '192.28346456692913 -18.897637795275614'}),
-                ('TextFramePreference', {'TextColumnFixedWidth': '384.5669291338583'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[Normal Text Frame]', 'Self': 'mainu12d', 'GradientFillLength': '0', 'Locked': 'false', 'GradientStrokeHiliteLength': '0', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'mainub3', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 126.61417322834649 -189.92125984251965', 'ContentType': 'TextType', 'GradientFillHiliteAngle': '0', 'GradientStrokeLength': '0', 'GradientFillHiliteLength': '0', 'ParentStory': 'mainu11b', 'GradientStrokeAngle': '0', 'Visible': 'true'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '-71.81102362204726 -106.77165354330708', 'Anchor': '-71.81102362204726 -106.77165354330708', 'LeftDirection': '-71.81102362204726 -106.77165354330708'}),
-                ('PathPointType',
-                {'RightDirection': '-71.81102362204726 151.1811023622045', 'Anchor': '-71.81102362204726 151.1811023622045', 'LeftDirection': '-71.81102362204726 151.1811023622045'}),
-                ('PathPointType',
-                {'RightDirection': '233.38582677165348 151.1811023622045', 'Anchor': '233.38582677165348 151.1811023622045', 'LeftDirection': '233.38582677165348 151.1811023622045'}),
-                ('PathPointType',
-                {'RightDirection': '233.38582677165348 -106.77165354330708', 'Anchor': '233.38582677165348 -106.77165354330708', 'LeftDirection': '233.38582677165348 -106.77165354330708'}),
-                ('TextFramePreference',
-                {'VerticalBalanceColumns': 'true', 'TextColumnFixedWidth': '305.19685039370074'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('Rectangle',
-                {'GradientFillStart': '0 0', 'GradientStrokeStart': '0 0', 'ContentType': 'GraphicType', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]', 'Self': 'mainu135', 'GradientStrokeHiliteLength': '0', 'GradientStrokeAngle': '0', 'GradientStrokeHiliteAngle': '0', 'GradientFillLength': '0', 'GradientStrokeLength': '0', 'ItemTransform': '1 0 0 1 0 0', 'ItemLayer': 'mainub3', 'LocalDisplaySetting': 'Default', 'StoryTitle': '$ID/', 'Name': '$ID/', 'Visible': 'true', 'GradientFillHiliteAngle': '0', 'GradientFillHiliteLength': '0', 'Locked': 'false'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '365.6692913385827 -296.6929133858267', 'Anchor': '365.6692913385827 -296.6929133858267', 'LeftDirection': '365.6692913385827 -296.6929133858267'}),
-                ('PathPointType',
-                {'RightDirection': '365.6692913385827 -124.7244094488189', 'Anchor': '365.6692913385827 -124.7244094488189', 'LeftDirection': '365.6692913385827 -124.7244094488189'}),
-                ('PathPointType',
-                {'RightDirection': '510.23622047244095 -124.7244094488189', 'Anchor': '510.23622047244095 -124.7244094488189', 'LeftDirection': '510.23622047244095 -124.7244094488189'}),
-                ('PathPointType',
-                {'RightDirection': '510.23622047244095 -296.6929133858267', 'Anchor': '510.23622047244095 -296.6929133858267', 'LeftDirection': '510.23622047244095 -296.6929133858267'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('InCopyExportOption',
-                {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
-                ('FrameFittingOption',
-                {'LeftCrop': '365.6692913385827', 'TopCrop': '-296.6929133858267', 'RightCrop': '-509.23622047244095', 'BottomCrop': '125.7244094488189'}),
-                ('ObjectExportOption',
-                {'ApplyTagType': 'TagFromStructure', 'ImageSpaceBefore': '0', 'CustomImageAlignment': 'false', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomImageSizeOption': 'SizeRelativeToPageWidth', 'SpaceUnit': 'CssEm', 'GIFOptionsInterlaced': 'true', 'AltTextSourceType': 'SourceXMLStructure', 'GIFOptionsPalette': 'AdaptivePalette', 'CustomActualText': '$ID/', 'CustomImageConversion': 'false', 'JPEGOptionsFormat': 'BaselineEncoding', 'UseImagePageBreak': 'false', 'ImageConversionType': 'JPEG', 'ImagePageBreak': 'PageBreakBefore', 'JPEGOptionsQuality': 'High', 'ImageSpaceAfter': '0', 'ImageAlignment': 'AlignLeft', 'CustomAltText': '$ID/', 'ImageExportResolution': 'Ppi300'}),
-                ('Properties', {}),
-                ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('ActualMetadataProperty',
-                {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[Normal Text Frame]', 'Self': 'mainu14b', 'GradientFillLength': '0', 'Locked': 'false', 'GradientStrokeHiliteLength': '0', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'mainub3', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 437.9527559055118 -97.79527559055123', 'ContentType': 'TextType', 'GradientFillHiliteAngle': '0', 'GradientStrokeLength': '0', 'GradientFillHiliteLength': '0', 'ParentStory': 'mainu139', 'GradientStrokeAngle': '0', 'Visible': 'true'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '-72.28346456692913 -26.929133858267733', 'Anchor': '-72.28346456692913 -26.929133858267733', 'LeftDirection': '-72.28346456692913 -26.929133858267733'}),
-                ('PathPointType',
-                {'RightDirection': '-72.28346456692913 55.27559055118115', 'Anchor': '-72.28346456692913 55.27559055118115', 'LeftDirection': '-72.28346456692913 55.27559055118115'}),
-                ('PathPointType',
-                {'RightDirection': '72.28346456692913 55.27559055118115', 'Anchor': '72.28346456692913 55.27559055118115', 'LeftDirection': '72.28346456692913 55.27559055118115'}),
-                ('PathPointType',
-                {'RightDirection': '72.28346456692913 -26.929133858267733', 'Anchor': '72.28346456692913 -26.929133858267733', 'LeftDirection': '72.28346456692913 -26.929133858267733'}),
-                ('TextFramePreference', {'TextColumnFixedWidth': '144.56692913385825'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]', 'Self': 'article1u1d4', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'Locked': 'false', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'GradientStrokeHiliteLength': '0', 'LastUpdatedInterfaceChangeCount': '', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 107.716535433070840 -42.51968503937020', 'GradientStrokeLength': '0', 'GradientFillHiliteAngle': '0', 'ContentType': 'TextType', 'GradientFillHiliteLength': '0', 'ParentStory': 'article1u1db', 'GradientStrokeAngle': '0', 'Visible': 'true', 'TargetInterfaceChangeCount': ''}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '141.73228346456693 19.84251968503935', 'Anchor': '141.73228346456693 19.84251968503935', 'LeftDirection': '141.73228346456693 19.84251968503935'}),
-                ('PathPointType',
-                {'RightDirection': '141.73228346456693 310.8661417322836', 'Anchor': '141.73228346456693 310.8661417322836', 'LeftDirection': '141.73228346456693 310.8661417322836'}),
-                ('PathPointType',
-                {'RightDirection': '409.13385826771633 310.8661417322836', 'Anchor': '409.13385826771633 310.8661417322836', 'LeftDirection': '409.13385826771633 310.8661417322836'}),
-                ('PathPointType',
-                {'RightDirection': '409.13385826771633 19.84251968503935', 'Anchor': '409.13385826771633 19.84251968503935', 'LeftDirection': '409.13385826771633 19.84251968503935'}),
-                ('TextFramePreference',
-                {'UseMinimumHeightForAutoSizing': 'false', 'TextColumnFixedWidth': '267.4015748031494', 'TextColumnCount': '1', 'UseNoLineBreaksForAutoSizing': 'false', 'AutoSizingReferencePoint': 'CenterPoint', 'TextColumnMaxWidth': '0', 'AutoSizingType': 'Off', 'UseMinimumWidthForAutoSizing': 'false', 'MinimumWidthForAutoSizing': '0', 'MinimumHeightForAutoSizing': '0'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('ObjectExportOption',
-                {'GIFOptionsPalette': 'AdaptivePalette', 'JPEGOptionsFormat': 'BaselineEncoding', 'CustomImageAlignment': 'false', 'UseOriginalImage': 'false', 'CustomWidthType': 'DefaultWidth', 'ImagePageBreak': 'PageBreakBefore', 'AltTextSourceType': 'SourceXMLStructure', 'UseImagePageBreak': 'false', 'GIFOptionsInterlaced': 'true', 'ImageExportResolution': 'Ppi300', 'ImageSpaceBefore': '0', 'CustomHeightType': 'DefaultHeight', 'JPEGOptionsQuality': 'High', 'CustomLayout': 'false', 'ImageAlignment': 'AlignLeft', 'UseExistingImage': 'false', 'CustomLayoutType': 'AlignmentAndSpacing', 'ImageConversionType': 'JPEG', 'SpaceUnit': 'CssPixel', 'CustomImageConversion': 'false', 'ApplyTagType': 'TagFromStructure', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomAltText': '$ID/', 'CustomActualText': '$ID/', 'CustomHeight': '$ID/', 'EpubType': '$ID/', 'ImageSpaceAfter': '0', 'CustomWidth': '$ID/'}),
-                ('Properties', {}),
-                ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('ActualMetadataProperty',
-                {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('Rectangle',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]', 'Self': 'article1u182', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'GradientStrokeHiliteLength': '0', 'LastUpdatedInterfaceChangeCount': '', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'GradientFillStart': '0 0', 'Locked': 'false', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 109.417322834645740 -76.62992125984261', 'StoryTitle': '$ID/', 'GradientStrokeLength': '0', 'GradientFillHiliteAngle': '0', 'ContentType': 'GraphicType', 'GradientFillHiliteLength': '0', 'GradientStrokeAngle': '0', 'Visible': 'true', 'TargetInterfaceChangeCount': ''}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '144.56692913385828 58.582677165354326', 'Anchor': '144.56692913385828 58.582677165354326', 'LeftDirection': '144.56692913385828 58.582677165354326'}),
-                ('PathPointType',
-                {'RightDirection': '144.56692913385828 199.46456692913392', 'Anchor': '144.56692913385828 199.46456692913392', 'LeftDirection': '144.56692913385828 199.46456692913392'}),
-                ('PathPointType',
-                {'RightDirection': '403.46456692913387 199.46456692913392', 'Anchor': '403.46456692913387 199.46456692913392', 'LeftDirection': '403.46456692913387 199.46456692913392'}),
-                ('PathPointType',
-                {'RightDirection': '403.46456692913387 58.582677165354326', 'Anchor': '403.46456692913387 58.582677165354326', 'LeftDirection': '403.46456692913387 58.582677165354326'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('ContourOption',
-                {'ContourType': 'SameAsClipping', 'IncludeInsideEdges': 'false', 'ContourPathName': '$ID/'}),
-                ('InCopyExportOption',
-                {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
-                ('FrameFittingOption', {'FittingOnEmptyFrame': 'FillProportionally'}),
-                ('ObjectExportOption',
-                {'GIFOptionsPalette': 'AdaptivePalette', 'JPEGOptionsFormat': 'BaselineEncoding', 'CustomImageAlignment': 'false', 'UseOriginalImage': 'false', 'CustomWidthType': 'DefaultWidth', 'ImagePageBreak': 'PageBreakBefore', 'AltTextSourceType': 'SourceXMLStructure', 'UseImagePageBreak': 'false', 'GIFOptionsInterlaced': 'true', 'ImageExportResolution': 'Ppi300', 'ImageSpaceBefore': '0', 'CustomHeightType': 'DefaultHeight', 'JPEGOptionsQuality': 'High', 'CustomLayout': 'false', 'ImageAlignment': 'AlignLeft', 'UseExistingImage': 'false', 'CustomLayoutType': 'AlignmentAndSpacing', 'ImageConversionType': 'JPEG', 'SpaceUnit': 'CssPixel', 'CustomImageConversion': 'false', 'ApplyTagType': 'TagFromStructure', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomAltText': '$ID/', 'CustomActualText': '$ID/', 'CustomHeight': '$ID/', 'EpubType': '$ID/', 'ImageSpaceAfter': '0', 'CustomWidth': '$ID/'}),
-                ('Properties', {}),
-                ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('ActualMetadataProperty',
-                {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('Image',
-                {'GradientFillAngle': '0', 'Space': '$ID/#Links_RGB', 'Self': 'article1u216', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]', 'LastUpdatedInterfaceChangeCount': '', 'ImageRenderingIntent': 'UseColorSettings', 'LocalDisplaySetting': 'Default', 'GradientFillStart': '0 0', 'Name': '$ID/', 'ItemTransform': '0.8544476494893585 0 0 0.8544476494893584 144.56692913385828 58.582677165354326', 'GradientFillHiliteAngle': '0', 'GradientFillHiliteLength': '0', 'ImageTypeName': '$ID/JPEG', 'EffectivePpi': '84 84', 'Visible': 'true', 'TargetInterfaceChangeCount': '', 'ActualPpi': '72 72'}),
-                ('Properties', {}),
-                ('Profile', {'type': 'string'}),
-                ('GraphicBounds', {'Bottom': '360', 'Top': '0', 'Right': '303', 'Left': '0'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('ContourOption',
-                {'ContourType': 'SameAsClipping', 'IncludeInsideEdges': 'false', 'ContourPathName': '$ID/'}),
-                ('MetadataPacketPreference', {}),
-                ('Properties', {}),
-                ('Contents', {}),
-                ('Link',
-                {'ImportPolicy': 'NoAutoImport', 'LinkImportStamp': 'file 129767622980000000 27644', 'CanPackage': 'true', 'LinkResourceModified': 'false', 'AssetID': '$ID/', 'ShowInUI': 'true', 'Self': 'article1u21a', 'LinkImportTime': '2014-09-24T14:47:22', 'LinkResourceSize': '0~6bfc', 'AssetURL': '$ID/', 'ExportPolicy': 'NoAutoExport', 'LinkResourceURI': 'file:/Users/stan/Dropbox/Projets/Slashdev/SimpleIDML/repos/git/simpleidml/tests/regressiontests/IDML/media/default.jpg', 'LinkImportModificationTime': '2012-03-21T01:11:38', 'CanUnembed': 'true', 'LinkClientID': '257', 'StoredState': 'Normal', 'LinkClassID': '35906', 'CanEmbed': 'true', 'LinkObjectModified': 'false', 'LinkResourceFormat': '$ID/JPEG'}),
-                ('ClippingPathSettings',
-                {'Index': '-1', 'ClippingType': 'None', 'AppliedPathName': '$ID/', 'RestrictToFrame': 'false', 'InvertPath': 'false', 'UseHighResolutionImage': 'true', 'InsetFrame': '0', 'IncludeInsideEdges': 'false', 'Threshold': '25', 'Tolerance': '2'}),
-                ('ImageIOPreference',
-                {'ApplyPhotoshopClippingPath': 'true', 'AlphaChannelName': '$ID/', 'AllowAutoEmbedding': 'true'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[Normal Text Frame]', 'Self': 'article1u185', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'Locked': 'false', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'GradientStrokeHiliteLength': '0', 'LastUpdatedInterfaceChangeCount': '', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 329.480314960629896 148.34645669291330', 'GradientStrokeLength': '0', 'GradientFillHiliteAngle': '0', 'ContentType': 'TextType', 'GradientFillHiliteLength': '0', 'ParentStory': 'article1u188', 'GradientStrokeAngle': '0', 'Visible': 'true', 'TargetInterfaceChangeCount': ''}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '-76.06299212598424 -19.842519685039377', 'Anchor': '-76.06299212598424 -19.842519685039377', 'LeftDirection': '-76.06299212598424 -19.842519685039377'}),
-                ('PathPointType',
-                {'RightDirection': '-76.06299212598424 -0.9448818897638205', 'Anchor': '-76.06299212598424 -0.9448818897638205', 'LeftDirection': '-76.06299212598424 -0.9448818897638205'}),
-                ('PathPointType',
-                {'RightDirection': '182.83464566929132 -0.9448818897638205', 'Anchor': '182.83464566929132 -0.9448818897638205', 'LeftDirection': '182.83464566929132 -0.9448818897638205'}),
-                ('PathPointType',
-                {'RightDirection': '182.83464566929132 -19.842519685039377', 'Anchor': '182.83464566929132 -19.842519685039377', 'LeftDirection': '182.83464566929132 -19.842519685039377'}),
-                ('TextFramePreference',
-                {'UseMinimumHeightForAutoSizing': 'false', 'TextColumnFixedWidth': '258.89763779527556', 'TextColumnCount': '1', 'UseNoLineBreaksForAutoSizing': 'false', 'AutoSizingReferencePoint': 'CenterPoint', 'TextColumnMaxWidth': '0', 'AutoSizingType': 'Off', 'UseMinimumWidthForAutoSizing': 'false', 'MinimumWidthForAutoSizing': '0', 'MinimumHeightForAutoSizing': '0'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('ObjectExportOption',
-                {'GIFOptionsPalette': 'AdaptivePalette', 'JPEGOptionsFormat': 'BaselineEncoding', 'CustomImageAlignment': 'false', 'UseOriginalImage': 'false', 'CustomWidthType': 'DefaultWidth', 'ImagePageBreak': 'PageBreakBefore', 'AltTextSourceType': 'SourceXMLStructure', 'UseImagePageBreak': 'false', 'GIFOptionsInterlaced': 'true', 'ImageExportResolution': 'Ppi300', 'ImageSpaceBefore': '0', 'CustomHeightType': 'DefaultHeight', 'JPEGOptionsQuality': 'High', 'CustomLayout': 'false', 'ImageAlignment': 'AlignLeft', 'UseExistingImage': 'false', 'CustomLayoutType': 'AlignmentAndSpacing', 'ImageConversionType': 'JPEG', 'SpaceUnit': 'CssPixel', 'CustomImageConversion': 'false', 'ApplyTagType': 'TagFromStructure', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomAltText': '$ID/', 'CustomActualText': '$ID/', 'CustomHeight': '$ID/', 'EpubType': '$ID/', 'ImageSpaceAfter': '0', 'CustomWidth': '$ID/'}),
-                ('Properties', {}),
-                ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('ActualMetadataProperty',
-                {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[Normal Text Frame]', 'Self': 'article1u19c', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'Locked': 'false', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'GradientStrokeHiliteLength': '0', 'LastUpdatedInterfaceChangeCount': '', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 390.425196850393686 216.37795275590547', 'GradientStrokeLength': '0', 'GradientFillHiliteAngle': '0', 'ContentType': 'TextType', 'GradientFillHiliteLength': '0', 'ParentStory': 'article1u19f', 'GradientStrokeAngle': '0', 'Visible': 'true', 'TargetInterfaceChangeCount': ''}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '-137.00787401574803 -64.25196850393701', 'Anchor': '-137.00787401574803 -64.25196850393701', 'LeftDirection': '-137.00787401574803 -64.25196850393701'}),
-                ('PathPointType',
-                {'RightDirection': '-137.00787401574803 51.968503937007945', 'Anchor': '-137.00787401574803 51.968503937007945', 'LeftDirection': '-137.00787401574803 51.968503937007945'}),
-                ('PathPointType',
-                {'RightDirection': '121.88976377952753 51.968503937007945', 'Anchor': '121.88976377952753 51.968503937007945', 'LeftDirection': '121.88976377952753 51.968503937007945'}),
-                ('PathPointType',
-                {'RightDirection': '121.88976377952753 -64.25196850393701', 'Anchor': '121.88976377952753 -64.25196850393701', 'LeftDirection': '121.88976377952753 -64.25196850393701'}),
-                ('TextFramePreference',
-                {'UseMinimumHeightForAutoSizing': 'false', 'TextColumnFixedWidth': '123.44881889763778', 'TextColumnCount': '2', 'UseNoLineBreaksForAutoSizing': 'false', 'AutoSizingReferencePoint': 'CenterPoint', 'TextColumnMaxWidth': '0', 'AutoSizingType': 'Off', 'UseMinimumWidthForAutoSizing': 'false', 'MinimumWidthForAutoSizing': '0', 'MinimumHeightForAutoSizing': '0'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('ObjectExportOption',
-                {'GIFOptionsPalette': 'AdaptivePalette', 'JPEGOptionsFormat': 'BaselineEncoding', 'CustomImageAlignment': 'false', 'UseOriginalImage': 'false', 'CustomWidthType': 'DefaultWidth', 'ImagePageBreak': 'PageBreakBefore', 'AltTextSourceType': 'SourceXMLStructure', 'UseImagePageBreak': 'false', 'GIFOptionsInterlaced': 'true', 'ImageExportResolution': 'Ppi300', 'ImageSpaceBefore': '0', 'CustomHeightType': 'DefaultHeight', 'JPEGOptionsQuality': 'High', 'CustomLayout': 'false', 'ImageAlignment': 'AlignLeft', 'UseExistingImage': 'false', 'CustomLayoutType': 'AlignmentAndSpacing', 'ImageConversionType': 'JPEG', 'SpaceUnit': 'CssPixel', 'CustomImageConversion': 'false', 'ApplyTagType': 'TagFromStructure', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomAltText': '$ID/', 'CustomActualText': '$ID/', 'CustomHeight': '$ID/', 'EpubType': '$ID/', 'ImageSpaceAfter': '0', 'CustomWidth': '$ID/'}),
-                ('Properties', {}),
-                ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('ActualMetadataProperty',
-                {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'})
+                    self.assertEqual([(elt.tag, elt.attrib) for elt in f.spreads_objects[0].dom.iter()], [
+                        ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread', {'DOMVersion': '7.5'}),
+                        ('Spread', {
+                            'PageTransitionDirection': 'NotApplicable',
+                            'BindingLocation': '0',
+                            'PageTransitionDuration': 'Medium',
+                            'ShowMasterItems': 'true',
+                            'PageTransitionType': 'None',
+                            'PageCount': '1',
+                            'Self': 'mainub6',
+                            'AllowPageShuffle': 'true',
+                            'ItemTransform': '1 0 0 1 0 0',
+                            'FlattenerOverride': 'Default'
+                        }),
+                        ('FlattenerPreference', {
+                            'ConvertAllTextToOutlines': 'false',
+                            'GradientAndMeshResolution': '150',
+                            'ConvertAllStrokesToOutlines': 'false',
+                            'ClipComplexRegions': 'false',
+                            'LineArtAndTextResolution': '300'
+                        }),
+                        ('Properties', {}),
+                        ('RasterVectorBalance', {'type': 'double'}),
+                        ('Page', {
+                            'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName',
+                            'Name': '1',
+                            'Self': 'mainubb',
+                            'UseMasterGrid': 'true',
+                            'MasterPageTransform': '1 0 0 1 0 0',
+                            'TabOrder': '',
+                            'OverrideList': '',
+                            'ItemTransform': '1 0 0 1 0 -379.8425196850394',
+                            'GridStartingPoint': 'TopOutside',
+                            'GeometricBounds': '0 0 759.6850393700788 566.9291338582677',
+                            'AppliedMaster': 'uca'
+                        }),
+                        ('Properties', {}),
+                        ('Descriptor', {'type': 'list'}),
+                        ('ListItem', {'type': 'string'}),
+                        ('ListItem', {'type': 'enumeration'}),
+                        ('ListItem', {'type': 'boolean'}),
+                        ('ListItem', {'type': 'boolean'}),
+                        ('ListItem', {'type': 'long'}),
+                        ('ListItem', {'type': 'string'}),
+                        ('PageColor', {'type': 'enumeration'}),
+                        ('MarginPreference', {
+                            'ColumnCount': '1',
+                            'Right': '36',
+                            'Bottom': '36',
+                            'Top': '36',
+                            'ColumnGutter': '12',
+                            'ColumnsPositions': '0 494.92913385826773',
+                            'ColumnDirection': 'Horizontal',
+                            'Left': '36'
+                        }),
+                        ('GridDataInformation', {
+                            'LineAki': '9',
+                            'FontStyle': 'Regular',
+                            'PointSize': '12',
+                            'CharacterAki': '0',
+                            'GridAlignment': 'AlignEmCenter',
+                            'LineAlignment': 'LeftOrTopLineJustify',
+                            'HorizontalScale': '100',
+                            'CharacterAlignment': 'AlignEmCenter',
+                            'VerticalScale': '100'
+                        }),
+                        ('Properties', {}),
+                        ('AppliedFont', {'type': 'string'}),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]',
+                            'Self': 'mainud8',
+                            'GradientFillLength': '0',
+                            'Locked': 'false',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'mainub3',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 0 0',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'mainu102',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771654 -329.76377952755905',
+                            'Anchor': '49.13385826771654 -329.76377952755905',
+                            'LeftDirection': '49.13385826771654 -329.76377952755905'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771654 -38.74015748031496',
+                            'Anchor': '49.13385826771654 -38.74015748031496',
+                            'LeftDirection': '49.13385826771654 -38.74015748031496'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '516.8503937007873 -38.74015748031496',
+                            'Anchor': '516.8503937007873 -38.74015748031496',
+                            'LeftDirection': '516.8503937007873 -38.74015748031496'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '516.8503937007873 -329.76377952755905',
+                            'Anchor': '516.8503937007873 -329.76377952755905',
+                            'LeftDirection': '516.8503937007873 -329.76377952755905'
+                        }),
+                        ('TextFramePreference', {'TextColumnFixedWidth': '467.71653543307076'}),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('Rectangle', {
+                            'GradientFillStart': '0 0',
+                            'GradientStrokeStart': '0 0',
+                            'ContentType': 'GraphicType',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]',
+                            'Self': 'mainudb',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeAngle': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'GradientFillLength': '0',
+                            'GradientStrokeLength': '0',
+                            'ItemTransform': '1 0 0 1 2.842170943040401e-14 307.0866141732283',
+                            'ItemLayer': 'mainub3',
+                            'LocalDisplaySetting': 'Default',
+                            'StoryTitle': '$ID/',
+                            'Name': '$ID/',
+                            'Visible': 'true',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientFillHiliteLength': '0',
+                            'Locked': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771654 -329.76377952755905',
+                            'Anchor': '49.13385826771654 -329.76377952755905',
+                            'LeftDirection': '49.13385826771654 -329.76377952755905'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771654 -38.74015748031496',
+                            'Anchor': '49.13385826771654 -38.74015748031496',
+                            'LeftDirection': '49.13385826771654 -38.74015748031496'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '236.22047244094495 -38.74015748031496',
+                            'Anchor': '236.22047244094495 -38.74015748031496',
+                            'LeftDirection': '236.22047244094495 -38.74015748031496'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '236.22047244094495 -329.76377952755905',
+                            'Anchor': '236.22047244094495 -329.76377952755905',
+                            'LeftDirection': '236.22047244094495 -329.76377952755905'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('InCopyExportOption',
+                        {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
+                        ('FrameFittingOption', {
+                            'LeftCrop': '49.13385826771654',
+                            'TopCrop': '-329.76377952755905',
+                            'RightCrop': '-235.22047244094495',
+                            'BottomCrop': '39.74015748031496'
+                        }),
+                        ('ObjectExportOption', {
+                            'ApplyTagType': 'TagFromStructure',
+                            'ImageSpaceBefore': '0',
+                            'CustomImageAlignment': 'false',
+                            'ActualTextSourceType': 'SourceXMLStructure',
+                            'CustomImageSizeOption': 'SizeRelativeToPageWidth',
+                            'SpaceUnit': 'CssEm',
+                            'GIFOptionsInterlaced': 'true',
+                            'AltTextSourceType': 'SourceXMLStructure',
+                            'GIFOptionsPalette': 'AdaptivePalette',
+                            'CustomActualText': '$ID/',
+                            'CustomImageConversion': 'false',
+                            'JPEGOptionsFormat': 'BaselineEncoding',
+                            'UseImagePageBreak': 'false',
+                            'ImageConversionType': 'JPEG',
+                            'ImagePageBreak': 'PageBreakBefore',
+                            'JPEGOptionsQuality': 'High',
+                            'ImageSpaceAfter': '0',
+                            'ImageAlignment': 'AlignLeft',
+                            'CustomAltText': '$ID/',
+                            'ImageExportResolution': 'Ppi300'
+                        }),
+                        ('Properties', {}),
+                        ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('ActualMetadataProperty',
+                        {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]',
+                            'Self': 'mainuddToNode',
+                            'GradientFillLength': '0',
+                            'Locked': 'false',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'mainub3',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 200.31496062992122 307.0866141732282',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteAngle': '0',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'mainudd',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771655 -329.76377952755905',
+                            'Anchor': '49.13385826771655 -329.76377952755905',
+                            'LeftDirection': '49.13385826771655 -329.76377952755905'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771655 -38.740157480314764',
+                            'Anchor': '49.13385826771655 -38.740157480314764',
+                            'LeftDirection': '49.13385826771655 -38.740157480314764'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '316.53543307086596 -38.740157480314764',
+                            'Anchor': '316.53543307086596 -38.740157480314764',
+                            'LeftDirection': '316.53543307086596 -38.740157480314764'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '316.53543307086596 -329.76377952755905',
+                            'Anchor': '316.53543307086596 -329.76377952755905',
+                            'LeftDirection': '316.53543307086596 -329.76377952755905'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('Rectangle', {
+                            'GradientFillStart': '0 0',
+                            'GradientStrokeStart': '0 0',
+                            'ContentType': 'GraphicType',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]',
+                            'Self': 'mainudf',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeAngle': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'GradientFillLength': '0',
+                            'GradientStrokeLength': '0',
+                            'ItemTransform': '1 0 0 1 0 0',
+                            'ItemLayer': 'mainub3',
+                            'LocalDisplaySetting': 'Default',
+                            'StoryTitle': '$ID/',
+                            'Name': '$ID/',
+                            'Visible': 'true',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientFillHiliteLength': '0',
+                            'Locked': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771657 278.74015748031496',
+                            'Anchor': '49.13385826771657 278.74015748031496',
+                            'LeftDirection': '49.13385826771657 278.74015748031496'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771657 332.5984251968504',
+                            'Anchor': '49.13385826771657 332.5984251968504',
+                            'LeftDirection': '49.13385826771657 332.5984251968504'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '516.8503937007873 332.5984251968504',
+                            'Anchor': '516.8503937007873 332.5984251968504',
+                            'LeftDirection': '516.8503937007873 332.5984251968504'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '516.8503937007873 278.74015748031496',
+                            'Anchor': '516.8503937007873 278.74015748031496',
+                            'LeftDirection': '516.8503937007873 278.74015748031496'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('InCopyExportOption',
+                        {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
+                        ('FrameFittingOption', {
+                            'LeftCrop': '49.13385826771657',
+                            'TopCrop': '278.74015748031496',
+                            'RightCrop': '-515.8503937007873',
+                            'BottomCrop': '-331.5984251968504'
+                        }),
+                        ('ObjectExportOption', {
+                            'ApplyTagType': 'TagFromStructure',
+                            'ImageSpaceBefore': '0',
+                            'CustomImageAlignment': 'false',
+                            'ActualTextSourceType': 'SourceXMLStructure',
+                            'CustomImageSizeOption': 'SizeRelativeToPageWidth',
+                            'SpaceUnit': 'CssEm',
+                            'GIFOptionsInterlaced': 'true',
+                            'AltTextSourceType': 'SourceXMLStructure',
+                            'GIFOptionsPalette': 'AdaptivePalette',
+                            'CustomActualText': '$ID/',
+                            'CustomImageConversion': 'false',
+                            'JPEGOptionsFormat': 'BaselineEncoding',
+                            'UseImagePageBreak': 'false',
+                            'ImageConversionType': 'JPEG',
+                            'ImagePageBreak': 'PageBreakBefore',
+                            'JPEGOptionsQuality': 'High',
+                            'ImageSpaceAfter': '0',
+                            'ImageAlignment': 'AlignLeft',
+                            'CustomAltText': '$ID/',
+                            'ImageExportResolution': 'Ppi300'
+                        }),
+                        ('Properties', {}),
+                        ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('ActualMetadataProperty',
+                        {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[Normal Text Frame]',
+                            'Self': 'mainuf6',
+                            'GradientFillLength': '0',
+                            'Locked': 'false',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'mainub3',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 277.3228346456692 -310.86614173228344',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'mainue4',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '-192.28346456692918 -18.897637795275614',
+                            'Anchor': '-192.28346456692918 -18.897637795275614',
+                            'LeftDirection': '-192.28346456692918 -18.897637795275614'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '-192.28346456692918 11.338582677165391',
+                            'Anchor': '-192.28346456692918 11.338582677165391',
+                            'LeftDirection': '-192.28346456692918 11.338582677165391'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '192.28346456692913 11.338582677165391',
+                            'Anchor': '192.28346456692913 11.338582677165391',
+                            'LeftDirection': '192.28346456692913 11.338582677165391'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '192.28346456692913 -18.897637795275614',
+                            'Anchor': '192.28346456692913 -18.897637795275614',
+                            'LeftDirection': '192.28346456692913 -18.897637795275614'
+                        }),
+                        ('TextFramePreference', {'TextColumnFixedWidth': '384.5669291338583'}),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[Normal Text Frame]',
+                            'Self': 'mainu12d',
+                            'GradientFillLength': '0',
+                            'Locked': 'false',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'mainub3',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 126.61417322834649 -189.92125984251965',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'mainu11b',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '-71.81102362204726 -106.77165354330708',
+                            'Anchor': '-71.81102362204726 -106.77165354330708',
+                            'LeftDirection': '-71.81102362204726 -106.77165354330708'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '-71.81102362204726 151.1811023622045',
+                            'Anchor': '-71.81102362204726 151.1811023622045',
+                            'LeftDirection': '-71.81102362204726 151.1811023622045'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '233.38582677165348 151.1811023622045',
+                            'Anchor': '233.38582677165348 151.1811023622045',
+                            'LeftDirection': '233.38582677165348 151.1811023622045'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '233.38582677165348 -106.77165354330708',
+                            'Anchor': '233.38582677165348 -106.77165354330708',
+                            'LeftDirection': '233.38582677165348 -106.77165354330708'
+                        }),
+                        ('TextFramePreference', {
+                            'VerticalBalanceColumns': 'true',
+                            'TextColumnFixedWidth': '305.19685039370074'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('Rectangle', {
+                            'GradientFillStart': '0 0',
+                            'GradientStrokeStart': '0 0',
+                            'ContentType': 'GraphicType',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]',
+                            'Self': 'mainu135',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeAngle': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'GradientFillLength': '0',
+                            'GradientStrokeLength': '0',
+                            'ItemTransform': '1 0 0 1 0 0',
+                            'ItemLayer': 'mainub3',
+                            'LocalDisplaySetting': 'Default',
+                            'StoryTitle': '$ID/',
+                            'Name': '$ID/',
+                            'Visible': 'true',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientFillHiliteLength': '0',
+                            'Locked': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '365.6692913385827 -296.6929133858267',
+                            'Anchor': '365.6692913385827 -296.6929133858267',
+                            'LeftDirection': '365.6692913385827 -296.6929133858267'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '365.6692913385827 -124.7244094488189',
+                            'Anchor': '365.6692913385827 -124.7244094488189',
+                            'LeftDirection': '365.6692913385827 -124.7244094488189'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '510.23622047244095 -124.7244094488189',
+                            'Anchor': '510.23622047244095 -124.7244094488189',
+                            'LeftDirection': '510.23622047244095 -124.7244094488189'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '510.23622047244095 -296.6929133858267',
+                            'Anchor': '510.23622047244095 -296.6929133858267',
+                            'LeftDirection': '510.23622047244095 -296.6929133858267'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('InCopyExportOption',
+                        {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
+                        ('FrameFittingOption', {
+                            'LeftCrop': '365.6692913385827',
+                            'TopCrop': '-296.6929133858267',
+                            'RightCrop': '-509.23622047244095',
+                            'BottomCrop': '125.7244094488189'
+                        }),
+                        ('ObjectExportOption', {
+                            'ApplyTagType': 'TagFromStructure',
+                            'ImageSpaceBefore': '0',
+                            'CustomImageAlignment': 'false',
+                            'ActualTextSourceType': 'SourceXMLStructure',
+                            'CustomImageSizeOption': 'SizeRelativeToPageWidth',
+                            'SpaceUnit': 'CssEm',
+                            'GIFOptionsInterlaced': 'true',
+                            'AltTextSourceType': 'SourceXMLStructure',
+                            'GIFOptionsPalette': 'AdaptivePalette',
+                            'CustomActualText': '$ID/',
+                            'CustomImageConversion': 'false',
+                            'JPEGOptionsFormat': 'BaselineEncoding',
+                            'UseImagePageBreak': 'false',
+                            'ImageConversionType': 'JPEG',
+                            'ImagePageBreak': 'PageBreakBefore',
+                            'JPEGOptionsQuality': 'High',
+                            'ImageSpaceAfter': '0',
+                            'ImageAlignment': 'AlignLeft',
+                            'CustomAltText': '$ID/',
+                            'ImageExportResolution': 'Ppi300'
+                        }),
+                        ('Properties', {}),
+                        ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('ActualMetadataProperty',
+                        {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[Normal Text Frame]',
+                            'Self': 'mainu14b',
+                            'GradientFillLength': '0',
+                            'Locked': 'false',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'mainub3',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 437.9527559055118 -97.79527559055123',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'mainu139',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '-72.28346456692913 -26.929133858267733',
+                            'Anchor': '-72.28346456692913 -26.929133858267733',
+                            'LeftDirection': '-72.28346456692913 -26.929133858267733'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '-72.28346456692913 55.27559055118115',
+                            'Anchor': '-72.28346456692913 55.27559055118115',
+                            'LeftDirection': '-72.28346456692913 55.27559055118115'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '72.28346456692913 55.27559055118115',
+                            'Anchor': '72.28346456692913 55.27559055118115',
+                            'LeftDirection': '72.28346456692913 55.27559055118115'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '72.28346456692913 -26.929133858267733',
+                            'Anchor': '72.28346456692913 -26.929133858267733',
+                            'LeftDirection': '72.28346456692913 -26.929133858267733'
+                        }),
+                        ('TextFramePreference', {'TextColumnFixedWidth': '144.56692913385825'}),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]',
+                            'Self': 'article1u1d4',
+                            'GradientFillLength': '0',
+                            'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'Locked': 'false',
+                            'OverriddenPageItemProps': '',
+                            'ParentInterfaceChangeCount': '',
+                            'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'GradientStrokeHiliteLength': '0',
+                            'LastUpdatedInterfaceChangeCount': '',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'article1ua4',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 107.716535433070840 -42.51968503937020',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteAngle': '0',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'article1u1db',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true',
+                            'TargetInterfaceChangeCount': ''
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '141.73228346456693 19.84251968503935',
+                            'Anchor': '141.73228346456693 19.84251968503935',
+                            'LeftDirection': '141.73228346456693 19.84251968503935'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '141.73228346456693 310.8661417322836',
+                            'Anchor': '141.73228346456693 310.8661417322836',
+                            'LeftDirection': '141.73228346456693 310.8661417322836'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '409.13385826771633 310.8661417322836',
+                            'Anchor': '409.13385826771633 310.8661417322836',
+                            'LeftDirection': '409.13385826771633 310.8661417322836'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '409.13385826771633 19.84251968503935',
+                            'Anchor': '409.13385826771633 19.84251968503935',
+                            'LeftDirection': '409.13385826771633 19.84251968503935'
+                        }),
+                        ('TextFramePreference', {
+                            'UseMinimumHeightForAutoSizing': 'false',
+                            'TextColumnFixedWidth': '267.4015748031494',
+                            'TextColumnCount': '1',
+                            'UseNoLineBreaksForAutoSizing': 'false',
+                            'AutoSizingReferencePoint': 'CenterPoint',
+                            'TextColumnMaxWidth': '0',
+                            'AutoSizingType': 'Off',
+                            'UseMinimumWidthForAutoSizing': 'false',
+                            'MinimumWidthForAutoSizing': '0',
+                            'MinimumHeightForAutoSizing': '0'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('ObjectExportOption', {
+                            'GIFOptionsPalette': 'AdaptivePalette',
+                            'JPEGOptionsFormat': 'BaselineEncoding',
+                            'CustomImageAlignment': 'false',
+                            'UseOriginalImage': 'false',
+                            'CustomWidthType': 'DefaultWidth',
+                            'ImagePageBreak': 'PageBreakBefore',
+                            'AltTextSourceType': 'SourceXMLStructure',
+                            'UseImagePageBreak': 'false',
+                            'GIFOptionsInterlaced': 'true',
+                            'ImageExportResolution': 'Ppi300',
+                            'ImageSpaceBefore': '0',
+                            'CustomHeightType': 'DefaultHeight',
+                            'JPEGOptionsQuality': 'High',
+                            'CustomLayout': 'false',
+                            'ImageAlignment': 'AlignLeft',
+                            'UseExistingImage': 'false',
+                            'CustomLayoutType': 'AlignmentAndSpacing',
+                            'ImageConversionType': 'JPEG',
+                            'SpaceUnit': 'CssPixel',
+                            'CustomImageConversion': 'false',
+                            'ApplyTagType': 'TagFromStructure',
+                            'ActualTextSourceType': 'SourceXMLStructure',
+                            'CustomAltText': '$ID/',
+                            'CustomActualText': '$ID/',
+                            'CustomHeight': '$ID/',
+                            'EpubType': '$ID/',
+                            'ImageSpaceAfter': '0',
+                            'CustomWidth': '$ID/'
+                        }),
+                        ('Properties', {}),
+                        ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('ActualMetadataProperty',
+                        {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('Rectangle', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]',
+                            'Self': 'article1u182',
+                            'GradientFillLength': '0',
+                            'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'OverriddenPageItemProps': '',
+                            'ParentInterfaceChangeCount': '',
+                            'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'GradientStrokeHiliteLength': '0',
+                            'LastUpdatedInterfaceChangeCount': '',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'article1ua4',
+                            'GradientFillStart': '0 0',
+                            'Locked': 'false',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 109.417322834645740 -76.62992125984261',
+                            'StoryTitle': '$ID/',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteAngle': '0',
+                            'ContentType': 'GraphicType',
+                            'GradientFillHiliteLength': '0',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true',
+                            'TargetInterfaceChangeCount': ''
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '144.56692913385828 58.582677165354326',
+                            'Anchor': '144.56692913385828 58.582677165354326',
+                            'LeftDirection': '144.56692913385828 58.582677165354326'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '144.56692913385828 199.46456692913392',
+                            'Anchor': '144.56692913385828 199.46456692913392',
+                            'LeftDirection': '144.56692913385828 199.46456692913392'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '403.46456692913387 199.46456692913392',
+                            'Anchor': '403.46456692913387 199.46456692913392',
+                            'LeftDirection': '403.46456692913387 199.46456692913392'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '403.46456692913387 58.582677165354326',
+                            'Anchor': '403.46456692913387 58.582677165354326',
+                            'LeftDirection': '403.46456692913387 58.582677165354326'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('ContourOption',
+                        {'ContourType': 'SameAsClipping', 'IncludeInsideEdges': 'false', 'ContourPathName': '$ID/'}),
+                        ('InCopyExportOption',
+                        {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
+                        ('FrameFittingOption', {'FittingOnEmptyFrame': 'FillProportionally'}),
+                        ('ObjectExportOption', {
+                            'GIFOptionsPalette': 'AdaptivePalette',
+                            'JPEGOptionsFormat': 'BaselineEncoding',
+                            'CustomImageAlignment': 'false',
+                            'UseOriginalImage': 'false',
+                            'CustomWidthType': 'DefaultWidth',
+                            'ImagePageBreak': 'PageBreakBefore',
+                            'AltTextSourceType': 'SourceXMLStructure',
+                            'UseImagePageBreak': 'false',
+                            'GIFOptionsInterlaced': 'true',
+                            'ImageExportResolution': 'Ppi300',
+                            'ImageSpaceBefore': '0',
+                            'CustomHeightType': 'DefaultHeight',
+                            'JPEGOptionsQuality': 'High',
+                            'CustomLayout': 'false',
+                            'ImageAlignment': 'AlignLeft',
+                            'UseExistingImage': 'false',
+                            'CustomLayoutType': 'AlignmentAndSpacing',
+                            'ImageConversionType': 'JPEG',
+                            'SpaceUnit': 'CssPixel',
+                            'CustomImageConversion': 'false',
+                            'ApplyTagType': 'TagFromStructure',
+                            'ActualTextSourceType': 'SourceXMLStructure',
+                            'CustomAltText': '$ID/',
+                            'CustomActualText': '$ID/',
+                            'CustomHeight': '$ID/',
+                            'EpubType': '$ID/',
+                            'ImageSpaceAfter': '0',
+                            'CustomWidth': '$ID/'
+                        }),
+                        ('Properties', {}),
+                        ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('ActualMetadataProperty',
+                        {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('Image', {
+                            'GradientFillAngle': '0',
+                            'Space': '$ID/#Links_RGB',
+                            'Self': 'article1u216',
+                            'GradientFillLength': '0',
+                            'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'OverriddenPageItemProps': '',
+                            'ParentInterfaceChangeCount': '',
+                            'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]',
+                            'LastUpdatedInterfaceChangeCount': '',
+                            'ImageRenderingIntent': 'UseColorSettings',
+                            'LocalDisplaySetting': 'Default',
+                            'GradientFillStart': '0 0',
+                            'Name': '$ID/',
+                            'ItemTransform': '0.8544476494893585 0 0 0.8544476494893584 144.56692913385828 58.582677165354326',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientFillHiliteLength': '0',
+                            'ImageTypeName': '$ID/JPEG',
+                            'EffectivePpi': '84 84',
+                            'Visible': 'true',
+                            'TargetInterfaceChangeCount': '',
+                            'ActualPpi': '72 72'
+                        }),
+                        ('Properties', {}),
+                        ('Profile', {'type': 'string'}),
+                        ('GraphicBounds', {'Bottom': '360', 'Top': '0', 'Right': '303', 'Left': '0'}),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('ContourOption', {
+                            'ContourType': 'SameAsClipping',
+                            'IncludeInsideEdges': 'false',
+                            'ContourPathName': '$ID/'
+                        }),
+                        ('MetadataPacketPreference', {}),
+                        ('Properties', {}),
+                        ('Contents', {}),
+                        ('Link', {
+                            'ImportPolicy': 'NoAutoImport',
+                            'LinkImportStamp': 'file 129767622980000000 27644',
+                            'CanPackage': 'true',
+                            'LinkResourceModified': 'false',
+                            'AssetID': '$ID/',
+                            'ShowInUI': 'true',
+                            'Self': 'article1u21a',
+                            'LinkImportTime': '2014-09-24T14:47:22',
+                            'LinkResourceSize': '0~6bfc',
+                            'AssetURL': '$ID/',
+                            'ExportPolicy': 'NoAutoExport',
+                            'LinkResourceURI': 'file:/Users/stan/Dropbox/Projets/Slashdev/SimpleIDML/repos/git/simpleidml/tests/regressiontests/IDML/media/default.jpg',
+                            'LinkImportModificationTime': '2012-03-21T01:11:38',
+                            'CanUnembed': 'true',
+                            'LinkClientID': '257',
+                            'StoredState': 'Normal',
+                            'LinkClassID': '35906',
+                            'CanEmbed': 'true',
+                            'LinkObjectModified': 'false',
+                            'LinkResourceFormat': '$ID/JPEG'
+                        }),
+                        ('ClippingPathSettings', {
+                            'Index': '-1',
+                            'ClippingType': 'None',
+                            'AppliedPathName': '$ID/',
+                            'RestrictToFrame': 'false',
+                            'InvertPath': 'false',
+                            'UseHighResolutionImage': 'true',
+                            'InsetFrame': '0',
+                            'IncludeInsideEdges': 'false',
+                            'Threshold': '25',
+                            'Tolerance': '2'
+                        }),
+                        ('ImageIOPreference', {
+                            'ApplyPhotoshopClippingPath': 'true',
+                            'AlphaChannelName': '$ID/',
+                            'AllowAutoEmbedding': 'true'
+                        }),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'article1ObjectStyle/$ID/[Normal Text Frame]',
+                            'Self': 'article1u185',
+                            'GradientFillLength': '0',
+                            'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'Locked': 'false',
+                            'OverriddenPageItemProps': '',
+                            'ParentInterfaceChangeCount': '',
+                            'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'GradientStrokeHiliteLength': '0',
+                            'LastUpdatedInterfaceChangeCount': '',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'article1ua4',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 329.480314960629896 148.34645669291330',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteAngle': '0',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'article1u188',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true',
+                            'TargetInterfaceChangeCount': ''
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '-76.06299212598424 -19.842519685039377',
+                            'Anchor': '-76.06299212598424 -19.842519685039377',
+                            'LeftDirection': '-76.06299212598424 -19.842519685039377'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '-76.06299212598424 -0.9448818897638205',
+                            'Anchor': '-76.06299212598424 -0.9448818897638205',
+                            'LeftDirection': '-76.06299212598424 -0.9448818897638205'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '182.83464566929132 -0.9448818897638205',
+                            'Anchor': '182.83464566929132 -0.9448818897638205',
+                            'LeftDirection': '182.83464566929132 -0.9448818897638205'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '182.83464566929132 -19.842519685039377',
+                            'Anchor': '182.83464566929132 -19.842519685039377',
+                            'LeftDirection': '182.83464566929132 -19.842519685039377'
+                        }),
+                        ('TextFramePreference', {
+                            'UseMinimumHeightForAutoSizing': 'false',
+                            'TextColumnFixedWidth': '258.89763779527556',
+                            'TextColumnCount': '1',
+                            'UseNoLineBreaksForAutoSizing': 'false',
+                            'AutoSizingReferencePoint': 'CenterPoint',
+                            'TextColumnMaxWidth': '0',
+                            'AutoSizingType': 'Off',
+                            'UseMinimumWidthForAutoSizing': 'false',
+                            'MinimumWidthForAutoSizing': '0',
+                            'MinimumHeightForAutoSizing': '0'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('ObjectExportOption', {
+                            'GIFOptionsPalette': 'AdaptivePalette',
+                            'JPEGOptionsFormat': 'BaselineEncoding',
+                            'CustomImageAlignment': 'false',
+                            'UseOriginalImage': 'false',
+                            'CustomWidthType': 'DefaultWidth',
+                            'ImagePageBreak': 'PageBreakBefore',
+                            'AltTextSourceType': 'SourceXMLStructure',
+                            'UseImagePageBreak': 'false',
+                            'GIFOptionsInterlaced': 'true',
+                            'ImageExportResolution': 'Ppi300',
+                            'ImageSpaceBefore': '0',
+                            'CustomHeightType': 'DefaultHeight',
+                            'JPEGOptionsQuality': 'High',
+                            'CustomLayout': 'false',
+                            'ImageAlignment': 'AlignLeft',
+                            'UseExistingImage': 'false',
+                            'CustomLayoutType': 'AlignmentAndSpacing',
+                            'ImageConversionType': 'JPEG',
+                            'SpaceUnit': 'CssPixel',
+                            'CustomImageConversion': 'false',
+                            'ApplyTagType': 'TagFromStructure',
+                            'ActualTextSourceType': 'SourceXMLStructure',
+                            'CustomAltText': '$ID/',
+                            'CustomActualText': '$ID/',
+                            'CustomHeight': '$ID/',
+                            'EpubType': '$ID/',
+                            'ImageSpaceAfter': '0',
+                            'CustomWidth': '$ID/'
+                        }),
+                        ('Properties', {}),
+                        ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('ActualMetadataProperty',
+                        {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'article1ObjectStyle/$ID/[Normal Text Frame]',
+                            'Self': 'article1u19c',
+                            'GradientFillLength': '0',
+                            'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'Locked': 'false',
+                            'OverriddenPageItemProps': '',
+                            'ParentInterfaceChangeCount': '',
+                            'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'GradientStrokeHiliteLength': '0',
+                            'LastUpdatedInterfaceChangeCount': '',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'article1ua4',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 390.425196850393686 216.37795275590547',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteAngle': '0',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'article1u19f',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true',
+                            'TargetInterfaceChangeCount': ''
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '-137.00787401574803 -64.25196850393701',
+                            'Anchor': '-137.00787401574803 -64.25196850393701',
+                            'LeftDirection': '-137.00787401574803 -64.25196850393701'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '-137.00787401574803 51.968503937007945',
+                            'Anchor': '-137.00787401574803 51.968503937007945',
+                            'LeftDirection': '-137.00787401574803 51.968503937007945'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '121.88976377952753 51.968503937007945',
+                            'Anchor': '121.88976377952753 51.968503937007945',
+                            'LeftDirection': '121.88976377952753 51.968503937007945'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '121.88976377952753 -64.25196850393701',
+                            'Anchor': '121.88976377952753 -64.25196850393701',
+                            'LeftDirection': '121.88976377952753 -64.25196850393701'
+                        }),
+                        ('TextFramePreference', {
+                            'UseMinimumHeightForAutoSizing': 'false',
+                            'TextColumnFixedWidth': '123.44881889763778',
+                            'TextColumnCount': '2',
+                            'UseNoLineBreaksForAutoSizing': 'false',
+                            'AutoSizingReferencePoint': 'CenterPoint',
+                            'TextColumnMaxWidth': '0',
+                            'AutoSizingType': 'Off',
+                            'UseMinimumWidthForAutoSizing': 'false',
+                            'MinimumWidthForAutoSizing': '0',
+                            'MinimumHeightForAutoSizing': '0'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('ObjectExportOption', {
+                            'GIFOptionsPalette': 'AdaptivePalette',
+                            'JPEGOptionsFormat': 'BaselineEncoding',
+                            'CustomImageAlignment': 'false',
+                            'UseOriginalImage': 'false',
+                            'CustomWidthType': 'DefaultWidth',
+                            'ImagePageBreak': 'PageBreakBefore',
+                            'AltTextSourceType': 'SourceXMLStructure',
+                            'UseImagePageBreak': 'false',
+                            'GIFOptionsInterlaced': 'true',
+                            'ImageExportResolution': 'Ppi300',
+                            'ImageSpaceBefore': '0',
+                            'CustomHeightType': 'DefaultHeight',
+                            'JPEGOptionsQuality': 'High',
+                            'CustomLayout': 'false',
+                            'ImageAlignment': 'AlignLeft',
+                            'UseExistingImage': 'false',
+                            'CustomLayoutType': 'AlignmentAndSpacing',
+                            'ImageConversionType': 'JPEG',
+                            'SpaceUnit': 'CssPixel',
+                            'CustomImageConversion': 'false',
+                            'ApplyTagType': 'TagFromStructure',
+                            'ActualTextSourceType': 'SourceXMLStructure',
+                            'CustomAltText': '$ID/',
+                            'CustomActualText': '$ID/',
+                            'CustomHeight': '$ID/',
+                            'EpubType': '$ID/',
+                            'ImageSpaceAfter': '0',
+                            'CustomWidth': '$ID/'
+                        }),
+                        ('Properties', {}),
+                        ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('ActualMetadataProperty',
+                        {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'})
             ])
 
-            self.assertEqual([(elt.tag, elt.attrib) for elt in main_idml_file.spreads_objects[2].dom.iter()], [
-                ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
-                {'DOMVersion': '7.5'}),
-                ('Spread',
-                {'PageTransitionDirection': 'NotApplicable', 'BindingLocation': '1', 'PageTransitionDuration': 'Medium', 'ShowMasterItems': 'true', 'PageTransitionType': 'None', 'PageCount': '1', 'Self': 'mainuc3', 'AllowPageShuffle': 'true', 'ItemTransform': '1 0 0 1 0 1879.3700787401576', 'FlattenerOverride': 'Default'}),
-                ('FlattenerPreference',
-                {'ConvertAllTextToOutlines': 'false', 'GradientAndMeshResolution': '150', 'ConvertAllStrokesToOutlines': 'false', 'ClipComplexRegions': 'false', 'LineArtAndTextResolution': '300'}),
-                ('Properties', {}),
-                ('RasterVectorBalance', {'type': 'double'}),
-                ('Page',
-                {'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName', 'Name': '4', 'Self': 'mainuc8', 'UseMasterGrid': 'true', 'MasterPageTransform': '1 0 0 1 0 0', 'TabOrder': '', 'OverrideList': '', 'ItemTransform': '1 0 0 1 -566.9291338582677 -379.8425196850394', 'GridStartingPoint': 'TopOutside', 'GeometricBounds': '0 0 759.6850393700788 566.9291338582677', 'AppliedMaster': 'uca'}),
-                ('Properties', {}),
-                ('Descriptor', {'type': 'list'}),
-                ('ListItem', {'type': 'string'}),
-                ('ListItem', {'type': 'enumeration'}),
-                ('ListItem', {'type': 'boolean'}),
-                ('ListItem', {'type': 'boolean'}),
-                ('ListItem', {'type': 'long'}),
-                ('ListItem', {'type': 'string'}),
-                ('PageColor', {'type': 'enumeration'}),
-                ('MarginPreference',
-                {'ColumnCount': '1', 'Right': '36', 'Bottom': '36', 'Top': '36', 'ColumnGutter': '12', 'ColumnsPositions': '0 494.92913385826773', 'ColumnDirection': 'Horizontal', 'Left': '36'}),
-                ('GridDataInformation',
-                {'LineAki': '9', 'FontStyle': 'Regular', 'PointSize': '12', 'CharacterAki': '0', 'GridAlignment': 'AlignEmCenter', 'LineAlignment': 'LeftOrTopLineJustify', 'HorizontalScale': '100', 'CharacterAlignment': 'AlignEmCenter', 'VerticalScale': '100'}),
-                ('Properties', {}),
-                ('AppliedFont', {'type': 'string'})
-            ])
+                    self.assertEqual([(elt.tag, elt.attrib) for elt in f.spreads_objects[2].dom.iter()], [
+                        ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
+                         {'DOMVersion': '7.5'}),
+                        ('Spread', {
+                            'PageTransitionDirection': 'NotApplicable',
+                            'BindingLocation': '1',
+                            'PageTransitionDuration': 'Medium',
+                            'ShowMasterItems': 'true',
+                            'PageTransitionType': 'None',
+                            'PageCount': '1',
+                            'Self': 'mainuc3',
+                            'AllowPageShuffle': 'true',
+                            'ItemTransform': '1 0 0 1 0 1879.3700787401576',
+                            'FlattenerOverride': 'Default'
+                        }),
+                        ('FlattenerPreference', {
+                            'ConvertAllTextToOutlines': 'false',
+                            'GradientAndMeshResolution': '150',
+                            'ConvertAllStrokesToOutlines': 'false',
+                            'ClipComplexRegions': 'false',
+                            'LineArtAndTextResolution': '300'
+                        }),
+                        ('Properties', {}),
+                        ('RasterVectorBalance', {'type': 'double'}),
+                        ('Page', {
+                            'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName',
+                            'Name': '4',
+                            'Self': 'mainuc8',
+                            'UseMasterGrid': 'true',
+                            'MasterPageTransform': '1 0 0 1 0 0',
+                            'TabOrder': '',
+                            'OverrideList': '',
+                            'ItemTransform': '1 0 0 1 -566.9291338582677 -379.8425196850394',
+                            'GridStartingPoint': 'TopOutside',
+                            'GeometricBounds': '0 0 759.6850393700788 566.9291338582677',
+                            'AppliedMaster': 'uca'
+                        }),
+                        ('Properties', {}),
+                        ('Descriptor', {'type': 'list'}),
+                        ('ListItem', {'type': 'string'}),
+                        ('ListItem', {'type': 'enumeration'}),
+                        ('ListItem', {'type': 'boolean'}),
+                        ('ListItem', {'type': 'boolean'}),
+                        ('ListItem', {'type': 'long'}),
+                        ('ListItem', {'type': 'string'}),
+                        ('PageColor', {'type': 'enumeration'}),
+                        ('MarginPreference', {
+                            'ColumnCount': '1',
+                            'Right': '36',
+                            'Bottom': '36',
+                            'Top': '36',
+                            'ColumnGutter': '12',
+                            'ColumnsPositions': '0 494.92913385826773',
+                            'ColumnDirection': 'Horizontal',
+                            'Left': '36'
+                        }),
+                    ('GridDataInformation', {
+                        'LineAki': '9',
+                        'FontStyle': 'Regular',
+                        'PointSize': '12',
+                        'CharacterAki': '0',
+                        'GridAlignment': 'AlignEmCenter',
+                        'LineAlignment': 'LeftOrTopLineJustify',
+                        'HorizontalScale': '100',
+                        'CharacterAlignment': 'AlignEmCenter',
+                        'VerticalScale': '100'
+                    }),
+                        ('Properties', {}),
+                        ('AppliedFont', {'type': 'string'})
+                    ])
 
-            # The XML Structure has integrated the new file.
-            self.assertXMLEqual(unicode(main_idml_file.xml_structure_pretty()), """<Root Self="maindi2">
+                    # The XML Structure has integrated the new file.
+                    self.assertXMLEqual(unicode(f.xml_structure_pretty()), """<Root Self="maindi2">
 <article Self="maindi2i3" XMLContent="mainu102">
     <Story Self="maindi2i3i1" XMLContent="mainue4">
     <title Self="maindi2i3i1i1"/>
@@ -1044,44 +1903,48 @@ u"""<Root Self="FOOdi2">
 </Root>
 """)
 
-            # Designmap.xml.
-            designmap = etree.fromstring(main_idml_file.open("designmap.xml", mode="r").read())
-            self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
-                            "mainue4 mainu102 mainu11b mainu139 mainu9c mainudd article1u1db article1u188 article1u19f")
-            self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
-                                namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})), 8)
+                    # Designmap.xml.
+                    with f.open("designmap.xml") as df:
+                        designmap = etree.fromstring(df.read())
+                        self.assertEqual(
+                            designmap.xpath("/Document")[0].get("StoryList"),
+                            "mainue4 mainu102 mainu11b mainu139 mainu9c mainudd article1u1db article1u188 article1u19f"
+                        )
+                        self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
+                                                             namespaces={'idPkg': IDPKG_NS})), 8)
 
-            # Styles.
-            styles = [[style.get("Self") for style in style_group.iterchildren()]
-                    for style_group in main_idml_file.style_groups]
-            self.assertEqual(styles, [
-                ['mainCharacterStyle/$ID/[No character style]',
-                'article1CharacterStyle/$ID/[No character style]',
-                'article1CharacterStyle/MyBoldStyle'],
-                ['mainParagraphStyle/$ID/[No paragraph style]',
-                'mainParagraphStyle/$ID/NormalParagraphStyle',
-                'article1ParagraphStyle/$ID/[No paragraph style]',
-                'article1ParagraphStyle/$ID/NormalParagraphStyle'],
-                ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
-                ['mainTableStyle/$ID/[No table style]',
-                'mainTableStyle/$ID/[Basic Table]',
-                'article1TableStyle/$ID/[No table style]',
-                'article1TableStyle/$ID/[Basic Table]'],
-                ['mainObjectStyle/$ID/[None]',
-                'mainObjectStyle/$ID/[Normal Graphics Frame]',
-                'mainObjectStyle/$ID/[Normal Text Frame]',
-                'mainObjectStyle/$ID/[Normal Grid]',
-                'article1ObjectStyle/$ID/[None]',
-                'article1ObjectStyle/$ID/[Normal Graphics Frame]',
-                'article1ObjectStyle/$ID/[Normal Text Frame]',
-                'article1ObjectStyle/$ID/[Normal Grid]']])
+                    # Styles.
+                    styles = [[style.get("Self") for style in style_group.iterchildren()]
+                              for style_group in f.style_groups]
+                    self.assertEqual(styles, [
+                        ['mainCharacterStyle/$ID/[No character style]',
+                         'article1CharacterStyle/$ID/[No character style]',
+                         'article1CharacterStyle/MyBoldStyle'],
+                        ['mainParagraphStyle/$ID/[No paragraph style]',
+                         'mainParagraphStyle/$ID/NormalParagraphStyle',
+                         'article1ParagraphStyle/$ID/[No paragraph style]',
+                         'article1ParagraphStyle/$ID/NormalParagraphStyle'],
+                        ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
+                        ['mainTableStyle/$ID/[No table style]',
+                         'mainTableStyle/$ID/[Basic Table]',
+                         'article1TableStyle/$ID/[No table style]',
+                         'article1TableStyle/$ID/[Basic Table]'],
+                        ['mainObjectStyle/$ID/[None]',
+                         'mainObjectStyle/$ID/[Normal Graphics Frame]',
+                         'mainObjectStyle/$ID/[Normal Text Frame]',
+                         'mainObjectStyle/$ID/[Normal Grid]',
+                         'article1ObjectStyle/$ID/[None]',
+                         'article1ObjectStyle/$ID/[Normal Graphics Frame]',
+                         'article1ObjectStyle/$ID/[Normal Text Frame]',
+                         'article1ObjectStyle/$ID/[Normal Grid]']
+                    ])
 
-            # Style mapping.
-            self.assertEqual(main_idml_file.style_mapping.character_style_mapping,
-                            {'MyBoldTag': 'article1CharacterStyle/MyBoldStyle'})
+                    # Style mapping.
+                    self.assertEqual(f.style_mapping.character_style_mapping,
+                                    {'MyBoldTag': 'article1CharacterStyle/MyBoldStyle'})
 
-            # Graphics.
-            self.assertTrue(main_idml_file.graphic.dom.xpath(".//Swatch[@Self='article1Swatch/None']"))
+                    # Graphics.
+                    self.assertTrue(f.graphic.dom.xpath(".//Swatch[@Self='article1Swatch/None']"))
 
     def test_insert_idml_with_complex_source(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
@@ -1090,502 +1953,1401 @@ u"""<Root Self="FOOdi2">
                      os.path.join(OUTPUT_DIR, "2articles-1photo.idml"))
 
         with IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages-insert-article-1-photo-complex.idml")) as main_idml_file,\
-            IDMLPackage(os.path.join(OUTPUT_DIR, "2articles-1photo.idml")) as article_idml_file:
+             IDMLPackage(os.path.join(OUTPUT_DIR, "2articles-1photo.idml")) as article_idml_file:
 
             # Always start by prefixing packages to avoid collision.
-            main_idml_file = main_idml_file.prefix("main")
-            article_idml_file = article_idml_file.prefix("article1")
+            with main_idml_file.prefix("main") as prefixed_main,\
+                 article_idml_file.prefix("article1") as prefixed_article:
 
-            main_idml_file = main_idml_file.insert_idml(article_idml_file,
-                                                        at="/Root/article[3]",
-                                                        only="/Root/module[1]")
+                with prefixed_main.insert_idml(prefixed_article,
+                                               at="/Root/article[3]",
+                                               only="/Root/module[1]") as f:
 
-            # Stories.
-            self.assertEqual(main_idml_file.stories, ['Stories/Story_article1u188.xml',
-                                                    'Stories/Story_article1u19f.xml',
-                                                    'Stories/Story_article1u1db.xml',
-                                                    'Stories/Story_mainu102.xml',
-                                                    'Stories/Story_mainu11b.xml',
-                                                    'Stories/Story_mainu139.xml',
-                                                    'Stories/Story_mainudd.xml',
-                                                    'Stories/Story_mainue4.xml'])
+                    # Stories.
+                    self.assertEqual(f.stories, ['Stories/Story_article1u188.xml',
+                                                            'Stories/Story_article1u19f.xml',
+                                                            'Stories/Story_article1u1db.xml',
+                                                            'Stories/Story_mainu102.xml',
+                                                            'Stories/Story_mainu11b.xml',
+                                                            'Stories/Story_mainu139.xml',
+                                                            'Stories/Story_mainudd.xml',
+                                                            'Stories/Story_mainue4.xml'])
 
-            # Spreads
-            self.assertEqual(main_idml_file.spreads, ['Spreads/Spread_mainub6.xml',
-                                                    'Spreads/Spread_mainubc.xml',
-                                                    'Spreads/Spread_mainuc3.xml'])
+                    # Spreads
+                    self.assertEqual(f.spreads, ['Spreads/Spread_mainub6.xml',
+                                                            'Spreads/Spread_mainubc.xml',
+                                                            'Spreads/Spread_mainuc3.xml'])
 
-            self.assertEqual([(elt.tag, elt.attrib) for elt in main_idml_file.spreads_objects[0].dom.iter()], [
-                ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
-                {'DOMVersion': '7.5'}),
-                ('Spread',
-                {'PageTransitionDirection': 'NotApplicable', 'BindingLocation': '0', 'PageTransitionDuration': 'Medium', 'ShowMasterItems': 'true', 'PageTransitionType': 'None', 'PageCount': '1', 'Self': 'mainub6', 'AllowPageShuffle': 'true', 'ItemTransform': '1 0 0 1 0 0', 'FlattenerOverride': 'Default'}),
-                ('FlattenerPreference',
-                {'ConvertAllTextToOutlines': 'false', 'GradientAndMeshResolution': '150', 'ConvertAllStrokesToOutlines': 'false', 'ClipComplexRegions': 'false', 'LineArtAndTextResolution': '300'}),
-                ('Properties', {}),
-                ('RasterVectorBalance', {'type': 'double'}),
-                ('Page',
-                {'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName', 'Name': '1', 'Self': 'mainubb', 'UseMasterGrid': 'true', 'MasterPageTransform': '1 0 0 1 0 0', 'TabOrder': '', 'OverrideList': '', 'ItemTransform': '1 0 0 1 0 -379.8425196850394', 'GridStartingPoint': 'TopOutside', 'GeometricBounds': '0 0 759.6850393700788 566.9291338582677', 'AppliedMaster': 'uca'}),
-                ('Properties', {}),
-                ('Descriptor', {'type': 'list'}),
-                ('ListItem', {'type': 'string'}),
-                ('ListItem', {'type': 'enumeration'}),
-                ('ListItem', {'type': 'boolean'}),
-                ('ListItem', {'type': 'boolean'}),
-                ('ListItem', {'type': 'long'}),
-                ('ListItem', {'type': 'string'}),
-                ('PageColor', {'type': 'enumeration'}),
-                ('MarginPreference',
-                {'ColumnCount': '1', 'Right': '36', 'Bottom': '36', 'Top': '36', 'ColumnGutter': '12', 'ColumnsPositions': '0 494.92913385826773', 'ColumnDirection': 'Horizontal', 'Left': '36'}),
-                ('GridDataInformation',
-                {'LineAki': '9', 'FontStyle': 'Regular', 'PointSize': '12', 'CharacterAki': '0', 'GridAlignment': 'AlignEmCenter', 'LineAlignment': 'LeftOrTopLineJustify', 'HorizontalScale': '100', 'CharacterAlignment': 'AlignEmCenter', 'VerticalScale': '100'}),
-                ('Properties', {}),
-                ('AppliedFont', {'type': 'string'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]', 'Self': 'mainud8', 'GradientFillLength': '0', 'Locked': 'false', 'GradientStrokeHiliteLength': '0', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'mainub3', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 0 0', 'ContentType': 'TextType', 'GradientFillHiliteAngle': '0', 'GradientStrokeLength': '0', 'GradientFillHiliteLength': '0', 'ParentStory': 'mainu102', 'GradientStrokeAngle': '0', 'Visible': 'true'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771654 -329.76377952755905', 'Anchor': '49.13385826771654 -329.76377952755905', 'LeftDirection': '49.13385826771654 -329.76377952755905'}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771654 -38.74015748031496', 'Anchor': '49.13385826771654 -38.74015748031496', 'LeftDirection': '49.13385826771654 -38.74015748031496'}),
-                ('PathPointType',
-                {'RightDirection': '516.8503937007873 -38.74015748031496', 'Anchor': '516.8503937007873 -38.74015748031496', 'LeftDirection': '516.8503937007873 -38.74015748031496'}),
-                ('PathPointType',
-                {'RightDirection': '516.8503937007873 -329.76377952755905', 'Anchor': '516.8503937007873 -329.76377952755905', 'LeftDirection': '516.8503937007873 -329.76377952755905'}),
-                ('TextFramePreference', {'TextColumnFixedWidth': '467.71653543307076'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('Rectangle',
-                {'GradientFillStart': '0 0', 'GradientStrokeStart': '0 0', 'ContentType': 'GraphicType', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]', 'Self': 'mainudb', 'GradientStrokeHiliteLength': '0', 'GradientStrokeAngle': '0', 'GradientStrokeHiliteAngle': '0', 'GradientFillLength': '0', 'GradientStrokeLength': '0', 'ItemTransform': '1 0 0 1 2.842170943040401e-14 307.0866141732283', 'ItemLayer': 'mainub3', 'LocalDisplaySetting': 'Default', 'StoryTitle': '$ID/', 'Name': '$ID/', 'Visible': 'true', 'GradientFillHiliteAngle': '0', 'GradientFillHiliteLength': '0', 'Locked': 'false'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771654 -329.76377952755905', 'Anchor': '49.13385826771654 -329.76377952755905', 'LeftDirection': '49.13385826771654 -329.76377952755905'}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771654 -38.74015748031496', 'Anchor': '49.13385826771654 -38.74015748031496', 'LeftDirection': '49.13385826771654 -38.74015748031496'}),
-                ('PathPointType',
-                {'RightDirection': '236.22047244094495 -38.74015748031496', 'Anchor': '236.22047244094495 -38.74015748031496', 'LeftDirection': '236.22047244094495 -38.74015748031496'}),
-                ('PathPointType',
-                {'RightDirection': '236.22047244094495 -329.76377952755905', 'Anchor': '236.22047244094495 -329.76377952755905', 'LeftDirection': '236.22047244094495 -329.76377952755905'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('InCopyExportOption',
-                {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
-                ('FrameFittingOption',
-                {'LeftCrop': '49.13385826771654', 'TopCrop': '-329.76377952755905', 'RightCrop': '-235.22047244094495', 'BottomCrop': '39.74015748031496'}),
-                ('ObjectExportOption',
-                {'ApplyTagType': 'TagFromStructure', 'ImageSpaceBefore': '0', 'CustomImageAlignment': 'false', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomImageSizeOption': 'SizeRelativeToPageWidth', 'SpaceUnit': 'CssEm', 'GIFOptionsInterlaced': 'true', 'AltTextSourceType': 'SourceXMLStructure', 'GIFOptionsPalette': 'AdaptivePalette', 'CustomActualText': '$ID/', 'CustomImageConversion': 'false', 'JPEGOptionsFormat': 'BaselineEncoding', 'UseImagePageBreak': 'false', 'ImageConversionType': 'JPEG', 'ImagePageBreak': 'PageBreakBefore', 'JPEGOptionsQuality': 'High', 'ImageSpaceAfter': '0', 'ImageAlignment': 'AlignLeft', 'CustomAltText': '$ID/', 'ImageExportResolution': 'Ppi300'}),
-                ('Properties', {}),
-                ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('ActualMetadataProperty',
-                {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]', 'Self': 'mainuddToNode', 'GradientFillLength': '0', 'Locked': 'false', 'GradientStrokeHiliteLength': '0', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'mainub3', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 200.31496062992122 307.0866141732282', 'GradientStrokeLength': '0', 'GradientFillHiliteAngle': '0', 'ContentType': 'TextType', 'GradientFillHiliteLength': '0', 'ParentStory': 'mainudd', 'GradientStrokeAngle': '0', 'Visible': 'true'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771655 -329.76377952755905', 'Anchor': '49.13385826771655 -329.76377952755905', 'LeftDirection': '49.13385826771655 -329.76377952755905'}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771655 -38.740157480314764', 'Anchor': '49.13385826771655 -38.740157480314764', 'LeftDirection': '49.13385826771655 -38.740157480314764'}),
-                ('PathPointType',
-                {'RightDirection': '316.53543307086596 -38.740157480314764', 'Anchor': '316.53543307086596 -38.740157480314764', 'LeftDirection': '316.53543307086596 -38.740157480314764'}),
-                ('PathPointType',
-                {'RightDirection': '316.53543307086596 -329.76377952755905', 'Anchor': '316.53543307086596 -329.76377952755905', 'LeftDirection': '316.53543307086596 -329.76377952755905'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('Rectangle',
-                {'GradientFillStart': '0 0', 'GradientStrokeStart': '0 0', 'ContentType': 'GraphicType', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]', 'Self': 'mainudf', 'GradientStrokeHiliteLength': '0', 'GradientStrokeAngle': '0', 'GradientStrokeHiliteAngle': '0', 'GradientFillLength': '0', 'GradientStrokeLength': '0', 'ItemTransform': '1 0 0 1 0 0', 'ItemLayer': 'mainub3', 'LocalDisplaySetting': 'Default', 'StoryTitle': '$ID/', 'Name': '$ID/', 'Visible': 'true', 'GradientFillHiliteAngle': '0', 'GradientFillHiliteLength': '0', 'Locked': 'false'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771657 278.74015748031496', 'Anchor': '49.13385826771657 278.74015748031496', 'LeftDirection': '49.13385826771657 278.74015748031496'}),
-                ('PathPointType',
-                {'RightDirection': '49.13385826771657 332.5984251968504', 'Anchor': '49.13385826771657 332.5984251968504', 'LeftDirection': '49.13385826771657 332.5984251968504'}),
-                ('PathPointType',
-                {'RightDirection': '516.8503937007873 332.5984251968504', 'Anchor': '516.8503937007873 332.5984251968504', 'LeftDirection': '516.8503937007873 332.5984251968504'}),
-                ('PathPointType',
-                {'RightDirection': '516.8503937007873 278.74015748031496', 'Anchor': '516.8503937007873 278.74015748031496', 'LeftDirection': '516.8503937007873 278.74015748031496'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('InCopyExportOption',
-                {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
-                ('FrameFittingOption',
-                {'LeftCrop': '49.13385826771657', 'TopCrop': '278.74015748031496', 'RightCrop': '-515.8503937007873', 'BottomCrop': '-331.5984251968504'}),
-                ('ObjectExportOption',
-                {'ApplyTagType': 'TagFromStructure', 'ImageSpaceBefore': '0', 'CustomImageAlignment': 'false', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomImageSizeOption': 'SizeRelativeToPageWidth', 'SpaceUnit': 'CssEm', 'GIFOptionsInterlaced': 'true', 'AltTextSourceType': 'SourceXMLStructure', 'GIFOptionsPalette': 'AdaptivePalette', 'CustomActualText': '$ID/', 'CustomImageConversion': 'false', 'JPEGOptionsFormat': 'BaselineEncoding', 'UseImagePageBreak': 'false', 'ImageConversionType': 'JPEG', 'ImagePageBreak': 'PageBreakBefore', 'JPEGOptionsQuality': 'High', 'ImageSpaceAfter': '0', 'ImageAlignment': 'AlignLeft', 'CustomAltText': '$ID/', 'ImageExportResolution': 'Ppi300'}),
-                ('Properties', {}),
-                ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('ActualMetadataProperty',
-                {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[Normal Text Frame]', 'Self': 'mainuf6', 'GradientFillLength': '0', 'Locked': 'false', 'GradientStrokeHiliteLength': '0', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'mainub3', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 277.3228346456692 -310.86614173228344', 'ContentType': 'TextType', 'GradientFillHiliteAngle': '0', 'GradientStrokeLength': '0', 'GradientFillHiliteLength': '0', 'ParentStory': 'mainue4', 'GradientStrokeAngle': '0', 'Visible': 'true'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '-192.28346456692918 -18.897637795275614', 'Anchor': '-192.28346456692918 -18.897637795275614', 'LeftDirection': '-192.28346456692918 -18.897637795275614'}),
-                ('PathPointType',
-                {'RightDirection': '-192.28346456692918 11.338582677165391', 'Anchor': '-192.28346456692918 11.338582677165391', 'LeftDirection': '-192.28346456692918 11.338582677165391'}),
-                ('PathPointType',
-                {'RightDirection': '192.28346456692913 11.338582677165391', 'Anchor': '192.28346456692913 11.338582677165391', 'LeftDirection': '192.28346456692913 11.338582677165391'}),
-                ('PathPointType',
-                {'RightDirection': '192.28346456692913 -18.897637795275614', 'Anchor': '192.28346456692913 -18.897637795275614', 'LeftDirection': '192.28346456692913 -18.897637795275614'}),
-                ('TextFramePreference', {'TextColumnFixedWidth': '384.5669291338583'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[Normal Text Frame]', 'Self': 'mainu12d', 'GradientFillLength': '0', 'Locked': 'false', 'GradientStrokeHiliteLength': '0', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'mainub3', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 126.61417322834649 -189.92125984251965', 'ContentType': 'TextType', 'GradientFillHiliteAngle': '0', 'GradientStrokeLength': '0', 'GradientFillHiliteLength': '0', 'ParentStory': 'mainu11b', 'GradientStrokeAngle': '0', 'Visible': 'true'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '-71.81102362204726 -106.77165354330708', 'Anchor': '-71.81102362204726 -106.77165354330708', 'LeftDirection': '-71.81102362204726 -106.77165354330708'}),
-                ('PathPointType',
-                {'RightDirection': '-71.81102362204726 151.1811023622045', 'Anchor': '-71.81102362204726 151.1811023622045', 'LeftDirection': '-71.81102362204726 151.1811023622045'}),
-                ('PathPointType',
-                {'RightDirection': '233.38582677165348 151.1811023622045', 'Anchor': '233.38582677165348 151.1811023622045', 'LeftDirection': '233.38582677165348 151.1811023622045'}),
-                ('PathPointType',
-                {'RightDirection': '233.38582677165348 -106.77165354330708', 'Anchor': '233.38582677165348 -106.77165354330708', 'LeftDirection': '233.38582677165348 -106.77165354330708'}),
-                ('TextFramePreference',
-                {'VerticalBalanceColumns': 'true', 'TextColumnFixedWidth': '305.19685039370074'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('Rectangle',
-                {'GradientFillStart': '0 0', 'GradientStrokeStart': '0 0', 'ContentType': 'GraphicType', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]', 'Self': 'mainu135', 'GradientStrokeHiliteLength': '0', 'GradientStrokeAngle': '0', 'GradientStrokeHiliteAngle': '0', 'GradientFillLength': '0', 'GradientStrokeLength': '0', 'ItemTransform': '1 0 0 1 0 0', 'ItemLayer': 'mainub3', 'LocalDisplaySetting': 'Default', 'StoryTitle': '$ID/', 'Name': '$ID/', 'Visible': 'true', 'GradientFillHiliteAngle': '0', 'GradientFillHiliteLength': '0', 'Locked': 'false'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '365.6692913385827 -296.6929133858267', 'Anchor': '365.6692913385827 -296.6929133858267', 'LeftDirection': '365.6692913385827 -296.6929133858267'}),
-                ('PathPointType',
-                {'RightDirection': '365.6692913385827 -124.7244094488189', 'Anchor': '365.6692913385827 -124.7244094488189', 'LeftDirection': '365.6692913385827 -124.7244094488189'}),
-                ('PathPointType',
-                {'RightDirection': '510.23622047244095 -124.7244094488189', 'Anchor': '510.23622047244095 -124.7244094488189', 'LeftDirection': '510.23622047244095 -124.7244094488189'}),
-                ('PathPointType',
-                {'RightDirection': '510.23622047244095 -296.6929133858267', 'Anchor': '510.23622047244095 -296.6929133858267', 'LeftDirection': '510.23622047244095 -296.6929133858267'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('InCopyExportOption',
-                {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
-                ('FrameFittingOption',
-                {'LeftCrop': '365.6692913385827', 'TopCrop': '-296.6929133858267', 'RightCrop': '-509.23622047244095', 'BottomCrop': '125.7244094488189'}),
-                ('ObjectExportOption',
-                {'ApplyTagType': 'TagFromStructure', 'ImageSpaceBefore': '0', 'CustomImageAlignment': 'false', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomImageSizeOption': 'SizeRelativeToPageWidth', 'SpaceUnit': 'CssEm', 'GIFOptionsInterlaced': 'true', 'AltTextSourceType': 'SourceXMLStructure', 'GIFOptionsPalette': 'AdaptivePalette', 'CustomActualText': '$ID/', 'CustomImageConversion': 'false', 'JPEGOptionsFormat': 'BaselineEncoding', 'UseImagePageBreak': 'false', 'ImageConversionType': 'JPEG', 'ImagePageBreak': 'PageBreakBefore', 'JPEGOptionsQuality': 'High', 'ImageSpaceAfter': '0', 'ImageAlignment': 'AlignLeft', 'CustomAltText': '$ID/', 'ImageExportResolution': 'Ppi300'}),
-                ('Properties', {}),
-                ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('ActualMetadataProperty',
-                {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'mainObjectStyle/$ID/[Normal Text Frame]', 'Self': 'mainu14b', 'GradientFillLength': '0', 'Locked': 'false', 'GradientStrokeHiliteLength': '0', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'mainub3', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 437.9527559055118 -97.79527559055123', 'ContentType': 'TextType', 'GradientFillHiliteAngle': '0', 'GradientStrokeLength': '0', 'GradientFillHiliteLength': '0', 'ParentStory': 'mainu139', 'GradientStrokeAngle': '0', 'Visible': 'true'}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '-72.28346456692913 -26.929133858267733', 'Anchor': '-72.28346456692913 -26.929133858267733', 'LeftDirection': '-72.28346456692913 -26.929133858267733'}),
-                ('PathPointType',
-                {'RightDirection': '-72.28346456692913 55.27559055118115', 'Anchor': '-72.28346456692913 55.27559055118115', 'LeftDirection': '-72.28346456692913 55.27559055118115'}),
-                ('PathPointType',
-                {'RightDirection': '72.28346456692913 55.27559055118115', 'Anchor': '72.28346456692913 55.27559055118115', 'LeftDirection': '72.28346456692913 55.27559055118115'}),
-                ('PathPointType',
-                {'RightDirection': '72.28346456692913 -26.929133858267733', 'Anchor': '72.28346456692913 -26.929133858267733', 'LeftDirection': '72.28346456692913 -26.929133858267733'}),
-                ('TextFramePreference', {'TextColumnFixedWidth': '144.56692913385825'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]', 'Self': 'article1u1d4', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'Locked': 'false', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'GradientStrokeHiliteLength': '0', 'LastUpdatedInterfaceChangeCount': '', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 107.716535433070840 -42.51968503937020', 'GradientStrokeLength': '0', 'GradientFillHiliteAngle': '0', 'ContentType': 'TextType', 'GradientFillHiliteLength': '0', 'ParentStory': 'article1u1db', 'GradientStrokeAngle': '0', 'Visible': 'true', 'TargetInterfaceChangeCount': ''}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '141.73228346456693 19.84251968503935', 'Anchor': '141.73228346456693 19.84251968503935', 'LeftDirection': '141.73228346456693 19.84251968503935'}),
-                ('PathPointType',
-                {'RightDirection': '141.73228346456693 310.8661417322836', 'Anchor': '141.73228346456693 310.8661417322836', 'LeftDirection': '141.73228346456693 310.8661417322836'}),
-                ('PathPointType',
-                {'RightDirection': '409.13385826771633 310.8661417322836', 'Anchor': '409.13385826771633 310.8661417322836', 'LeftDirection': '409.13385826771633 310.8661417322836'}),
-                ('PathPointType',
-                {'RightDirection': '409.13385826771633 19.84251968503935', 'Anchor': '409.13385826771633 19.84251968503935', 'LeftDirection': '409.13385826771633 19.84251968503935'}),
-                ('TextFramePreference',
-                {'UseMinimumHeightForAutoSizing': 'false', 'TextColumnFixedWidth': '267.4015748031494', 'TextColumnCount': '1', 'UseNoLineBreaksForAutoSizing': 'false', 'AutoSizingReferencePoint': 'CenterPoint', 'TextColumnMaxWidth': '0', 'AutoSizingType': 'Off', 'UseMinimumWidthForAutoSizing': 'false', 'MinimumWidthForAutoSizing': '0', 'MinimumHeightForAutoSizing': '0'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('ObjectExportOption',
-                {'GIFOptionsPalette': 'AdaptivePalette', 'JPEGOptionsFormat': 'BaselineEncoding', 'CustomImageAlignment': 'false', 'UseOriginalImage': 'false', 'CustomWidthType': 'DefaultWidth', 'ImagePageBreak': 'PageBreakBefore', 'AltTextSourceType': 'SourceXMLStructure', 'UseImagePageBreak': 'false', 'GIFOptionsInterlaced': 'true', 'ImageExportResolution': 'Ppi300', 'ImageSpaceBefore': '0', 'CustomHeightType': 'DefaultHeight', 'JPEGOptionsQuality': 'High', 'CustomLayout': 'false', 'ImageAlignment': 'AlignLeft', 'UseExistingImage': 'false', 'CustomLayoutType': 'AlignmentAndSpacing', 'ImageConversionType': 'JPEG', 'SpaceUnit': 'CssPixel', 'CustomImageConversion': 'false', 'ApplyTagType': 'TagFromStructure', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomAltText': '$ID/', 'CustomActualText': '$ID/', 'CustomHeight': '$ID/', 'EpubType': '$ID/', 'ImageSpaceAfter': '0', 'CustomWidth': '$ID/'}),
-                ('Properties', {}),
-                ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('ActualMetadataProperty',
-                {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('Rectangle',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]', 'Self': 'article1u182', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'GradientStrokeHiliteLength': '0', 'LastUpdatedInterfaceChangeCount': '', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'GradientFillStart': '0 0', 'Locked': 'false', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 109.417322834645740 -76.62992125984261', 'StoryTitle': '$ID/', 'GradientStrokeLength': '0', 'GradientFillHiliteAngle': '0', 'ContentType': 'GraphicType', 'GradientFillHiliteLength': '0', 'GradientStrokeAngle': '0', 'Visible': 'true', 'TargetInterfaceChangeCount': ''}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '144.56692913385828 58.582677165354326', 'Anchor': '144.56692913385828 58.582677165354326', 'LeftDirection': '144.56692913385828 58.582677165354326'}),
-                ('PathPointType',
-                {'RightDirection': '144.56692913385828 199.46456692913392', 'Anchor': '144.56692913385828 199.46456692913392', 'LeftDirection': '144.56692913385828 199.46456692913392'}),
-                ('PathPointType',
-                {'RightDirection': '403.46456692913387 199.46456692913392', 'Anchor': '403.46456692913387 199.46456692913392', 'LeftDirection': '403.46456692913387 199.46456692913392'}),
-                ('PathPointType',
-                {'RightDirection': '403.46456692913387 58.582677165354326', 'Anchor': '403.46456692913387 58.582677165354326', 'LeftDirection': '403.46456692913387 58.582677165354326'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('ContourOption',
-                {'ContourType': 'SameAsClipping', 'IncludeInsideEdges': 'false', 'ContourPathName': '$ID/'}),
-                ('InCopyExportOption',
-                {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
-                ('FrameFittingOption', {'FittingOnEmptyFrame': 'FillProportionally'}),
-                ('ObjectExportOption',
-                {'GIFOptionsPalette': 'AdaptivePalette', 'JPEGOptionsFormat': 'BaselineEncoding', 'CustomImageAlignment': 'false', 'UseOriginalImage': 'false', 'CustomWidthType': 'DefaultWidth', 'ImagePageBreak': 'PageBreakBefore', 'AltTextSourceType': 'SourceXMLStructure', 'UseImagePageBreak': 'false', 'GIFOptionsInterlaced': 'true', 'ImageExportResolution': 'Ppi300', 'ImageSpaceBefore': '0', 'CustomHeightType': 'DefaultHeight', 'JPEGOptionsQuality': 'High', 'CustomLayout': 'false', 'ImageAlignment': 'AlignLeft', 'UseExistingImage': 'false', 'CustomLayoutType': 'AlignmentAndSpacing', 'ImageConversionType': 'JPEG', 'SpaceUnit': 'CssPixel', 'CustomImageConversion': 'false', 'ApplyTagType': 'TagFromStructure', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomAltText': '$ID/', 'CustomActualText': '$ID/', 'CustomHeight': '$ID/', 'EpubType': '$ID/', 'ImageSpaceAfter': '0', 'CustomWidth': '$ID/'}),
-                ('Properties', {}),
-                ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('ActualMetadataProperty',
-                {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('Image',
-                {'GradientFillAngle': '0', 'Space': '$ID/#Links_RGB', 'Self': 'article1u216', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]', 'LastUpdatedInterfaceChangeCount': '', 'ImageRenderingIntent': 'UseColorSettings', 'LocalDisplaySetting': 'Default', 'GradientFillStart': '0 0', 'Name': '$ID/', 'ItemTransform': '0.8544476494893585 0 0 0.8544476494893584 144.56692913385828 58.582677165354326', 'GradientFillHiliteAngle': '0', 'GradientFillHiliteLength': '0', 'ImageTypeName': '$ID/JPEG', 'EffectivePpi': '84 84', 'Visible': 'true', 'TargetInterfaceChangeCount': '', 'ActualPpi': '72 72'}),
-                ('Properties', {}),
-                ('Profile', {'type': 'string'}),
-                ('GraphicBounds', {'Bottom': '360', 'Top': '0', 'Right': '303', 'Left': '0'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('ContourOption',
-                {'ContourType': 'SameAsClipping', 'IncludeInsideEdges': 'false', 'ContourPathName': '$ID/'}),
-                ('MetadataPacketPreference', {}),
-                ('Properties', {}),
-                ('Contents', {}),
-                ('Link',
-                {'ImportPolicy': 'NoAutoImport', 'LinkImportStamp': 'file 129767622980000000 27644', 'CanPackage': 'true', 'LinkResourceModified': 'false', 'AssetID': '$ID/', 'ShowInUI': 'true', 'Self': 'article1u21a', 'LinkImportTime': '2014-09-24T14:47:22', 'LinkResourceSize': '0~6bfc', 'AssetURL': '$ID/', 'ExportPolicy': 'NoAutoExport', 'LinkResourceURI': 'file:/Users/stan/Dropbox/Projets/Slashdev/SimpleIDML/repos/git/simpleidml/tests/regressiontests/IDML/media/default.jpg', 'LinkImportModificationTime': '2012-03-21T01:11:38', 'CanUnembed': 'true', 'LinkClientID': '257', 'StoredState': 'Normal', 'LinkClassID': '35906', 'CanEmbed': 'true', 'LinkObjectModified': 'false', 'LinkResourceFormat': '$ID/JPEG'}),
-                ('ClippingPathSettings',
-                {'Index': '-1', 'ClippingType': 'None', 'AppliedPathName': '$ID/', 'RestrictToFrame': 'false', 'InvertPath': 'false', 'UseHighResolutionImage': 'true', 'InsetFrame': '0', 'IncludeInsideEdges': 'false', 'Threshold': '25', 'Tolerance': '2'}),
-                ('ImageIOPreference',
-                {'ApplyPhotoshopClippingPath': 'true', 'AlphaChannelName': '$ID/', 'AllowAutoEmbedding': 'true'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[Normal Text Frame]', 'Self': 'article1u185', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'Locked': 'false', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'GradientStrokeHiliteLength': '0', 'LastUpdatedInterfaceChangeCount': '', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 329.480314960629896 148.34645669291330', 'GradientStrokeLength': '0', 'GradientFillHiliteAngle': '0', 'ContentType': 'TextType', 'GradientFillHiliteLength': '0', 'ParentStory': 'article1u188', 'GradientStrokeAngle': '0', 'Visible': 'true', 'TargetInterfaceChangeCount': ''}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '-76.06299212598424 -19.842519685039377', 'Anchor': '-76.06299212598424 -19.842519685039377', 'LeftDirection': '-76.06299212598424 -19.842519685039377'}),
-                ('PathPointType',
-                {'RightDirection': '-76.06299212598424 -0.9448818897638205', 'Anchor': '-76.06299212598424 -0.9448818897638205', 'LeftDirection': '-76.06299212598424 -0.9448818897638205'}),
-                ('PathPointType',
-                {'RightDirection': '182.83464566929132 -0.9448818897638205', 'Anchor': '182.83464566929132 -0.9448818897638205', 'LeftDirection': '182.83464566929132 -0.9448818897638205'}),
-                ('PathPointType',
-                {'RightDirection': '182.83464566929132 -19.842519685039377', 'Anchor': '182.83464566929132 -19.842519685039377', 'LeftDirection': '182.83464566929132 -19.842519685039377'}),
-                ('TextFramePreference',
-                {'UseMinimumHeightForAutoSizing': 'false', 'TextColumnFixedWidth': '258.89763779527556', 'TextColumnCount': '1', 'UseNoLineBreaksForAutoSizing': 'false', 'AutoSizingReferencePoint': 'CenterPoint', 'TextColumnMaxWidth': '0', 'AutoSizingType': 'Off', 'UseMinimumWidthForAutoSizing': 'false', 'MinimumWidthForAutoSizing': '0', 'MinimumHeightForAutoSizing': '0'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('ObjectExportOption',
-                {'GIFOptionsPalette': 'AdaptivePalette', 'JPEGOptionsFormat': 'BaselineEncoding', 'CustomImageAlignment': 'false', 'UseOriginalImage': 'false', 'CustomWidthType': 'DefaultWidth', 'ImagePageBreak': 'PageBreakBefore', 'AltTextSourceType': 'SourceXMLStructure', 'UseImagePageBreak': 'false', 'GIFOptionsInterlaced': 'true', 'ImageExportResolution': 'Ppi300', 'ImageSpaceBefore': '0', 'CustomHeightType': 'DefaultHeight', 'JPEGOptionsQuality': 'High', 'CustomLayout': 'false', 'ImageAlignment': 'AlignLeft', 'UseExistingImage': 'false', 'CustomLayoutType': 'AlignmentAndSpacing', 'ImageConversionType': 'JPEG', 'SpaceUnit': 'CssPixel', 'CustomImageConversion': 'false', 'ApplyTagType': 'TagFromStructure', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomAltText': '$ID/', 'CustomActualText': '$ID/', 'CustomHeight': '$ID/', 'EpubType': '$ID/', 'ImageSpaceAfter': '0', 'CustomWidth': '$ID/'}),
-                ('Properties', {}),
-                ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('ActualMetadataProperty',
-                {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('TextFrame',
-                {'GradientStrokeStart': '0 0', 'GradientFillAngle': '0', 'AppliedObjectStyle': 'article1ObjectStyle/$ID/[Normal Text Frame]', 'Self': 'article1u19c', 'GradientFillLength': '0', 'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'Locked': 'false', 'OverriddenPageItemProps': '', 'ParentInterfaceChangeCount': '', 'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension', 'GradientStrokeHiliteLength': '0', 'LastUpdatedInterfaceChangeCount': '', 'GradientStrokeHiliteAngle': '0', 'LocalDisplaySetting': 'Default', 'ItemLayer': 'article1ua4', 'NextTextFrame': 'n', 'GradientFillStart': '0 0', 'PreviousTextFrame': 'n', 'Name': '$ID/', 'ItemTransform': '1 0 0 1 390.425196850393686 216.37795275590547', 'GradientStrokeLength': '0', 'GradientFillHiliteAngle': '0', 'ContentType': 'TextType', 'GradientFillHiliteLength': '0', 'ParentStory': 'article1u19f', 'GradientStrokeAngle': '0', 'Visible': 'true', 'TargetInterfaceChangeCount': ''}),
-                ('Properties', {}),
-                ('PathGeometry', {}),
-                ('GeometryPathType', {'PathOpen': 'false'}),
-                ('PathPointArray', {}),
-                ('PathPointType',
-                {'RightDirection': '-137.00787401574803 -64.25196850393701', 'Anchor': '-137.00787401574803 -64.25196850393701', 'LeftDirection': '-137.00787401574803 -64.25196850393701'}),
-                ('PathPointType',
-                {'RightDirection': '-137.00787401574803 51.968503937007945', 'Anchor': '-137.00787401574803 51.968503937007945', 'LeftDirection': '-137.00787401574803 51.968503937007945'}),
-                ('PathPointType',
-                {'RightDirection': '121.88976377952753 51.968503937007945', 'Anchor': '121.88976377952753 51.968503937007945', 'LeftDirection': '121.88976377952753 51.968503937007945'}),
-                ('PathPointType',
-                {'RightDirection': '121.88976377952753 -64.25196850393701', 'Anchor': '121.88976377952753 -64.25196850393701', 'LeftDirection': '121.88976377952753 -64.25196850393701'}),
-                ('TextFramePreference',
-                {'UseMinimumHeightForAutoSizing': 'false', 'TextColumnFixedWidth': '123.44881889763778', 'TextColumnCount': '2', 'UseNoLineBreaksForAutoSizing': 'false', 'AutoSizingReferencePoint': 'CenterPoint', 'TextColumnMaxWidth': '0', 'AutoSizingType': 'Off', 'UseMinimumWidthForAutoSizing': 'false', 'MinimumWidthForAutoSizing': '0', 'MinimumHeightForAutoSizing': '0'}),
-                ('TextWrapPreference',
-                {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
-                ('Properties', {}),
-                ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
-                ('ObjectExportOption',
-                {'GIFOptionsPalette': 'AdaptivePalette', 'JPEGOptionsFormat': 'BaselineEncoding', 'CustomImageAlignment': 'false', 'UseOriginalImage': 'false', 'CustomWidthType': 'DefaultWidth', 'ImagePageBreak': 'PageBreakBefore', 'AltTextSourceType': 'SourceXMLStructure', 'UseImagePageBreak': 'false', 'GIFOptionsInterlaced': 'true', 'ImageExportResolution': 'Ppi300', 'ImageSpaceBefore': '0', 'CustomHeightType': 'DefaultHeight', 'JPEGOptionsQuality': 'High', 'CustomLayout': 'false', 'ImageAlignment': 'AlignLeft', 'UseExistingImage': 'false', 'CustomLayoutType': 'AlignmentAndSpacing', 'ImageConversionType': 'JPEG', 'SpaceUnit': 'CssPixel', 'CustomImageConversion': 'false', 'ApplyTagType': 'TagFromStructure', 'ActualTextSourceType': 'SourceXMLStructure', 'CustomAltText': '$ID/', 'CustomActualText': '$ID/', 'CustomHeight': '$ID/', 'EpubType': '$ID/', 'ImageSpaceAfter': '0', 'CustomWidth': '$ID/'}),
-                ('Properties', {}),
-                ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
-                ('ActualMetadataProperty',
-                {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'})
-    ])
-
-            self.assertEqual([(elt.tag, elt.attrib) for elt in main_idml_file.spreads_objects[1].dom.iter()], [
-                ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
-                {'DOMVersion': '7.5'}),
-                ('Spread',
-                {'PageTransitionDirection': 'NotApplicable', 'BindingLocation': '1', 'PageTransitionDuration': 'Medium', 'ShowMasterItems': 'true', 'PageTransitionType': 'None', 'PageCount': '2', 'Self': 'mainubc', 'AllowPageShuffle': 'true', 'ItemTransform': '1 0 0 1 0 939.6850393700788', 'FlattenerOverride': 'Default'}),
-                ('FlattenerPreference',
-                {'ConvertAllTextToOutlines': 'false', 'GradientAndMeshResolution': '150', 'ConvertAllStrokesToOutlines': 'false', 'ClipComplexRegions': 'false', 'LineArtAndTextResolution': '300'}),
-                ('Properties', {}),
-                ('RasterVectorBalance', {'type': 'double'}),
-                ('Page',
-                {'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName', 'Name': '2', 'Self': 'mainuc1', 'UseMasterGrid': 'true', 'MasterPageTransform': '1 0 0 1 0 0', 'TabOrder': '', 'OverrideList': '', 'ItemTransform': '1 0 0 1 -566.9291338582677 -379.8425196850394', 'GridStartingPoint': 'TopOutside', 'GeometricBounds': '0 0 759.6850393700788 566.9291338582677', 'AppliedMaster': 'uca'}),
-                ('Properties', {}),
-                ('Descriptor', {'type': 'list'}),
-                ('ListItem', {'type': 'string'}),
-                ('ListItem', {'type': 'enumeration'}),
-                ('ListItem', {'type': 'boolean'}),
-                ('ListItem', {'type': 'boolean'}),
-                ('ListItem', {'type': 'long'}),
-                ('ListItem', {'type': 'string'}),
-                ('PageColor', {'type': 'enumeration'}),
-                ('MarginPreference',
-                {'ColumnCount': '1', 'Right': '36', 'Bottom': '36', 'Top': '36', 'ColumnGutter': '12', 'ColumnsPositions': '0 494.92913385826773', 'ColumnDirection': 'Horizontal', 'Left': '36'}),
-                ('GridDataInformation',
-                {'LineAki': '9', 'FontStyle': 'Regular', 'PointSize': '12', 'CharacterAki': '0', 'GridAlignment': 'AlignEmCenter', 'LineAlignment': 'LeftOrTopLineJustify', 'HorizontalScale': '100', 'CharacterAlignment': 'AlignEmCenter', 'VerticalScale': '100'}),
-                ('Properties', {}),
-                ('AppliedFont', {'type': 'string'}),
-                ('Page',
-                {'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName', 'Name': '3', 'Self': 'mainuc2', 'UseMasterGrid': 'true', 'MasterPageTransform': '1 0 0 1 0 0', 'TabOrder': '', 'OverrideList': '', 'ItemTransform': '1 0 0 1 0 -379.8425196850394', 'GridStartingPoint': 'TopOutside', 'GeometricBounds': '0 0 759.6850393700788 566.9291338582677', 'AppliedMaster': 'uca'}),
-                ('Properties', {}),
-                ('Descriptor', {'type': 'list'}),
-                ('ListItem', {'type': 'string'}),
-                ('ListItem', {'type': 'enumeration'}),
-                ('ListItem', {'type': 'boolean'}),
-                ('ListItem', {'type': 'boolean'}),
-                ('ListItem', {'type': 'long'}),
-                ('ListItem', {'type': 'string'}),
-                ('PageColor', {'type': 'enumeration'}),
-                ('MarginPreference',
-                {'ColumnCount': '1', 'Right': '36', 'Bottom': '36', 'Top': '36', 'ColumnGutter': '12', 'ColumnsPositions': '0 494.92913385826773', 'ColumnDirection': 'Horizontal', 'Left': '36'}),
-                ('GridDataInformation',
-                {'LineAki': '9', 'FontStyle': 'Regular', 'PointSize': '12', 'CharacterAki': '0', 'GridAlignment': 'AlignEmCenter', 'LineAlignment': 'LeftOrTopLineJustify', 'HorizontalScale': '100', 'CharacterAlignment': 'AlignEmCenter', 'VerticalScale': '100'}),
-                ('Properties', {}),
-                ('AppliedFont', {'type': 'string'})
+                    self.assertEqual([(elt.tag, elt.attrib) for elt in f.spreads_objects[0].dom.iter()], [
+                        ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread', {'DOMVersion': '7.5'}),
+                        ('Spread', {
+                            'PageTransitionDirection': 'NotApplicable',
+                            'BindingLocation': '0',
+                            'PageTransitionDuration': 'Medium',
+                            'ShowMasterItems': 'true',
+                            'PageTransitionType': 'None',
+                            'PageCount': '1',
+                            'Self': 'mainub6',
+                            'AllowPageShuffle': 'true',
+                            'ItemTransform': '1 0 0 1 0 0',
+                            'FlattenerOverride': 'Default'
+                        }),
+                        ('FlattenerPreference', {
+                            'ConvertAllTextToOutlines': 'false',
+                            'GradientAndMeshResolution': '150',
+                            'ConvertAllStrokesToOutlines': 'false',
+                            'ClipComplexRegions': 'false',
+                            'LineArtAndTextResolution': '300'
+                        }),
+                        ('Properties', {}),
+                        ('RasterVectorBalance', {'type': 'double'}),
+                        ('Page', {
+                            'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName',
+                            'Name': '1',
+                            'Self': 'mainubb',
+                            'UseMasterGrid': 'true',
+                            'MasterPageTransform': '1 0 0 1 0 0',
+                            'TabOrder': '',
+                            'OverrideList': '',
+                            'ItemTransform': '1 0 0 1 0 -379.8425196850394',
+                            'GridStartingPoint': 'TopOutside',
+                            'GeometricBounds': '0 0 759.6850393700788 566.9291338582677',
+                            'AppliedMaster': 'uca'
+                        }),
+                        ('Properties', {}),
+                        ('Descriptor', {'type': 'list'}),
+                        ('ListItem', {'type': 'string'}),
+                        ('ListItem', {'type': 'enumeration'}),
+                        ('ListItem', {'type': 'boolean'}),
+                        ('ListItem', {'type': 'boolean'}),
+                        ('ListItem', {'type': 'long'}),
+                        ('ListItem', {'type': 'string'}),
+                        ('PageColor', {'type': 'enumeration'}),
+                        ('MarginPreference', {
+                            'ColumnCount': '1',
+                            'Right': '36',
+                            'Bottom': '36',
+                            'Top': '36',
+                            'ColumnGutter': '12',
+                            'ColumnsPositions': '0 494.92913385826773',
+                            'ColumnDirection': 'Horizontal',
+                            'Left': '36'
+                        }),
+                    ('GridDataInformation', {
+                        'LineAki': '9',
+                        'FontStyle': 'Regular',
+                        'PointSize': '12',
+                        'CharacterAki': '0',
+                        'GridAlignment': 'AlignEmCenter',
+                        'LineAlignment': 'LeftOrTopLineJustify',
+                        'HorizontalScale': '100',
+                        'CharacterAlignment': 'AlignEmCenter',
+                        'VerticalScale': '100'
+                    }),
+                        ('Properties', {}),
+                        ('AppliedFont', {'type': 'string'}),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]',
+                            'Self': 'mainud8',
+                            'GradientFillLength': '0',
+                            'Locked': 'false',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'mainub3',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 0 0',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'mainu102',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771654 -329.76377952755905',
+                            'Anchor': '49.13385826771654 -329.76377952755905',
+                            'LeftDirection': '49.13385826771654 -329.76377952755905'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771654 -38.74015748031496',
+                            'Anchor': '49.13385826771654 -38.74015748031496',
+                            'LeftDirection': '49.13385826771654 -38.74015748031496'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '516.8503937007873 -38.74015748031496',
+                            'Anchor': '516.8503937007873 -38.74015748031496',
+                            'LeftDirection': '516.8503937007873 -38.74015748031496'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '516.8503937007873 -329.76377952755905',
+                            'Anchor': '516.8503937007873 -329.76377952755905',
+                            'LeftDirection': '516.8503937007873 -329.76377952755905'
+                        }),
+                        ('TextFramePreference', {'TextColumnFixedWidth': '467.71653543307076'}),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('Rectangle', {
+                            'GradientFillStart': '0 0',
+                            'GradientStrokeStart': '0 0',
+                            'ContentType': 'GraphicType',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]',
+                            'Self': 'mainudb',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeAngle': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'GradientFillLength': '0',
+                            'GradientStrokeLength': '0',
+                            'ItemTransform': '1 0 0 1 2.842170943040401e-14 307.0866141732283',
+                            'ItemLayer': 'mainub3',
+                            'LocalDisplaySetting': 'Default',
+                            'StoryTitle': '$ID/',
+                            'Name': '$ID/',
+                            'Visible': 'true',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientFillHiliteLength': '0',
+                            'Locked': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771654 -329.76377952755905',
+                            'Anchor': '49.13385826771654 -329.76377952755905',
+                            'LeftDirection': '49.13385826771654 -329.76377952755905'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771654 -38.74015748031496',
+                            'Anchor': '49.13385826771654 -38.74015748031496',
+                            'LeftDirection': '49.13385826771654 -38.74015748031496'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '236.22047244094495 -38.74015748031496',
+                            'Anchor': '236.22047244094495 -38.74015748031496',
+                            'LeftDirection': '236.22047244094495 -38.74015748031496'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '236.22047244094495 -329.76377952755905',
+                            'Anchor': '236.22047244094495 -329.76377952755905',
+                            'LeftDirection': '236.22047244094495 -329.76377952755905'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('InCopyExportOption',
+                        {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
+                        ('FrameFittingOption', {
+                            'LeftCrop': '49.13385826771654',
+                            'TopCrop': '-329.76377952755905',
+                            'RightCrop': '-235.22047244094495',
+                            'BottomCrop': '39.74015748031496'
+                        }),
+                        ('ObjectExportOption', {
+                            'ApplyTagType': 'TagFromStructure',
+                            'ImageSpaceBefore': '0',
+                            'CustomImageAlignment': 'false',
+                            'ActualTextSourceType': 'SourceXMLStructure',
+                            'CustomImageSizeOption': 'SizeRelativeToPageWidth',
+                            'SpaceUnit': 'CssEm',
+                            'GIFOptionsInterlaced': 'true',
+                            'AltTextSourceType': 'SourceXMLStructure',
+                            'GIFOptionsPalette': 'AdaptivePalette',
+                            'CustomActualText': '$ID/',
+                            'CustomImageConversion': 'false',
+                            'JPEGOptionsFormat': 'BaselineEncoding',
+                            'UseImagePageBreak': 'false',
+                            'ImageConversionType': 'JPEG',
+                            'ImagePageBreak': 'PageBreakBefore',
+                            'JPEGOptionsQuality': 'High',
+                            'ImageSpaceAfter': '0',
+                            'ImageAlignment': 'AlignLeft',
+                            'CustomAltText': '$ID/',
+                            'ImageExportResolution': 'Ppi300'
+                        }),
+                        ('Properties', {}),
+                        ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('ActualMetadataProperty',
+                        {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]',
+                            'Self': 'mainuddToNode',
+                            'GradientFillLength': '0',
+                            'Locked': 'false',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'mainub3',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 200.31496062992122 307.0866141732282',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteAngle': '0',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'mainudd',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771655 -329.76377952755905',
+                            'Anchor': '49.13385826771655 -329.76377952755905',
+                            'LeftDirection': '49.13385826771655 -329.76377952755905'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771655 -38.740157480314764',
+                            'Anchor': '49.13385826771655 -38.740157480314764',
+                            'LeftDirection': '49.13385826771655 -38.740157480314764'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '316.53543307086596 -38.740157480314764',
+                            'Anchor': '316.53543307086596 -38.740157480314764',
+                            'LeftDirection': '316.53543307086596 -38.740157480314764'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '316.53543307086596 -329.76377952755905',
+                            'Anchor': '316.53543307086596 -329.76377952755905',
+                            'LeftDirection': '316.53543307086596 -329.76377952755905'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('Rectangle', {
+                            'GradientFillStart': '0 0',
+                            'GradientStrokeStart': '0 0',
+                            'ContentType': 'GraphicType',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]',
+                            'Self': 'mainudf',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeAngle': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'GradientFillLength': '0',
+                            'GradientStrokeLength': '0',
+                            'ItemTransform': '1 0 0 1 0 0',
+                            'ItemLayer': 'mainub3',
+                            'LocalDisplaySetting': 'Default',
+                            'StoryTitle': '$ID/',
+                            'Name': '$ID/',
+                            'Visible': 'true',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientFillHiliteLength': '0',
+                            'Locked': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771657 278.74015748031496',
+                            'Anchor': '49.13385826771657 278.74015748031496',
+                            'LeftDirection': '49.13385826771657 278.74015748031496'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '49.13385826771657 332.5984251968504',
+                            'Anchor': '49.13385826771657 332.5984251968504',
+                            'LeftDirection': '49.13385826771657 332.5984251968504'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '516.8503937007873 332.5984251968504',
+                            'Anchor': '516.8503937007873 332.5984251968504',
+                            'LeftDirection': '516.8503937007873 332.5984251968504'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '516.8503937007873 278.74015748031496',
+                            'Anchor': '516.8503937007873 278.74015748031496',
+                            'LeftDirection': '516.8503937007873 278.74015748031496'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('InCopyExportOption',
+                        {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
+                        ('FrameFittingOption', {
+                            'LeftCrop': '49.13385826771657',
+                            'TopCrop': '278.74015748031496',
+                            'RightCrop': '-515.8503937007873',
+                            'BottomCrop': '-331.5984251968504'
+                        }),
+                        ('ObjectExportOption', {
+                            'ApplyTagType': 'TagFromStructure',
+                            'ImageSpaceBefore': '0',
+                            'CustomImageAlignment': 'false',
+                            'ActualTextSourceType': 'SourceXMLStructure',
+                            'CustomImageSizeOption': 'SizeRelativeToPageWidth',
+                            'SpaceUnit': 'CssEm',
+                            'GIFOptionsInterlaced': 'true',
+                            'AltTextSourceType': 'SourceXMLStructure',
+                            'GIFOptionsPalette': 'AdaptivePalette',
+                            'CustomActualText': '$ID/',
+                            'CustomImageConversion': 'false',
+                            'JPEGOptionsFormat': 'BaselineEncoding',
+                            'UseImagePageBreak': 'false',
+                            'ImageConversionType': 'JPEG',
+                            'ImagePageBreak': 'PageBreakBefore',
+                            'JPEGOptionsQuality': 'High',
+                            'ImageSpaceAfter': '0',
+                            'ImageAlignment': 'AlignLeft',
+                            'CustomAltText': '$ID/',
+                            'ImageExportResolution': 'Ppi300'
+                        }),
+                        ('Properties', {}),
+                        ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('ActualMetadataProperty',
+                        {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[Normal Text Frame]',
+                            'Self': 'mainuf6',
+                            'GradientFillLength': '0',
+                            'Locked': 'false',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'mainub3',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 277.3228346456692 -310.86614173228344',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'mainue4',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '-192.28346456692918 -18.897637795275614',
+                            'Anchor': '-192.28346456692918 -18.897637795275614',
+                            'LeftDirection': '-192.28346456692918 -18.897637795275614'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '-192.28346456692918 11.338582677165391',
+                            'Anchor': '-192.28346456692918 11.338582677165391',
+                            'LeftDirection': '-192.28346456692918 11.338582677165391'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '192.28346456692913 11.338582677165391',
+                            'Anchor': '192.28346456692913 11.338582677165391',
+                            'LeftDirection': '192.28346456692913 11.338582677165391'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '192.28346456692913 -18.897637795275614',
+                            'Anchor': '192.28346456692913 -18.897637795275614',
+                            'LeftDirection': '192.28346456692913 -18.897637795275614'
+                        }),
+                        ('TextFramePreference', {'TextColumnFixedWidth': '384.5669291338583'}),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[Normal Text Frame]',
+                            'Self': 'mainu12d',
+                            'GradientFillLength': '0',
+                            'Locked': 'false',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'mainub3',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 126.61417322834649 -189.92125984251965',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'mainu11b',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '-71.81102362204726 -106.77165354330708',
+                            'Anchor': '-71.81102362204726 -106.77165354330708',
+                            'LeftDirection': '-71.81102362204726 -106.77165354330708'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '-71.81102362204726 151.1811023622045',
+                            'Anchor': '-71.81102362204726 151.1811023622045',
+                            'LeftDirection': '-71.81102362204726 151.1811023622045'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '233.38582677165348 151.1811023622045',
+                            'Anchor': '233.38582677165348 151.1811023622045',
+                            'LeftDirection': '233.38582677165348 151.1811023622045'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '233.38582677165348 -106.77165354330708',
+                            'Anchor': '233.38582677165348 -106.77165354330708',
+                            'LeftDirection': '233.38582677165348 -106.77165354330708'
+                        }),
+                        ('TextFramePreference', {
+                            'VerticalBalanceColumns': 'true',
+                            'TextColumnFixedWidth': '305.19685039370074'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('Rectangle', {
+                            'GradientFillStart': '0 0',
+                            'GradientStrokeStart': '0 0',
+                            'ContentType': 'GraphicType',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[None]',
+                            'Self': 'mainu135',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeAngle': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'GradientFillLength': '0',
+                            'GradientStrokeLength': '0',
+                            'ItemTransform': '1 0 0 1 0 0',
+                            'ItemLayer': 'mainub3',
+                            'LocalDisplaySetting': 'Default',
+                            'StoryTitle': '$ID/',
+                            'Name': '$ID/',
+                            'Visible': 'true',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientFillHiliteLength': '0',
+                            'Locked': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '365.6692913385827 -296.6929133858267',
+                            'Anchor': '365.6692913385827 -296.6929133858267',
+                            'LeftDirection': '365.6692913385827 -296.6929133858267'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '365.6692913385827 -124.7244094488189',
+                            'Anchor': '365.6692913385827 -124.7244094488189',
+                            'LeftDirection': '365.6692913385827 -124.7244094488189'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '510.23622047244095 -124.7244094488189',
+                            'Anchor': '510.23622047244095 -124.7244094488189',
+                            'LeftDirection': '510.23622047244095 -124.7244094488189'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '510.23622047244095 -296.6929133858267',
+                            'Anchor': '510.23622047244095 -296.6929133858267',
+                            'LeftDirection': '510.23622047244095 -296.6929133858267'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('InCopyExportOption',
+                        {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
+                        ('FrameFittingOption', {
+                            'LeftCrop': '365.6692913385827',
+                            'TopCrop': '-296.6929133858267',
+                            'RightCrop': '-509.23622047244095',
+                            'BottomCrop': '125.7244094488189'
+                        }),
+                        ('ObjectExportOption', {
+                            'ApplyTagType': 'TagFromStructure',
+                            'ImageSpaceBefore': '0',
+                            'CustomImageAlignment': 'false',
+                            'ActualTextSourceType': 'SourceXMLStructure',
+                            'CustomImageSizeOption': 'SizeRelativeToPageWidth',
+                            'SpaceUnit': 'CssEm',
+                            'GIFOptionsInterlaced': 'true',
+                            'AltTextSourceType': 'SourceXMLStructure',
+                            'GIFOptionsPalette': 'AdaptivePalette',
+                            'CustomActualText': '$ID/',
+                            'CustomImageConversion': 'false',
+                            'JPEGOptionsFormat': 'BaselineEncoding',
+                            'UseImagePageBreak': 'false',
+                            'ImageConversionType': 'JPEG',
+                            'ImagePageBreak': 'PageBreakBefore',
+                            'JPEGOptionsQuality': 'High',
+                            'ImageSpaceAfter': '0',
+                            'ImageAlignment': 'AlignLeft',
+                            'CustomAltText': '$ID/',
+                            'ImageExportResolution': 'Ppi300'
+                        }),
+                        ('Properties', {}),
+                        ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('ActualMetadataProperty',
+                        {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'mainObjectStyle/$ID/[Normal Text Frame]',
+                            'Self': 'mainu14b',
+                            'GradientFillLength': '0',
+                            'Locked': 'false',
+                            'GradientStrokeHiliteLength': '0',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'mainub3',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 437.9527559055118 -97.79527559055123',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'mainu139',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true'
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '-72.28346456692913 -26.929133858267733',
+                            'Anchor': '-72.28346456692913 -26.929133858267733',
+                            'LeftDirection': '-72.28346456692913 -26.929133858267733'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '-72.28346456692913 55.27559055118115',
+                            'Anchor': '-72.28346456692913 55.27559055118115',
+                            'LeftDirection': '-72.28346456692913 55.27559055118115'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '72.28346456692913 55.27559055118115',
+                            'Anchor': '72.28346456692913 55.27559055118115',
+                            'LeftDirection': '72.28346456692913 55.27559055118115'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '72.28346456692913 -26.929133858267733',
+                            'Anchor': '72.28346456692913 -26.929133858267733',
+                            'LeftDirection': '72.28346456692913 -26.929133858267733'
+                        }),
+                        ('TextFramePreference', {'TextColumnFixedWidth': '144.56692913385825'}),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]',
+                            'Self': 'article1u1d4',
+                            'GradientFillLength': '0',
+                            'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'Locked': 'false',
+                            'OverriddenPageItemProps': '',
+                            'ParentInterfaceChangeCount': '',
+                            'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'GradientStrokeHiliteLength': '0',
+                            'LastUpdatedInterfaceChangeCount': '',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'article1ua4',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 107.716535433070840 -42.51968503937020',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteAngle': '0',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'article1u1db',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true',
+                            'TargetInterfaceChangeCount': ''
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '141.73228346456693 19.84251968503935',
+                            'Anchor': '141.73228346456693 19.84251968503935',
+                            'LeftDirection': '141.73228346456693 19.84251968503935'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '141.73228346456693 310.8661417322836',
+                            'Anchor': '141.73228346456693 310.8661417322836',
+                            'LeftDirection': '141.73228346456693 310.8661417322836'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '409.13385826771633 310.8661417322836',
+                            'Anchor': '409.13385826771633 310.8661417322836',
+                            'LeftDirection': '409.13385826771633 310.8661417322836'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '409.13385826771633 19.84251968503935',
+                            'Anchor': '409.13385826771633 19.84251968503935',
+                            'LeftDirection': '409.13385826771633 19.84251968503935'
+                        }),
+                        ('TextFramePreference', {
+                            'UseMinimumHeightForAutoSizing': 'false',
+                            'TextColumnFixedWidth': '267.4015748031494',
+                            'TextColumnCount': '1',
+                            'UseNoLineBreaksForAutoSizing': 'false',
+                            'AutoSizingReferencePoint': 'CenterPoint',
+                            'TextColumnMaxWidth': '0',
+                            'AutoSizingType': 'Off',
+                            'UseMinimumWidthForAutoSizing': 'false',
+                            'MinimumWidthForAutoSizing': '0',
+                            'MinimumHeightForAutoSizing': '0'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('ObjectExportOption', {
+                            'GIFOptionsPalette': 'AdaptivePalette',
+                            'JPEGOptionsFormat': 'BaselineEncoding',
+                            'CustomImageAlignment': 'false',
+                            'UseOriginalImage': 'false',
+                            'CustomWidthType': 'DefaultWidth',
+                            'ImagePageBreak': 'PageBreakBefore',
+                            'AltTextSourceType': 'SourceXMLStructure',
+                            'UseImagePageBreak': 'false',
+                            'GIFOptionsInterlaced': 'true',
+                            'ImageExportResolution': 'Ppi300',
+                            'ImageSpaceBefore': '0',
+                            'CustomHeightType': 'DefaultHeight',
+                            'JPEGOptionsQuality': 'High',
+                            'CustomLayout': 'false',
+                            'ImageAlignment': 'AlignLeft',
+                            'UseExistingImage': 'false',
+                            'CustomLayoutType': 'AlignmentAndSpacing',
+                            'ImageConversionType': 'JPEG',
+                            'SpaceUnit': 'CssPixel',
+                            'CustomImageConversion': 'false',
+                            'ApplyTagType': 'TagFromStructure',
+                            'ActualTextSourceType': 'SourceXMLStructure',
+                            'CustomAltText': '$ID/',
+                            'CustomActualText': '$ID/',
+                            'CustomHeight': '$ID/',
+                            'EpubType': '$ID/',
+                            'ImageSpaceAfter': '0',
+                            'CustomWidth': '$ID/'
+                        }),
+                        ('Properties', {}),
+                        ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('ActualMetadataProperty',
+                        {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('Rectangle', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]',
+                            'Self': 'article1u182',
+                            'GradientFillLength': '0',
+                            'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'OverriddenPageItemProps': '',
+                            'ParentInterfaceChangeCount': '',
+                            'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'GradientStrokeHiliteLength': '0',
+                            'LastUpdatedInterfaceChangeCount': '',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'article1ua4',
+                            'GradientFillStart': '0 0',
+                            'Locked': 'false',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 109.417322834645740 -76.62992125984261',
+                            'StoryTitle': '$ID/',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteAngle': '0',
+                            'ContentType': 'GraphicType',
+                            'GradientFillHiliteLength': '0',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true',
+                            'TargetInterfaceChangeCount': ''
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '144.56692913385828 58.582677165354326',
+                            'Anchor': '144.56692913385828 58.582677165354326',
+                            'LeftDirection': '144.56692913385828 58.582677165354326'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '144.56692913385828 199.46456692913392',
+                            'Anchor': '144.56692913385828 199.46456692913392',
+                            'LeftDirection': '144.56692913385828 199.46456692913392'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '403.46456692913387 199.46456692913392',
+                            'Anchor': '403.46456692913387 199.46456692913392',
+                            'LeftDirection': '403.46456692913387 199.46456692913392'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '403.46456692913387 58.582677165354326',
+                            'Anchor': '403.46456692913387 58.582677165354326',
+                            'LeftDirection': '403.46456692913387 58.582677165354326'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('ContourOption',
+                        {'ContourType': 'SameAsClipping', 'IncludeInsideEdges': 'false', 'ContourPathName': '$ID/'}),
+                        ('InCopyExportOption',
+                        {'IncludeGraphicProxies': 'true', 'IncludeAllResources': 'false'}),
+                        ('FrameFittingOption', {'FittingOnEmptyFrame': 'FillProportionally'}),
+                        ('ObjectExportOption', {
+                            'GIFOptionsPalette': 'AdaptivePalette',
+                            'JPEGOptionsFormat': 'BaselineEncoding',
+                            'CustomImageAlignment': 'false',
+                            'UseOriginalImage': 'false',
+                            'CustomWidthType': 'DefaultWidth',
+                            'ImagePageBreak': 'PageBreakBefore',
+                            'AltTextSourceType': 'SourceXMLStructure',
+                            'UseImagePageBreak': 'false',
+                            'GIFOptionsInterlaced': 'true',
+                            'ImageExportResolution': 'Ppi300',
+                            'ImageSpaceBefore': '0',
+                            'CustomHeightType': 'DefaultHeight',
+                            'JPEGOptionsQuality': 'High',
+                            'CustomLayout': 'false',
+                            'ImageAlignment': 'AlignLeft',
+                            'UseExistingImage': 'false',
+                            'CustomLayoutType': 'AlignmentAndSpacing',
+                            'ImageConversionType': 'JPEG',
+                            'SpaceUnit': 'CssPixel',
+                            'CustomImageConversion': 'false',
+                            'ApplyTagType': 'TagFromStructure',
+                            'ActualTextSourceType': 'SourceXMLStructure',
+                            'CustomAltText': '$ID/',
+                            'CustomActualText': '$ID/',
+                            'CustomHeight': '$ID/',
+                            'EpubType': '$ID/',
+                            'ImageSpaceAfter': '0',
+                            'CustomWidth': '$ID/'
+                        }),
+                        ('Properties', {}),
+                        ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('ActualMetadataProperty',
+                        {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('Image', {
+                            'GradientFillAngle': '0',
+                            'Space': '$ID/#Links_RGB',
+                            'Self': 'article1u216',
+                            'GradientFillLength': '0',
+                            'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'OverriddenPageItemProps': '',
+                            'ParentInterfaceChangeCount': '',
+                            'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'AppliedObjectStyle': 'article1ObjectStyle/$ID/[None]',
+                            'LastUpdatedInterfaceChangeCount': '',
+                            'ImageRenderingIntent': 'UseColorSettings',
+                            'LocalDisplaySetting': 'Default',
+                            'GradientFillStart': '0 0',
+                            'Name': '$ID/',
+                            'ItemTransform': '0.8544476494893585 0 0 0.8544476494893584 144.56692913385828 58.582677165354326',
+                            'GradientFillHiliteAngle': '0',
+                            'GradientFillHiliteLength': '0',
+                            'ImageTypeName': '$ID/JPEG',
+                            'EffectivePpi': '84 84',
+                            'Visible': 'true',
+                            'TargetInterfaceChangeCount': '',
+                            'ActualPpi': '72 72'
+                        }),
+                        ('Properties', {}),
+                        ('Profile', {'type': 'string'}),
+                        ('GraphicBounds', {'Bottom': '360', 'Top': '0', 'Right': '303', 'Left': '0'}),
+                        ('TextWrapPreference',
+                        {'TextWrapSide': 'BothSides', 'Inverse': 'false', 'TextWrapMode': 'None', 'ApplyToMasterPageOnly': 'false'}),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('ContourOption',
+                        {'ContourType': 'SameAsClipping', 'IncludeInsideEdges': 'false', 'ContourPathName': '$ID/'}),
+                        ('MetadataPacketPreference', {}),
+                        ('Properties', {}),
+                        ('Contents', {}),
+                        ('Link', {
+                            'ImportPolicy': 'NoAutoImport',
+                            'LinkImportStamp': 'file 129767622980000000 27644',
+                            'CanPackage': 'true',
+                            'LinkResourceModified': 'false',
+                            'AssetID': '$ID/',
+                            'ShowInUI': 'true',
+                            'Self': 'article1u21a',
+                            'LinkImportTime': '2014-09-24T14:47:22',
+                            'LinkResourceSize': '0~6bfc',
+                            'AssetURL': '$ID/',
+                            'ExportPolicy': 'NoAutoExport',
+                            'LinkResourceURI': 'file:/Users/stan/Dropbox/Projets/Slashdev/SimpleIDML/repos/git/simpleidml/tests/regressiontests/IDML/media/default.jpg',
+                            'LinkImportModificationTime': '2012-03-21T01:11:38',
+                            'CanUnembed': 'true',
+                            'LinkClientID': '257',
+                            'StoredState': 'Normal',
+                            'LinkClassID': '35906',
+                            'CanEmbed': 'true',
+                            'LinkObjectModified': 'false',
+                            'LinkResourceFormat': '$ID/JPEG'
+                        }),
+                        ('ClippingPathSettings', {
+                            'Index': '-1',
+                            'ClippingType': 'None',
+                            'AppliedPathName': '$ID/',
+                            'RestrictToFrame': 'false',
+                            'InvertPath': 'false',
+                            'UseHighResolutionImage': 'true',
+                            'InsetFrame': '0',
+                            'IncludeInsideEdges': 'false',
+                            'Threshold': '25',
+                            'Tolerance': '2'
+                        }),
+                        ('ImageIOPreference', {
+                            'ApplyPhotoshopClippingPath': 'true',
+                            'AlphaChannelName': '$ID/',
+                            'AllowAutoEmbedding': 'true'
+                        }),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'article1ObjectStyle/$ID/[Normal Text Frame]',
+                            'Self': 'article1u185',
+                            'GradientFillLength': '0',
+                            'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'Locked': 'false',
+                            'OverriddenPageItemProps': '',
+                            'ParentInterfaceChangeCount': '',
+                            'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'GradientStrokeHiliteLength': '0',
+                            'LastUpdatedInterfaceChangeCount': '',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'article1ua4',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 329.480314960629896 148.34645669291330',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteAngle': '0',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'article1u188',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true',
+                            'TargetInterfaceChangeCount': ''
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '-76.06299212598424 -19.842519685039377',
+                            'Anchor': '-76.06299212598424 -19.842519685039377',
+                            'LeftDirection': '-76.06299212598424 -19.842519685039377'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '-76.06299212598424 -0.9448818897638205',
+                            'Anchor': '-76.06299212598424 -0.9448818897638205',
+                            'LeftDirection': '-76.06299212598424 -0.9448818897638205'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '182.83464566929132 -0.9448818897638205',
+                            'Anchor': '182.83464566929132 -0.9448818897638205',
+                            'LeftDirection': '182.83464566929132 -0.9448818897638205'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '182.83464566929132 -19.842519685039377',
+                            'Anchor': '182.83464566929132 -19.842519685039377',
+                            'LeftDirection': '182.83464566929132 -19.842519685039377'
+                        }),
+                        ('TextFramePreference', {
+                            'UseMinimumHeightForAutoSizing': 'false',
+                            'TextColumnFixedWidth': '258.89763779527556',
+                            'TextColumnCount': '1',
+                            'UseNoLineBreaksForAutoSizing': 'false',
+                            'AutoSizingReferencePoint': 'CenterPoint',
+                            'TextColumnMaxWidth': '0',
+                            'AutoSizingType': 'Off',
+                            'UseMinimumWidthForAutoSizing': 'false',
+                            'MinimumWidthForAutoSizing': '0',
+                            'MinimumHeightForAutoSizing': '0'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('ObjectExportOption', {
+                            'GIFOptionsPalette': 'AdaptivePalette',
+                            'JPEGOptionsFormat': 'BaselineEncoding',
+                            'CustomImageAlignment': 'false',
+                            'UseOriginalImage': 'false',
+                            'CustomWidthType': 'DefaultWidth',
+                            'ImagePageBreak': 'PageBreakBefore',
+                            'AltTextSourceType': 'SourceXMLStructure',
+                            'UseImagePageBreak': 'false',
+                            'GIFOptionsInterlaced': 'true',
+                            'ImageExportResolution': 'Ppi300',
+                            'ImageSpaceBefore': '0',
+                            'CustomHeightType': 'DefaultHeight',
+                            'JPEGOptionsQuality': 'High',
+                            'CustomLayout': 'false',
+                            'ImageAlignment': 'AlignLeft',
+                            'UseExistingImage': 'false',
+                            'CustomLayoutType': 'AlignmentAndSpacing',
+                            'ImageConversionType': 'JPEG',
+                            'SpaceUnit': 'CssPixel',
+                            'CustomImageConversion': 'false',
+                            'ApplyTagType': 'TagFromStructure',
+                            'ActualTextSourceType': 'SourceXMLStructure',
+                            'CustomAltText': '$ID/',
+                            'CustomActualText': '$ID/',
+                            'CustomHeight': '$ID/',
+                            'EpubType': '$ID/',
+                            'ImageSpaceAfter': '0',
+                            'CustomWidth': '$ID/'
+                        }),
+                        ('Properties', {}),
+                        ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('ActualMetadataProperty',
+                        {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('TextFrame', {
+                            'GradientStrokeStart': '0 0',
+                            'GradientFillAngle': '0',
+                            'AppliedObjectStyle': 'article1ObjectStyle/$ID/[Normal Text Frame]',
+                            'Self': 'article1u19c',
+                            'GradientFillLength': '0',
+                            'HorizontalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'Locked': 'false',
+                            'OverriddenPageItemProps': '',
+                            'ParentInterfaceChangeCount': '',
+                            'VerticalLayoutConstraints': 'FlexibleDimension FixedDimension FlexibleDimension',
+                            'GradientStrokeHiliteLength': '0',
+                            'LastUpdatedInterfaceChangeCount': '',
+                            'GradientStrokeHiliteAngle': '0',
+                            'LocalDisplaySetting': 'Default',
+                            'ItemLayer': 'article1ua4',
+                            'NextTextFrame': 'n',
+                            'GradientFillStart': '0 0',
+                            'PreviousTextFrame': 'n',
+                            'Name': '$ID/',
+                            'ItemTransform': '1 0 0 1 390.425196850393686 216.37795275590547',
+                            'GradientStrokeLength': '0',
+                            'GradientFillHiliteAngle': '0',
+                            'ContentType': 'TextType',
+                            'GradientFillHiliteLength': '0',
+                            'ParentStory': 'article1u19f',
+                            'GradientStrokeAngle': '0',
+                            'Visible': 'true',
+                            'TargetInterfaceChangeCount': ''
+                        }),
+                        ('Properties', {}),
+                        ('PathGeometry', {}),
+                        ('GeometryPathType', {'PathOpen': 'false'}),
+                        ('PathPointArray', {}),
+                        ('PathPointType', {
+                            'RightDirection': '-137.00787401574803 -64.25196850393701',
+                            'Anchor': '-137.00787401574803 -64.25196850393701',
+                            'LeftDirection': '-137.00787401574803 -64.25196850393701'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '-137.00787401574803 51.968503937007945',
+                            'Anchor': '-137.00787401574803 51.968503937007945',
+                            'LeftDirection': '-137.00787401574803 51.968503937007945'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '121.88976377952753 51.968503937007945',
+                            'Anchor': '121.88976377952753 51.968503937007945',
+                            'LeftDirection': '121.88976377952753 51.968503937007945'
+                        }),
+                        ('PathPointType', {
+                            'RightDirection': '121.88976377952753 -64.25196850393701',
+                            'Anchor': '121.88976377952753 -64.25196850393701',
+                            'LeftDirection': '121.88976377952753 -64.25196850393701'
+                        }),
+                        ('TextFramePreference', {
+                            'UseMinimumHeightForAutoSizing': 'false',
+                            'TextColumnFixedWidth': '123.44881889763778',
+                            'TextColumnCount': '2',
+                            'UseNoLineBreaksForAutoSizing': 'false',
+                            'AutoSizingReferencePoint': 'CenterPoint',
+                            'TextColumnMaxWidth': '0',
+                            'AutoSizingType': 'Off',
+                            'UseMinimumWidthForAutoSizing': 'false',
+                            'MinimumWidthForAutoSizing': '0',
+                            'MinimumHeightForAutoSizing': '0'
+                        }),
+                        ('TextWrapPreference', {
+                            'TextWrapSide': 'BothSides',
+                            'Inverse': 'false',
+                            'TextWrapMode': 'None',
+                            'ApplyToMasterPageOnly': 'false'
+                        }),
+                        ('Properties', {}),
+                        ('TextWrapOffset', {'Right': '0', 'Top': '0', 'Bottom': '0', 'Left': '0'}),
+                        ('ObjectExportOption', {
+                            'GIFOptionsPalette': 'AdaptivePalette',
+                            'JPEGOptionsFormat': 'BaselineEncoding',
+                            'CustomImageAlignment': 'false',
+                            'UseOriginalImage': 'false',
+                            'CustomWidthType': 'DefaultWidth',
+                            'ImagePageBreak': 'PageBreakBefore',
+                            'AltTextSourceType': 'SourceXMLStructure',
+                            'UseImagePageBreak': 'false',
+                            'GIFOptionsInterlaced': 'true',
+                            'ImageExportResolution': 'Ppi300',
+                            'ImageSpaceBefore': '0',
+                            'CustomHeightType': 'DefaultHeight',
+                            'JPEGOptionsQuality': 'High',
+                            'CustomLayout': 'false',
+                            'ImageAlignment': 'AlignLeft',
+                            'UseExistingImage': 'false',
+                            'CustomLayoutType': 'AlignmentAndSpacing',
+                            'ImageConversionType': 'JPEG',
+                            'SpaceUnit': 'CssPixel',
+                            'CustomImageConversion': 'false',
+                            'ApplyTagType': 'TagFromStructure',
+                            'ActualTextSourceType': 'SourceXMLStructure',
+                            'CustomAltText': '$ID/',
+                            'CustomActualText': '$ID/',
+                            'CustomHeight': '$ID/',
+                            'EpubType': '$ID/',
+                            'ImageSpaceAfter': '0',
+                            'CustomWidth': '$ID/'
+                        }),
+                        ('Properties', {}),
+                        ('AltMetadataProperty', {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'}),
+                        ('ActualMetadataProperty',
+                        {'PropertyPath': '$ID/', 'NamespacePrefix': '$ID/'})
             ])
 
-            self.assertEqual([(elt.tag, elt.attrib) for elt in main_idml_file.spreads_objects[2].dom.iter()], [
-                ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
-                {'DOMVersion': '7.5'}),
-                ('Spread',
-                {'PageTransitionDirection': 'NotApplicable', 'BindingLocation': '1', 'PageTransitionDuration': 'Medium', 'ShowMasterItems': 'true', 'PageTransitionType': 'None', 'PageCount': '1', 'Self': 'mainuc3', 'AllowPageShuffle': 'true', 'ItemTransform': '1 0 0 1 0 1879.3700787401576', 'FlattenerOverride': 'Default'}),
-                ('FlattenerPreference',
-                {'ConvertAllTextToOutlines': 'false', 'GradientAndMeshResolution': '150', 'ConvertAllStrokesToOutlines': 'false', 'ClipComplexRegions': 'false', 'LineArtAndTextResolution': '300'}),
-                ('Properties', {}),
-                ('RasterVectorBalance', {'type': 'double'}),
-                ('Page',
-                {'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName', 'Name': '4', 'Self': 'mainuc8', 'UseMasterGrid': 'true', 'MasterPageTransform': '1 0 0 1 0 0', 'TabOrder': '', 'OverrideList': '', 'ItemTransform': '1 0 0 1 -566.9291338582677 -379.8425196850394', 'GridStartingPoint': 'TopOutside', 'GeometricBounds': '0 0 759.6850393700788 566.9291338582677', 'AppliedMaster': 'uca'}),
-                ('Properties', {}),
-                ('Descriptor', {'type': 'list'}),
-                ('ListItem', {'type': 'string'}),
-                ('ListItem', {'type': 'enumeration'}),
-                ('ListItem', {'type': 'boolean'}),
-                ('ListItem', {'type': 'boolean'}),
-                ('ListItem', {'type': 'long'}),
-                ('ListItem', {'type': 'string'}),
-                ('PageColor', {'type': 'enumeration'}),
-                ('MarginPreference',
-                {'ColumnCount': '1', 'Right': '36', 'Bottom': '36', 'Top': '36', 'ColumnGutter': '12', 'ColumnsPositions': '0 494.92913385826773', 'ColumnDirection': 'Horizontal', 'Left': '36'}),
-                ('GridDataInformation',
-                {'LineAki': '9', 'FontStyle': 'Regular', 'PointSize': '12', 'CharacterAki': '0', 'GridAlignment': 'AlignEmCenter', 'LineAlignment': 'LeftOrTopLineJustify', 'HorizontalScale': '100', 'CharacterAlignment': 'AlignEmCenter', 'VerticalScale': '100'}),
-                ('Properties', {}),
-                ('AppliedFont', {'type': 'string'})
-            ])
+                    self.assertEqual([(elt.tag, elt.attrib) for elt in f.spreads_objects[1].dom.iter()], [
+                        ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread', {'DOMVersion': '7.5'}),
+                        ('Spread', {
+                            'PageTransitionDirection': 'NotApplicable',
+                            'BindingLocation': '1',
+                            'PageTransitionDuration': 'Medium',
+                            'ShowMasterItems': 'true',
+                            'PageTransitionType': 'None',
+                            'PageCount': '2',
+                            'Self': 'mainubc',
+                            'AllowPageShuffle': 'true',
+                            'ItemTransform': '1 0 0 1 0 939.6850393700788',
+                            'FlattenerOverride': 'Default'
+                        }),
+                        ('FlattenerPreference', {
+                            'ConvertAllTextToOutlines': 'false',
+                            'GradientAndMeshResolution': '150',
+                            'ConvertAllStrokesToOutlines': 'false',
+                            'ClipComplexRegions': 'false',
+                            'LineArtAndTextResolution': '300'
+                        }),
+                        ('Properties', {}),
+                        ('RasterVectorBalance', {'type': 'double'}),
+                        ('Page', {
+                            'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName',
+                            'Name': '2',
+                            'Self': 'mainuc1',
+                            'UseMasterGrid': 'true',
+                            'MasterPageTransform': '1 0 0 1 0 0',
+                            'TabOrder': '',
+                            'OverrideList': '',
+                            'ItemTransform': '1 0 0 1 -566.9291338582677 -379.8425196850394',
+                            'GridStartingPoint': 'TopOutside',
+                            'GeometricBounds': '0 0 759.6850393700788 566.9291338582677',
+                            'AppliedMaster': 'uca'
+                        }),
+                        ('Properties', {}),
+                        ('Descriptor', {'type': 'list'}),
+                        ('ListItem', {'type': 'string'}),
+                        ('ListItem', {'type': 'enumeration'}),
+                        ('ListItem', {'type': 'boolean'}),
+                        ('ListItem', {'type': 'boolean'}),
+                        ('ListItem', {'type': 'long'}),
+                        ('ListItem', {'type': 'string'}),
+                        ('PageColor', {'type': 'enumeration'}),
+                        ('MarginPreference', {
+                            'ColumnCount': '1',
+                            'Right': '36',
+                            'Bottom': '36',
+                            'Top': '36',
+                            'ColumnGutter': '12',
+                            'ColumnsPositions': '0 494.92913385826773',
+                            'ColumnDirection': 'Horizontal',
+                            'Left': '36'
+                        }),
+                    ('GridDataInformation', {
+                        'LineAki': '9',
+                        'FontStyle': 'Regular',
+                        'PointSize': '12',
+                        'CharacterAki': '0',
+                        'GridAlignment': 'AlignEmCenter',
+                        'LineAlignment': 'LeftOrTopLineJustify',
+                        'HorizontalScale': '100',
+                        'CharacterAlignment': 'AlignEmCenter',
+                        'VerticalScale': '100'
+                    }),
+                        ('Properties', {}),
+                        ('AppliedFont', {'type': 'string'}),
+                        ('Page', {
+                            'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName',
+                            'Name': '3',
+                            'Self': 'mainuc2',
+                            'UseMasterGrid': 'true',
+                            'MasterPageTransform': '1 0 0 1 0 0',
+                            'TabOrder': '',
+                            'OverrideList': '',
+                            'ItemTransform': '1 0 0 1 0 -379.8425196850394',
+                            'GridStartingPoint': 'TopOutside',
+                            'GeometricBounds': '0 0 759.6850393700788 566.9291338582677',
+                            'AppliedMaster': 'uca'
+                        }),
+                        ('Properties', {}),
+                        ('Descriptor', {'type': 'list'}),
+                        ('ListItem', {'type': 'string'}),
+                        ('ListItem', {'type': 'enumeration'}),
+                        ('ListItem', {'type': 'boolean'}),
+                        ('ListItem', {'type': 'boolean'}),
+                        ('ListItem', {'type': 'long'}),
+                        ('ListItem', {'type': 'string'}),
+                        ('PageColor', {'type': 'enumeration'}),
+                        ('MarginPreference', {
+                            'ColumnCount': '1',
+                            'Right': '36',
+                            'Bottom': '36',
+                            'Top': '36',
+                            'ColumnGutter': '12',
+                            'ColumnsPositions': '0 494.92913385826773',
+                            'ColumnDirection': 'Horizontal',
+                            'Left': '36'
+                        }),
+                        ('GridDataInformation', {
+                            'LineAki': '9',
+                            'FontStyle': 'Regular',
+                            'PointSize': '12',
+                            'CharacterAki': '0',
+                            'GridAlignment': 'AlignEmCenter',
+                            'LineAlignment': 'LeftOrTopLineJustify',
+                            'HorizontalScale': '100',
+                            'CharacterAlignment': 'AlignEmCenter',
+                            'VerticalScale': '100'
+                        }),
+                        ('Properties', {}),
+                        ('AppliedFont', {'type': 'string'})
+                    ])
 
-            # The XML Structure has integrated the new file.
-            self.assertXMLEqual(unicode(main_idml_file.xml_structure_pretty()), """<Root Self="maindi2">
-  <article Self="maindi2i3" XMLContent="mainu102">
+                    self.assertEqual([(elt.tag, elt.attrib) for elt in f.spreads_objects[2].dom.iter()], [
+                        ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread', {'DOMVersion': '7.5'}),
+                        ('Spread', {
+                            'PageTransitionDirection': 'NotApplicable',
+                            'BindingLocation': '1',
+                            'PageTransitionDuration': 'Medium',
+                            'ShowMasterItems': 'true',
+                            'PageTransitionType': 'None',
+                            'PageCount': '1',
+                            'Self': 'mainuc3',
+                            'AllowPageShuffle': 'true',
+                            'ItemTransform': '1 0 0 1 0 1879.3700787401576',
+                            'FlattenerOverride': 'Default'
+                        }),
+                        ('FlattenerPreference', {
+                            'ConvertAllTextToOutlines': 'false',
+                            'GradientAndMeshResolution': '150',
+                            'ConvertAllStrokesToOutlines': 'false',
+                            'ClipComplexRegions': 'false',
+                            'LineArtAndTextResolution': '300'
+                        }),
+                        ('Properties', {}),
+                        ('RasterVectorBalance', {'type': 'double'}),
+                        ('Page', {
+                            'AppliedTrapPreset': 'TrapPreset/$ID/kDefaultTrapStyleName',
+                            'Name': '4',
+                            'Self': 'mainuc8',
+                            'UseMasterGrid': 'true',
+                            'MasterPageTransform': '1 0 0 1 0 0',
+                            'TabOrder': '',
+                            'OverrideList': '',
+                            'ItemTransform': '1 0 0 1 -566.9291338582677 -379.8425196850394',
+                            'GridStartingPoint': 'TopOutside',
+                            'GeometricBounds': '0 0 759.6850393700788 566.9291338582677',
+                            'AppliedMaster': 'uca'
+                        }),
+                        ('Properties', {}),
+                        ('Descriptor', {'type': 'list'}),
+                        ('ListItem', {'type': 'string'}),
+                        ('ListItem', {'type': 'enumeration'}),
+                        ('ListItem', {'type': 'boolean'}),
+                        ('ListItem', {'type': 'boolean'}),
+                        ('ListItem', {'type': 'long'}),
+                        ('ListItem', {'type': 'string'}),
+                        ('PageColor', {'type': 'enumeration'}),
+                        ('MarginPreference', {
+                            'ColumnCount': '1',
+                            'Right': '36',
+                            'Bottom': '36',
+                            'Top': '36',
+                            'ColumnGutter': '12',
+                            'ColumnsPositions': '0 494.92913385826773',
+                            'ColumnDirection': 'Horizontal',
+                            'Left': '36'
+                        }),
+                    ('GridDataInformation', {
+                        'LineAki': '9',
+                        'FontStyle': 'Regular',
+                        'PointSize': '12',
+                        'CharacterAki': '0',
+                        'GridAlignment': 'AlignEmCenter',
+                        'LineAlignment': 'LeftOrTopLineJustify',
+                        'HorizontalScale': '100',
+                        'CharacterAlignment': 'AlignEmCenter',
+                        'VerticalScale': '100'
+                    }),
+                        ('Properties', {}),
+                        ('AppliedFont', {'type': 'string'})
+                    ])
+
+                    # The XML Structure has integrated the new file.
+                    self.assertXMLEqual(unicode(f.xml_structure_pretty()), """<Root Self="maindi2">
+<article Self="maindi2i3" XMLContent="mainu102">
     <Story Self="maindi2i3i1" XMLContent="mainue4">
-      <title Self="maindi2i3i1i1"/>
-      <subtitle Self="maindi2i3i1i2"/>
+    <title Self="maindi2i3i1i1"/>
+    <subtitle Self="maindi2i3i1i2"/>
     </Story>
     <content Self="maindi2i3i2" XMLContent="mainu11b"/>
     <illustration Self="maindi2i3i3" XMLContent="mainu135"/>
     <description Self="maindi2i3i4" XMLContent="mainu139"/>
-  </article>
-  <article Self="maindi2i4" XMLContent="mainudb"/>
-  <article Self="maindi2i5" XMLContent="mainudd">
+</article>
+<article Self="maindi2i4" XMLContent="mainudb"/>
+<article Self="maindi2i5" XMLContent="mainudd">
     <module Self="article1di3i12" XMLContent="article1u1db">
-      <main_picture Self="article1di3i12i1" XMLContent="article1u216"/>
-      <headline Self="article1di3i12i2" XMLContent="article1u188"/>
-      <Story Self="article1di3i12i3" XMLContent="article1u19f">
+    <main_picture Self="article1di3i12i1" XMLContent="article1u216"/>
+    <headline Self="article1di3i12i2" XMLContent="article1u188"/>
+    <Story Self="article1di3i12i3" XMLContent="article1u19f">
         <article Self="article1di3i12i3i2"/>
         <informations Self="article1di3i12i3i1"/>
-      </Story>
+    </Story>
     </module>
-  </article>
-  <advertise Self="maindi2i6" XMLContent="mainudf"/>
+</article>
+<advertise Self="maindi2i6" XMLContent="mainudf"/>
 </Root>
 """)
 
-            # Designmap.xml.
-            designmap = etree.fromstring(main_idml_file.open("designmap.xml", mode="r").read())
-            self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
-                            "mainue4 mainu102 mainu11b mainu139 mainu9c mainudd article1u1db article1u188 article1u19f")
-            self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
-                                namespaces={'idPkg': "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"})), 8)
+                    # Designmap.xml.
+                    with f.open("designmap.xml") as df:
+                        designmap = etree.fromstring(df.read())
+                        self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
+                                        "mainue4 mainu102 mainu11b mainu139 mainu9c mainudd article1u1db article1u188 article1u19f")
+                        self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
+                                            namespaces={'idPkg': IDPKG_NS})), 8)
 
-            # Styles.
-            styles = [[style.get("Self") for style in style_group.iterchildren()]
-                    for style_group in main_idml_file.style_groups]
-            self.assertEqual(styles, [
-                ['mainCharacterStyle/$ID/[No character style]',
-                'article1CharacterStyle/$ID/[No character style]',
-                'article1CharacterStyle/MyBoldStyle'],
-                ['mainParagraphStyle/$ID/[No paragraph style]',
-                'mainParagraphStyle/$ID/NormalParagraphStyle',
-                'article1ParagraphStyle/$ID/[No paragraph style]',
-                'article1ParagraphStyle/$ID/NormalParagraphStyle'],
-                ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
-                ['mainTableStyle/$ID/[No table style]',
-                'mainTableStyle/$ID/[Basic Table]',
-                'article1TableStyle/$ID/[No table style]',
-                'article1TableStyle/$ID/[Basic Table]'],
-                ['mainObjectStyle/$ID/[None]',
-                'mainObjectStyle/$ID/[Normal Graphics Frame]',
-                'mainObjectStyle/$ID/[Normal Text Frame]',
-                'mainObjectStyle/$ID/[Normal Grid]',
-                'article1ObjectStyle/$ID/[None]',
-                'article1ObjectStyle/$ID/[Normal Graphics Frame]',
-                'article1ObjectStyle/$ID/[Normal Text Frame]',
-                'article1ObjectStyle/$ID/[Normal Grid]']])
+                    # Styles.
+                    styles = [[style.get("Self") for style in style_group.iterchildren()]
+                            for style_group in f.style_groups]
+                    self.assertEqual(styles, [
+                        ['mainCharacterStyle/$ID/[No character style]',
+                        'article1CharacterStyle/$ID/[No character style]',
+                        'article1CharacterStyle/MyBoldStyle'],
+                        ['mainParagraphStyle/$ID/[No paragraph style]',
+                        'mainParagraphStyle/$ID/NormalParagraphStyle',
+                        'article1ParagraphStyle/$ID/[No paragraph style]',
+                        'article1ParagraphStyle/$ID/NormalParagraphStyle'],
+                        ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
+                        ['mainTableStyle/$ID/[No table style]',
+                        'mainTableStyle/$ID/[Basic Table]',
+                        'article1TableStyle/$ID/[No table style]',
+                        'article1TableStyle/$ID/[Basic Table]'],
+                        ['mainObjectStyle/$ID/[None]',
+                        'mainObjectStyle/$ID/[Normal Graphics Frame]',
+                        'mainObjectStyle/$ID/[Normal Text Frame]',
+                        'mainObjectStyle/$ID/[Normal Grid]',
+                        'article1ObjectStyle/$ID/[None]',
+                        'article1ObjectStyle/$ID/[Normal Graphics Frame]',
+                        'article1ObjectStyle/$ID/[Normal Text Frame]',
+                        'article1ObjectStyle/$ID/[Normal Grid]']
+                    ])
 
-            # Style mapping.
-            self.assertEqual(main_idml_file.style_mapping.character_style_mapping,
-                            {'MyBoldTag': 'article1CharacterStyle/MyBoldStyle'})
+                    # Style mapping.
+                    self.assertEqual(f.style_mapping.character_style_mapping,
+                                    {'MyBoldTag': 'article1CharacterStyle/MyBoldStyle'})
 
-            # Graphics.
-            self.assertTrue(main_idml_file.graphic.dom.xpath(".//Swatch[@Self='article1Swatch/None']"))
+                    # Graphics.
+                    self.assertTrue(f.graphic.dom.xpath(".//Swatch[@Self='article1Swatch/None']"))
 
     def test_insert_idml_without_picture(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
@@ -1594,37 +3356,38 @@ u"""<Root Self="FOOdi2">
                      os.path.join(OUTPUT_DIR, "2articles-0photo.idml"))
 
         with IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages-insert-article-0-photo-complex.idml")) as main_idml_file,\
-            IDMLPackage(os.path.join(OUTPUT_DIR, "2articles-0photo.idml")) as article_idml_file:
+             IDMLPackage(os.path.join(OUTPUT_DIR, "2articles-0photo.idml")) as article_idml_file:
 
             # Always start by prefixing packages to avoid collision.
-            main_idml_file = main_idml_file.prefix("main")
-            article_idml_file = article_idml_file.prefix("article1")
+            with main_idml_file.prefix("main") as prefixed_main,\
+                 article_idml_file.prefix("article1") as prefixed_article:
 
-            main_idml_file = main_idml_file.insert_idml(article_idml_file,
-                                                        at="/Root/article[3]",
-                                                        only="/Root/module[1]")
+                with prefixed_main.insert_idml(prefixed_article,
+                                               at="/Root/article[3]",
+                                               only="/Root/module[1]") as f:
 
-            # Stories.
-            self.assertEqual(main_idml_file.stories, ['Stories/Story_article1u188.xml',
-                                                    'Stories/Story_article1u19f.xml',
-                                                    'Stories/Story_article1u1db.xml',
-                                                    'Stories/Story_mainu102.xml',
-                                                    'Stories/Story_mainu11b.xml',
-                                                    'Stories/Story_mainu139.xml',
-                                                    'Stories/Story_mainudd.xml',
-                                                    'Stories/Story_mainue4.xml'])
 
-            # Spreads
-            self.assertEqual(main_idml_file.spreads, ['Spreads/Spread_mainub6.xml',
-                                                    'Spreads/Spread_mainubc.xml',
-                                                    'Spreads/Spread_mainuc3.xml'])
+                    # Stories.
+                    self.assertEqual(f.stories, ['Stories/Story_article1u188.xml',
+                                                 'Stories/Story_article1u19f.xml',
+                                                 'Stories/Story_article1u1db.xml',
+                                                 'Stories/Story_mainu102.xml',
+                                                 'Stories/Story_mainu11b.xml',
+                                                 'Stories/Story_mainu139.xml',
+                                                 'Stories/Story_mainudd.xml',
+                                                 'Stories/Story_mainue4.xml'])
+
+                    # Spreads
+                    self.assertEqual(f.spreads, ['Spreads/Spread_mainub6.xml',
+                                                 'Spreads/Spread_mainubc.xml',
+                                                 'Spreads/Spread_mainuc3.xml'])
 
     def test_remove_content(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_imported-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml")) as idml_file:
-            idml_file = idml_file.remove_content(under="/Root/module/Story")
-            self.assertXMLEqual(unicode(idml_file.xml_structure_pretty()),
+            with idml_file.remove_content(under="/Root/module/Story") as f:
+                self.assertXMLEqual(unicode(f.xml_structure_pretty()),
 u"""<Root Self="di3">
   <module XMLContent="u10d" Self="di3i4">
     <main_picture XMLContent="udf" Self="di3i4i1"/>
@@ -1641,21 +3404,21 @@ u"""<Root Self="di3">
         shutil.copy2(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml"), courrier_idml_filename)
 
         with IDMLPackage(edito_idml_filename) as edito_idml_file,\
-            IDMLPackage(courrier_idml_filename) as courrier_idml_file:
+             IDMLPackage(courrier_idml_filename) as courrier_idml_file:
 
             # Always start by prefixing packages to avoid collision.
-            edito_idml_file = edito_idml_file.prefix("edito")
-            courrier_idml_file = courrier_idml_file.prefix("courrier")
-            self.assertEqual(len(edito_idml_file.pages), 2)
+            with edito_idml_file.prefix("edito") as prefixed_edito,\
+                 courrier_idml_file.prefix("courrier") as prefixed_courrier:
 
-            with edito_idml_file.add_page_from_idml(courrier_idml_file,
-                                                    page_number=1,
-                                                    at="/Root",
-                                                    only="/Root/page[1]") as new_idml:
-                self.assertEqual(len(new_idml.pages), 3)
+                self.assertEqual(len(prefixed_edito.pages), 2)
+                with prefixed_edito.add_page_from_idml(prefixed_courrier,
+                                                       page_number=1,
+                                                       at="/Root",
+                                                       only="/Root/page[1]") as new_idml:
+                    self.assertEqual(len(new_idml.pages), 3)
 
-                # The XML Structure has integrated the new file.
-                self.assertXMLEqual(unicode(new_idml.xml_structure_pretty()),
+                    # The XML Structure has integrated the new file.
+                    self.assertXMLEqual(unicode(new_idml.xml_structure_pretty()),
 u"""<Root Self="editodi2">
   <page Self="editodi2ib">
     <article Self="editodi2ibif">
@@ -1695,21 +3458,21 @@ u"""<Root Self="editodi2">
             IDMLPackage(bloc_notes2_idml_filename) as bloc_notes2_idml_file:
 
             # Always start by prefixing packages to avoid collision.
-            edito_idml_file = edito_idml_file.prefix("edito")
-            courrier_idml_file = courrier_idml_file.prefix("courrier")
-            bloc_notes_idml_file = bloc_notes_idml_file.prefix("blocnotes")
-            bloc_notes2_idml_file = bloc_notes2_idml_file.prefix("blocnotes2")
+            with edito_idml_file.prefix("edito") as prefixed_edito,\
+                 courrier_idml_file.prefix("courrier") as prefixed_courrier,\
+                 bloc_notes_idml_file.prefix("blocnotes") as prefixed_bnotes,\
+                 bloc_notes2_idml_file.prefix("blocnotes2") as prefixed_bnotes2:
 
-            packages_to_add = [
-                (courrier_idml_file, 1, "/Root", "/Root/page[1]"),
-                (bloc_notes_idml_file, 1, "/Root", "/Root/page[1]"),
-                (bloc_notes2_idml_file, 2, "/Root", "/Root/page[2]"),
-            ]
-            with edito_idml_file.add_pages_from_idml(packages_to_add) as new_idml:
-                self.assertEqual(len(new_idml.pages), 5)
-                self.assertEqual(new_idml.spreads, ['Spreads/Spread_editoub6.xml',
-                                                    'Spreads/Spread_editoubc.xml',
-                                                    'Spreads/Spread_editoubd.xml'])
+                packages_to_add = [
+                    (prefixed_courrier, 1, "/Root", "/Root/page[1]"),
+                    (prefixed_bnotes, 1, "/Root", "/Root/page[1]"),
+                    (prefixed_bnotes2, 2, "/Root", "/Root/page[2]"),
+                ]
+                with prefixed_edito.add_pages_from_idml(packages_to_add) as new_idml:
+                    self.assertEqual(len(new_idml.pages), 5)
+                    self.assertEqual(new_idml.spreads, ['Spreads/Spread_editoub6.xml',
+                                                        'Spreads/Spread_editoubc.xml',
+                                                        'Spreads/Spread_editoubd.xml'])
 
     def test_add_pages_from_idml_to_template(self):
         # Now we use an empty document to hold the pages.
@@ -1728,22 +3491,21 @@ u"""<Root Self="editodi2">
             IDMLPackage(bloc_notes_idml_filename) as bloc_notes_idml_file:
 
             # Always start by prefixing packages to avoid collision.
-            magazineA_idml_file = magazineA_idml_file.prefix("mag")
-            edito_idml_file = edito_idml_file.prefix("edito")
-            courrier_idml_file = courrier_idml_file.prefix("courrier")
-            bloc_notes_idml_file = bloc_notes_idml_file.prefix("blocnotes")
+            with magazineA_idml_file.prefix("mag") as prefixed_mag,\
+                 edito_idml_file.prefix("edito") as prefixed_edito,\
+                 courrier_idml_file.prefix("courrier") as prefixed_courrier,\
+                 bloc_notes_idml_file.prefix("blocnotes") as prefixed_bnotes:
 
-            packages_to_add = [
-                (edito_idml_file, 1, "/Root", "/Root/page[1]"),
-                (courrier_idml_file, 1, "/Root", "/Root/page[1]"),
-                (bloc_notes_idml_file, 1, "/Root", "/Root/page[1]"),
-            ]
+                packages_to_add = [
+                    (prefixed_edito, 1, "/Root", "/Root/page[1]"),
+                    (prefixed_courrier, 1, "/Root", "/Root/page[1]"),
+                    (prefixed_bnotes, 1, "/Root", "/Root/page[1]"),
+                ]
 
-            magazineA_idml_file = magazineA_idml_file.add_pages_from_idml(packages_to_add)
-
-            self.assertEqual(len(magazineA_idml_file.pages), 4)
-            # FIXME Broken.
-            self.assertEqual(magazineA_idml_file.spreads, ['Spreads/Spread_magub6.xml', 'Spreads/Spread_magub7.xml'])
+                with prefixed_mag.add_pages_from_idml(packages_to_add) as f:
+                    self.assertEqual(len(f.pages), 4)
+                    # FIXME Broken.
+                    #self.assertEqual(f.spreads, ['Spreads/Spread_magub6.xml', 'Spreads/Spread_magub7.xml'])
 
 
 def suite():
