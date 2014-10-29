@@ -691,7 +691,14 @@ class IDMLPackage(zipfile.ZipFile):
                 spread_elt = spread_elt.getparent()
             spread_elts_to_add.append(spread_elt)
 
-        # TODO Also add spread elements on the same layer that are not in the Structure.
+        # Add spread elements on the same layer that are not in the Structure.
+        only_layer = idml_package.get_spread_elem_by_id(only_node.get("XMLContent")).get("ItemLayer")
+        for spread_elt in idml_package.get_spread_elements_by_layer(layer_id=only_layer):
+            if spread_elt not in spread_elts_to_add:
+                spread_elts_to_add.append(spread_elt)
+        # TODO: Replace the loop above with that. order vary and regression tests are wrecked...
+        # Use an OderedSet implementation to keep the regression tests.
+        #spread_elts_to_add = list(set(spread_elts_to_add) | set(spread_elts_in_same_layer))
 
         def _add_spread_element(spread_dest_elt, spread_elt):
             spread_elt_copy = copy.deepcopy(spread_elt)
