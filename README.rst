@@ -368,6 +368,20 @@ in your PATH.
 Revisions
 =========
 
+0.91.7
+------
+
+New features
+''''''''''''
+
+
+Bug fixes
+'''''''''
+
+- In ``IDMLPackage.insert_idml()``, Elements from the same layer (but not tagged in the structure)
+  are now added in the Spread of the document of destination.
+
+
 0.91.6
 ------
 
