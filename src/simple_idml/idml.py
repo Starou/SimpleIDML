@@ -684,7 +684,8 @@ class IDMLPackage(zipfile.ZipFile):
         # Add spread elements on the same layer. We start by that because the order in the
         # Spread file is the z-position on the Layer.
         only_layer = idml_package.get_spread_elem_by_id(only_node.get("XMLContent")).get("ItemLayer")
-        spread_elts_to_add = idml_package.get_spread_elements_by_layer(layer_id=only_layer)
+        spread_elts_to_add = idml_package.get_spread_elements_by_layer(layer_id=only_layer,
+                                                                       excluded_tags=["Guide"])
 
         # Then add the tagged elements that may be on others layers.
         for node in only_node.iter():
@@ -863,13 +864,15 @@ class IDMLPackage(zipfile.ZipFile):
         # The spread synchronization is done outside.
         return new_spread
 
-    def get_spread_elements_by_layer(self, layer_name=None, layer_id=None):
+    def get_spread_elements_by_layer(self, layer_name=None, layer_id=None, excluded_tags=[]):
         layer_id = layer_id or self.get_layer_id_by_name(layer_name)
 
         spread_elements = []
         for spread_object in self.spreads_objects:
             spread_elements.extend(spread_object.dom.xpath(
-                ".//*[@ItemLayer='%s']" % layer_id))
+                ".//*%(excluded_tags)s[@ItemLayer='%(layer_id)s']" % {
+                    'excluded_tags': "".join(["[not(self::%s)]" % e for e in excluded_tags]),
+                    'layer_id': layer_id}))
 
         return spread_elements
 
