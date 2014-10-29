@@ -859,6 +859,16 @@ class IDMLPackage(zipfile.ZipFile):
         # The spread synchronization is done outside.
         return new_spread
 
+    def get_spread_elements_by_layer(self, layer_name=None, layer_id=None):
+        layer_id = layer_id or self.get_layer_id_by_name(layer_name)
+
+        spread_elements = []
+        for spread_object in self.spreads_objects:
+            spread_elements.extend(spread_object.dom.xpath(
+                ".//*[@ItemLayer='%s']" % layer_id))
+
+        return spread_elements
+
     def get_spread_object_by_xpath(self, xpath):
         elt_id = self.xml_structure.xpath(xpath)[0].get("XMLContent")
         return self.get_spread_object_by_id(elt_id)

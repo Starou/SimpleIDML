@@ -157,6 +157,11 @@ u"""<Root Self="di2">
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
         self.assertEqual(idml_file.referenced_layers, ['u2db', 'ua4'])
 
+    def test_get_spread_elements_by_layer(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "2articles-1photo-elts-same-layer.idml"))
+        self.assertEqual(set([elt.get("Name") for elt in idml_file.get_spread_elements_by_layer(layer_name="Layer 2")]),
+                         set(['module2-Red_background', 'module2-Text', 'module2-Frame', 'module2-Image']))
+
     def test_get_spread_object_by_xpath(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"))
         spread = idml_file.get_spread_object_by_xpath("/Root/module/main_picture")
