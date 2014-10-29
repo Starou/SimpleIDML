@@ -901,6 +901,9 @@ class IDMLPackage(zipfile.ZipFile):
         spread = self.get_spread_object_by_xpath(xpath)
         return spread and spread.name or None
 
+    def get_layer_id_by_name(self, layer_name):
+        return self.designmap.get_layer_id_by_name(layer_name)
+
     def get_story_object_by_xpath(self, xpath):
         xml_element = self.xml_structure.xpath(xpath)[0]
 
