@@ -679,16 +679,27 @@ class IDMLPackage(zipfile.ZipFile):
         spread_dest = Spread(self, spread_dest_filename, self.working_copy_path)
         spread_dest_elt = spread_dest.dom.xpath("./Spread")[0]
 
-        for node in idml_package.xml_structure.xpath(only)[0].iter():
+        only_node = idml_package.xml_structure.xpath(only)[0]
+        spread_elts_to_add = []
+
+        for node in only_node.iter():
             if node.get("XMLContent") is None:
                 continue
             spread_elt = idml_package.get_spread_elem_by_id(node.get("XMLContent"))
             # Image and EPS element are included in a Rectangle.
             if spread_elt.tag in ["Image", "EPS"]:
                 spread_elt = spread_elt.getparent()
+            spread_elts_to_add.append(spread_elt)
+
+        # TODO Also add spread elements on the same layer that are not in the Structure.
+
+        def _add_spread_element(spread_dest_elt, spread_elt):
             spread_elt_copy = copy.deepcopy(spread_elt)
             self.apply_translation_to_element(spread_elt_copy, translation)
             spread_dest_elt.append(spread_elt_copy)
+
+        map(lambda s: _add_spread_element(spread_dest_elt, s), spread_elts_to_add)
+
         spread_dest.synchronize()
         self.init_lazy_references()
 
