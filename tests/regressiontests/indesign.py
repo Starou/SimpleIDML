@@ -51,7 +51,7 @@ class InDesignTestCase(unittest.TestCase):
                                      indesign_server_path_style="posix")
 
         self.assertTrue(self.runscript_mock.called)
-        self.assertEqual(responses, ['save_as.jsx, 4-pages.indd'])
+        self.assertEqual(responses, ['save_as.jsx, 4-pagesTMP.indd'])
 
         responses = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                                      ["pdf", "jpeg", "zip"],
@@ -59,8 +59,8 @@ class InDesignTestCase(unittest.TestCase):
                                      CLIENT_WORKDIR, SERVER_WORKDIR,
                                      indesign_server_path_style="posix")
         self.assertTrue(self.runscript_mock.called)
-        self.assertEqual(responses[:2], ['export.jsx, 4-pages.pdf',
-                                         'export.jsx, 4-pages.jpeg'])
+        self.assertEqual(responses[:2], ['export.jsx, 4-pagesTMP.pdf',
+                                         'export.jsx, 4-pagesTMP.jpeg'])
         zip_buf = StringIO()
         zip_buf.write(responses[2])
         self.assertTrue(zipfile.is_zipfile(zip_buf))
