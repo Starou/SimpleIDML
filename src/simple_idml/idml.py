@@ -680,8 +680,13 @@ class IDMLPackage(zipfile.ZipFile):
         spread_dest_elt = spread_dest.dom.xpath("./Spread")[0]
 
         only_node = idml_package.xml_structure.xpath(only)[0]
-        spread_elts_to_add = []
 
+        # Add spread elements on the same layer. We start by that because the order in the
+        # Spread file is the z-position on the Layer.
+        only_layer = idml_package.get_spread_elem_by_id(only_node.get("XMLContent")).get("ItemLayer")
+        spread_elts_to_add = idml_package.get_spread_elements_by_layer(layer_id=only_layer)
+
+        # Then add the tagged elements that may be on others layers.
         for node in only_node.iter():
             if node.get("XMLContent") is None:
                 continue
@@ -689,16 +694,8 @@ class IDMLPackage(zipfile.ZipFile):
             # Image and EPS element are included in a Rectangle.
             if spread_elt.tag in ["Image", "EPS"]:
                 spread_elt = spread_elt.getparent()
-            spread_elts_to_add.append(spread_elt)
-
-        # Add spread elements on the same layer that are not in the Structure.
-        only_layer = idml_package.get_spread_elem_by_id(only_node.get("XMLContent")).get("ItemLayer")
-        for spread_elt in idml_package.get_spread_elements_by_layer(layer_id=only_layer):
             if spread_elt not in spread_elts_to_add:
                 spread_elts_to_add.append(spread_elt)
-        # TODO: Replace the loop above with that. order vary and regression tests are wrecked...
-        # Use an OderedSet implementation to keep the regression tests.
-        #spread_elts_to_add = list(set(spread_elts_to_add) | set(spread_elts_in_same_layer))
 
         def _add_spread_element(spread_dest_elt, spread_elt):
             spread_elt_copy = copy.deepcopy(spread_elt)
