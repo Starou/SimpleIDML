@@ -681,16 +681,32 @@ class IDMLPackage(zipfile.ZipFile):
         spread_dest = Spread(self, spread_dest_filename, self.working_copy_path)
         spread_dest_elt = spread_dest.dom.xpath("./Spread")[0]
 
-        for node in idml_package.xml_structure.xpath(only)[0].iter():
+        only_node = idml_package.xml_structure.xpath(only)[0]
+
+        # Add spread elements on the same layer. We start by that because the order in the
+        # Spread file is the z-position on the Layer.
+        only_layer = idml_package.get_spread_elem_by_id(only_node.get("XMLContent")).get("ItemLayer")
+        spread_elts_to_add = idml_package.get_spread_elements_by_layer(layer_id=only_layer,
+                                                                       excluded_tags=["Guide"])
+
+        # Then add the tagged elements that may be on others layers.
+        for node in only_node.iter():
             if node.get("XMLContent") is None:
                 continue
             spread_elt = idml_package.get_spread_elem_by_id(node.get("XMLContent"))
             # Image and EPS element are included in a Rectangle.
             if spread_elt.tag in ["Image", "EPS"]:
                 spread_elt = spread_elt.getparent()
+            if spread_elt not in spread_elts_to_add:
+                spread_elts_to_add.append(spread_elt)
+
+        def _add_spread_element(spread_dest_elt, spread_elt):
             spread_elt_copy = copy.deepcopy(spread_elt)
             self.apply_translation_to_element(spread_elt_copy, translation)
             spread_dest_elt.append(spread_elt_copy)
+
+        map(lambda s: _add_spread_element(spread_dest_elt, s), spread_elts_to_add)
+
         spread_dest.synchronize()
         self.init_lazy_references()
 
@@ -850,6 +866,18 @@ class IDMLPackage(zipfile.ZipFile):
         # The spread synchronization is done outside.
         return new_spread
 
+    def get_spread_elements_by_layer(self, layer_name=None, layer_id=None, excluded_tags=[]):
+        layer_id = layer_id or self.get_layer_id_by_name(layer_name)
+
+        spread_elements = []
+        for spread_object in self.spreads_objects:
+            spread_elements.extend(spread_object.dom.xpath(
+                ".//*%(excluded_tags)s[@ItemLayer='%(layer_id)s']" % {
+                    'excluded_tags': "".join(["[not(self::%s)]" % e for e in excluded_tags]),
+                    'layer_id': layer_id}))
+
+        return spread_elements
+
     def get_spread_object_by_xpath(self, xpath):
         elt_id = self.xml_structure.xpath(xpath)[0].get("XMLContent")
         return self.get_spread_object_by_id(elt_id)
@@ -891,6 +919,9 @@ class IDMLPackage(zipfile.ZipFile):
     def get_spread_by_xpath(self, xpath):
         spread = self.get_spread_object_by_xpath(xpath)
         return spread and spread.name or None
+
+    def get_layer_id_by_name(self, layer_name):
+        return self.designmap.get_layer_id_by_name(layer_name)
 
     def get_story_object_by_xpath(self, xpath):
         xml_element = self.xml_structure.xpath(xpath)[0]

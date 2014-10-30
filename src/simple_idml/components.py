@@ -546,6 +546,10 @@ class Designmap(IDMLXMLFile):
         for layer in self.layer_nodes:
             layer.set("Name", "%s%s" % (layer.get("Name"), suffix))
 
+    def get_layer_id_by_name(self, layer_name):
+        layer_node = self.dom.xpath(".//Layer[@Name='%s']" % layer_name)[0]
+        return layer_node.get("Self")
+
 
 class Style(IDMLXMLFile):
     name = "Resources/Styles.xml"

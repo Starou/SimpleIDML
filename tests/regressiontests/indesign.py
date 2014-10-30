@@ -13,7 +13,10 @@ from suds.client import ServiceSelector
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 SOAP_DIR = os.path.join(CURRENT_DIR, "SOAP")
-WORK_DIR = os.path.join(CURRENT_DIR, "workdir")
+
+# Client and server are the same machine here.
+CLIENT_WORKDIR = os.path.join(CURRENT_DIR, "workdir")
+SERVER_WORKDIR = os.path.join(CURRENT_DIR, "workdir")
 
 
 class InDesignTestCase(unittest.TestCase):
@@ -27,13 +30,13 @@ class InDesignTestCase(unittest.TestCase):
         self.runscript_mock = self.runscript_patcher.start()
         self.runscript_mock.side_effect = ServiceSelectorMock
 
-        for f in glob.glob(os.path.join(WORK_DIR, "*")):
+        for f in glob.glob(os.path.join(CLIENT_WORKDIR, "*")):
             if os.path.isdir(f):
                 shutil.rmtree(f)
             else:
                 os.unlink(f)
-        if not (os.path.exists(WORK_DIR)):
-            os.makedirs(WORK_DIR)
+        if not (os.path.exists(CLIENT_WORKDIR)):
+            os.makedirs(CLIENT_WORKDIR)
 
     def tearDown(self):
         self.u2open_patcher.stop()
@@ -41,17 +44,23 @@ class InDesignTestCase(unittest.TestCase):
 
     def test_save_as(self):
         from simple_idml.indesign import indesign
+
         responses = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"), ["indd"],
-                                     "http://url-to-indesign-server:8080", WORK_DIR)
+                                     "http://url-to-indesign-server:8080",
+                                     CLIENT_WORKDIR, SERVER_WORKDIR,
+                                     indesign_server_path_style="posix")
+
         self.assertTrue(self.runscript_mock.called)
-        self.assertEqual(responses, ['save_as.jsx, 4-pages.indd'])
+        self.assertEqual(responses, ['save_as.jsx, 4-pagesTMP.indd'])
 
         responses = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                                      ["pdf", "jpeg", "zip"],
-                                     "http://url-to-indesign-server:8080", WORK_DIR)
+                                     "http://url-to-indesign-server:8080",
+                                     CLIENT_WORKDIR, SERVER_WORKDIR,
+                                     indesign_server_path_style="posix")
         self.assertTrue(self.runscript_mock.called)
-        self.assertEqual(responses[:2], ['export.jsx, 4-pages.pdf',
-                                         'export.jsx, 4-pages.jpeg'])
+        self.assertEqual(responses[:2], ['export.jsx, 4-pagesTMP.pdf',
+                                         'export.jsx, 4-pagesTMP.jpeg'])
         zip_buf = StringIO()
         zip_buf.write(responses[2])
         self.assertTrue(zipfile.is_zipfile(zip_buf))

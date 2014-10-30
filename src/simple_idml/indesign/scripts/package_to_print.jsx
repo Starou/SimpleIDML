@@ -1,5 +1,4 @@
-// From https://forums.adobe.com/thread/729156.
-// InDesignSDK5_5/docs/references/scripting-dom-javascript-CS5.5.html#kPackageMethodScriptElement
+// http://www.indd-skript.de/extendscriptAPI/indesign10/#Document.html#d1e47196__d1e49964
 
 function createPackage(dir, doc, params){
      myDocument.packageForPrint(dir, 
@@ -10,6 +9,9 @@ function createPackage(dir, doc, params){
          params.includingHiddenLayers,
          params.ignorePreflightErrors, 
          params.creatingReport, 
+         params.includeIDML,  // Those 3 parameters are for CC 2014.
+         params.includePDF,
+         params.PDFStyle,
          params.versionComments,
          params.forceSave);
 }
@@ -25,10 +27,14 @@ var params = {
      includingHiddenLayers: false,
      ignorePreflightErrors: true,
      creatingReport: true,
+     includeIDML: false,
+     includePDF: false,
+     PDFStyle: "",
      versionComments: "",
      forceSave: false
 };
 
 var myDocument = app.documents.item(0);
 
-createPackage(dst_dir, myDocument, params)
+createPackage(dst_dir, myDocument, params);
+myDocument.close();
