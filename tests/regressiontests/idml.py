@@ -28,11 +28,11 @@ def memory_dump():
     for obj in gc.get_objects():
         i = id(obj)
         size = sys.getsizeof(obj, 0)
-        #    referrers = [id(o) for o in gc.get_referrers(obj) if hasattr(o, '__class__')]
         referents = [id(o) for o in gc.get_referents(obj) if hasattr(o, '__class__')]
         if hasattr(obj, '__class__'):
             cls = obj.__class__
-            dump.setdefault(cls.__name__, []).append({'id': i, 'obj': obj, 'size': size, 'referents': referents, 'class': str(cls)})
+            dump.setdefault(cls.__name__, []).append({'id': i, 'obj': obj, 'size': size,
+                                                      'referents': referents, 'class': str(cls)})
     return dump
 
 
@@ -178,9 +178,9 @@ u"""<Root Self="di2">
             self.assertEqual(idml_file.referenced_layers, ['u2db', 'ua4'])
 
     def test_get_spread_elements_by_layer(self):
-        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "2articles-1photo-elts-same-layer.idml"))
-        self.assertEqual(set([elt.get("Name") for elt in idml_file.get_spread_elements_by_layer(layer_name="Layer 2")]),
-                         set(['module2-Red_background', 'module2-Text', 'module2-Frame', 'module2-Image']))
+        with IDMLPackage(os.path.join(IDMLFILES_DIR, "2articles-1photo-elts-same-layer.idml")) as idml_file:
+            self.assertEqual(set([elt.get("Name") for elt in idml_file.get_spread_elements_by_layer(layer_name="Layer 2")]),
+                             set(['module2-Red_background', 'module2-Text', 'module2-Frame', 'module2-Image']))
 
     def test_get_spread_object_by_xpath(self):
         with IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml")) as idml_file:
@@ -193,8 +193,8 @@ u"""<Root Self="di2">
             self.assertEqual(element_id, "u14a")
 
     def test_get_layer_id_by_name(self):
-        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "2articles-1photo-elts-same-layer.idml"))
-        self.assertEqual(idml_file.get_layer_id_by_name("Layer 2"), "u2a8")
+        with IDMLPackage(os.path.join(IDMLFILES_DIR, "2articles-1photo-elts-same-layer.idml")) as idml_file:
+            self.assertEqual(idml_file.get_layer_id_by_name("Layer 2"), "u2a8")
 
     def test_import_xml(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
@@ -1888,7 +1888,7 @@ u"""<Root Self="FOOdi2">
 
                     # Style mapping.
                     self.assertEqual(f.style_mapping.character_style_mapping,
-                                    {'MyBoldTag': 'article1CharacterStyle/MyBoldStyle'})
+                                     {'MyBoldTag': 'article1CharacterStyle/MyBoldStyle'})
 
                     # Graphics.
                     self.assertTrue(f.graphic.dom.xpath(".//Swatch[@Self='article1Swatch/None']"))
@@ -1912,22 +1912,19 @@ u"""<Root Self="FOOdi2">
 
                     # Stories.
                     self.assertEqual(f.stories, ['Stories/Story_article1u188.xml',
-                                                            'Stories/Story_article1u19f.xml',
-                                                            'Stories/Story_article1u1db.xml',
-                                                            'Stories/Story_mainu102.xml',
-                                                            'Stories/Story_mainu11b.xml',
-                                                            'Stories/Story_mainu139.xml',
-                                                            'Stories/Story_mainudd.xml',
-                                                            'Stories/Story_mainue4.xml'])
+                                                 'Stories/Story_article1u19f.xml',
+                                                 'Stories/Story_article1u1db.xml',
+                                                 'Stories/Story_mainu102.xml',
+                                                 'Stories/Story_mainu11b.xml',
+                                                 'Stories/Story_mainu139.xml',
+                                                 'Stories/Story_mainudd.xml',
+                                                 'Stories/Story_mainue4.xml'])
 
                     # Spreads
                     self.assertEqual(f.spreads, ['Spreads/Spread_mainub6.xml',
-                                                            'Spreads/Spread_mainubc.xml',
-                                                            'Spreads/Spread_mainuc3.xml'])
+                                                 'Spreads/Spread_mainubc.xml',
+                                                 'Spreads/Spread_mainuc3.xml'])
 
-                    #import pprint
-                    #pp = pprint.PrettyPrinter(width=60)
-                    #pp.pprint([(elt.tag, dict(elt.attrib)) for elt in f.spreads_objects[0].dom.iter()])
                     self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in f.spreads_objects[0].dom.iter()], [
                         ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
                          {'DOMVersion': '7.5'}),
@@ -2990,8 +2987,7 @@ u"""<Root Self="FOOdi2">
                          {'NamespacePrefix': '$ID/', 'PropertyPath': '$ID/'}),
                         ('ActualMetadataProperty',
                          {'NamespacePrefix': '$ID/', 'PropertyPath': '$ID/'})
-                        ])
-
+                    ])
 
                     self.assertEqual([(elt.tag, elt.attrib) for elt in f.spreads_objects[1].dom.iter()], [
                         ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread', {'DOMVersion': '7.5'}),
@@ -3048,17 +3044,17 @@ u"""<Root Self="FOOdi2">
                             'ColumnDirection': 'Horizontal',
                             'Left': '36'
                         }),
-                    ('GridDataInformation', {
-                        'LineAki': '9',
-                        'FontStyle': 'Regular',
-                        'PointSize': '12',
-                        'CharacterAki': '0',
-                        'GridAlignment': 'AlignEmCenter',
-                        'LineAlignment': 'LeftOrTopLineJustify',
-                        'HorizontalScale': '100',
-                        'CharacterAlignment': 'AlignEmCenter',
-                        'VerticalScale': '100'
-                    }),
+                        ('GridDataInformation', {
+                            'LineAki': '9',
+                            'FontStyle': 'Regular',
+                            'PointSize': '12',
+                            'CharacterAki': '0',
+                            'GridAlignment': 'AlignEmCenter',
+                            'LineAlignment': 'LeftOrTopLineJustify',
+                            'HorizontalScale': '100',
+                            'CharacterAlignment': 'AlignEmCenter',
+                            'VerticalScale': '100'
+                        }),
                         ('Properties', {}),
                         ('AppliedFont', {'type': 'string'}),
                         ('Page', {
@@ -3163,17 +3159,17 @@ u"""<Root Self="FOOdi2">
                             'ColumnDirection': 'Horizontal',
                             'Left': '36'
                         }),
-                    ('GridDataInformation', {
-                        'LineAki': '9',
-                        'FontStyle': 'Regular',
-                        'PointSize': '12',
-                        'CharacterAki': '0',
-                        'GridAlignment': 'AlignEmCenter',
-                        'LineAlignment': 'LeftOrTopLineJustify',
-                        'HorizontalScale': '100',
-                        'CharacterAlignment': 'AlignEmCenter',
-                        'VerticalScale': '100'
-                    }),
+                        ('GridDataInformation', {
+                            'LineAki': '9',
+                            'FontStyle': 'Regular',
+                            'PointSize': '12',
+                            'CharacterAki': '0',
+                            'GridAlignment': 'AlignEmCenter',
+                            'LineAlignment': 'LeftOrTopLineJustify',
+                            'HorizontalScale': '100',
+                            'CharacterAlignment': 'AlignEmCenter',
+                            'VerticalScale': '100'
+                        }),
                         ('Properties', {}),
                         ('AppliedFont', {'type': 'string'})
                     ])
@@ -3208,39 +3204,39 @@ u"""<Root Self="FOOdi2">
                     with f.open("designmap.xml") as df:
                         designmap = etree.fromstring(df.read())
                         self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
-                                        "mainue4 mainu102 mainu11b mainu139 mainu9c mainudd article1u1db article1u188 article1u19f")
+                                         "mainue4 mainu102 mainu11b mainu139 mainu9c mainudd article1u1db article1u188 article1u19f")
                         self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
-                                            namespaces={'idPkg': IDPKG_NS})), 8)
+                                             namespaces={'idPkg': IDPKG_NS})), 8)
 
                     # Styles.
                     styles = [[style.get("Self") for style in style_group.iterchildren()]
-                            for style_group in f.style_groups]
+                              for style_group in f.style_groups]
                     self.assertEqual(styles, [
                         ['mainCharacterStyle/$ID/[No character style]',
-                        'article1CharacterStyle/$ID/[No character style]',
-                        'article1CharacterStyle/MyBoldStyle'],
+                         'article1CharacterStyle/$ID/[No character style]',
+                         'article1CharacterStyle/MyBoldStyle'],
                         ['mainParagraphStyle/$ID/[No paragraph style]',
-                        'mainParagraphStyle/$ID/NormalParagraphStyle',
-                        'article1ParagraphStyle/$ID/[No paragraph style]',
-                        'article1ParagraphStyle/$ID/NormalParagraphStyle'],
+                         'mainParagraphStyle/$ID/NormalParagraphStyle',
+                         'article1ParagraphStyle/$ID/[No paragraph style]',
+                         'article1ParagraphStyle/$ID/NormalParagraphStyle'],
                         ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
                         ['mainTableStyle/$ID/[No table style]',
-                        'mainTableStyle/$ID/[Basic Table]',
-                        'article1TableStyle/$ID/[No table style]',
-                        'article1TableStyle/$ID/[Basic Table]'],
+                         'mainTableStyle/$ID/[Basic Table]',
+                         'article1TableStyle/$ID/[No table style]',
+                         'article1TableStyle/$ID/[Basic Table]'],
                         ['mainObjectStyle/$ID/[None]',
-                        'mainObjectStyle/$ID/[Normal Graphics Frame]',
-                        'mainObjectStyle/$ID/[Normal Text Frame]',
-                        'mainObjectStyle/$ID/[Normal Grid]',
-                        'article1ObjectStyle/$ID/[None]',
-                        'article1ObjectStyle/$ID/[Normal Graphics Frame]',
-                        'article1ObjectStyle/$ID/[Normal Text Frame]',
-                        'article1ObjectStyle/$ID/[Normal Grid]']
+                         'mainObjectStyle/$ID/[Normal Graphics Frame]',
+                         'mainObjectStyle/$ID/[Normal Text Frame]',
+                         'mainObjectStyle/$ID/[Normal Grid]',
+                         'article1ObjectStyle/$ID/[None]',
+                         'article1ObjectStyle/$ID/[Normal Graphics Frame]',
+                         'article1ObjectStyle/$ID/[Normal Text Frame]',
+                         'article1ObjectStyle/$ID/[Normal Grid]']
                     ])
 
                     # Style mapping.
                     self.assertEqual(f.style_mapping.character_style_mapping,
-                                    {'MyBoldTag': 'article1CharacterStyle/MyBoldStyle'})
+                                     {'MyBoldTag': 'article1CharacterStyle/MyBoldStyle'})
 
                     # Graphics.
                     self.assertTrue(f.graphic.dom.xpath(".//Swatch[@Self='article1Swatch/None']"))
@@ -3261,7 +3257,6 @@ u"""<Root Self="FOOdi2">
                 with prefixed_main.insert_idml(prefixed_article,
                                                at="/Root/article[3]",
                                                only="/Root/module[1]") as f:
-
 
                     # Stories.
                     self.assertEqual(f.stories, ['Stories/Story_article1u188.xml',
@@ -3284,17 +3279,17 @@ u"""<Root Self="FOOdi2">
         shutil.copy2(os.path.join(IDMLFILES_DIR, "2articles-1photo-elts-same-layer.idml"),
                      os.path.join(OUTPUT_DIR, "2articles-1photo.idml"))
 
-        main_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages-insert-article-1-photo-elts-same-layer.idml"))
-        article_idml_file = IDMLPackage(os.path.join(OUTPUT_DIR, "2articles-1photo.idml"))
+        with IDMLPackage(os.path.join(OUTPUT_DIR, "4-pages-insert-article-1-photo-elts-same-layer.idml")) as main_idml_file,\
+             IDMLPackage(os.path.join(OUTPUT_DIR, "2articles-1photo.idml")) as article_idml_file:
 
-        # Always start by prefixing packages to avoid collision.
-        main_idml_file = main_idml_file.prefix("main")
-        article_idml_file = article_idml_file.prefix("article1")
+            # Always start by prefixing packages to avoid collision.
+            with main_idml_file.prefix("main") as prefixed_main,\
+                 article_idml_file.prefix("article1") as prefixed_article:
 
-        main_idml_file = main_idml_file.insert_idml(article_idml_file,
-                                                    at="/Root/article[3]",
-                                                    only="/Root/module[1]")
-
+                with prefixed_main.insert_idml(prefixed_article,
+                                               at="/Root/article[3]",
+                                               only="/Root/module[1]") as f:
+                    pass  # TODO: some tests. But you can check the result against expected.
 
     def test_remove_content(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_imported-xml.idml"),
