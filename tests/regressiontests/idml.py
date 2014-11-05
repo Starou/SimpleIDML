@@ -197,13 +197,12 @@ u"""<Root Self="di2">
             self.assertEqual(idml_file.get_layer_id_by_name("Layer 2"), "u2a8")
 
     def test_get_structure_elements_layer_id(self):
-        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "2articles-1photo-elts-same-layer.idml"))
+        with IDMLPackage(os.path.join(IDMLFILES_DIR, "2articles-1photo-elts-same-layer.idml")) as idml_file:
+            module_elt = idml_file.xml_structure.xpath("/Root/module[1]")[0]
+            self.assertEqual(idml_file.get_structure_element_layer_id(module_elt), "ua4")
 
-        module_elt = idml_file.xml_structure.xpath("/Root/module[1]")[0]
-        self.assertEqual(idml_file.get_structure_element_layer_id(module_elt), "ua4")
-
-        picture_elt = idml_file.xml_structure.xpath("/Root/module[1]/main_picture")[0]
-        self.assertEqual(idml_file.get_structure_element_layer_id(picture_elt), "ua4")
+            picture_elt = idml_file.xml_structure.xpath("/Root/module[1]/main_picture")[0]
+            self.assertEqual(idml_file.get_structure_element_layer_id(picture_elt), "ua4")
 
     def test_import_xml(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
