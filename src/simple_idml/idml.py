@@ -685,7 +685,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         # Add spread elements on the same layer. We start by that because the order in the
         # Spread file is the z-position on the Layer.
-        only_layer = idml_package.get_spread_elem_by_id(only_node.get("XMLContent")).get("ItemLayer")
+        only_layer = idml_package.get_structure_element_layer_id(only_node)
         spread_elts_to_add = idml_package.get_spread_elements_by_layer(layer_id=only_layer,
                                                                        excluded_tags=["Guide"])
 
@@ -922,6 +922,14 @@ class IDMLPackage(zipfile.ZipFile):
 
     def get_layer_id_by_name(self, layer_name):
         return self.designmap.get_layer_id_by_name(layer_name)
+
+    def get_structure_element_layer_id(self, xml_element):
+        spread_elt = self.get_spread_elem_by_id(xml_element.get("XMLContent"))
+        return self.get_spread_element_layer_id(spread_elt)
+
+    def get_spread_element_layer_id(self, spread_element):
+        return spread_element.get("ItemLayer") or \
+            self.get_spread_element_layer_id(spread_element.getparent())
 
     def get_story_object_by_xpath(self, xpath):
         xml_element = self.xml_structure.xpath(xpath)[0]
