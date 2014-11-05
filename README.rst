@@ -87,8 +87,9 @@ What does SimpleIDML do ?
 Package exploration
 -------------------
 
-You can discover the structure of your IDML files::
+You can discover the structure of your IDML files:
 
+.. code-block:: python
 
     >>> from simple_idml import idml
     >>> my_idml_package = idml.IDMLPackage("/path/to/my_main_document.idml")
@@ -97,9 +98,10 @@ You can discover the structure of your IDML files::
     >>> my_idml_package.stories
     [u'Stories/Story_u139.xml', u'Stories/Story_u11b.xml',
      u'Stories/Story_u102.xml', u'Stories/Story_ue4.xml']
-    
 
-Some attributes are *lxml.etree* Elements or Documents::
+Some attributes are *lxml.etree* Elements or Documents:
+
+.. code-block:: python
 
     >>> my_package.font_families
     [<Element FontFamily at 0x1010048c0>,
