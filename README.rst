@@ -95,13 +95,16 @@ You can discover the structure of your IDML files::
     >>> my_idml_package.spreads
     [u'Spreads/Spread_ub6.xml', u'Spreads/Spread_ubc.xml', u'Spreads/Spread_uc3.xml']
     >>> my_idml_package.stories
-    [u'Stories/Story_u139.xml', u'Stories/Story_u11b.xml', u'Stories/Story_u102.xml', u'Stories/Story_ue4.xml']
+    [u'Stories/Story_u139.xml', u'Stories/Story_u11b.xml',
+     u'Stories/Story_u102.xml', u'Stories/Story_ue4.xml']
     
 
 Some attributes are *lxml.etree* Elements or Documents::
 
     >>> my_package.font_families
-    [<Element FontFamily at 0x1010048c0>, <Element FontFamily at 0x101004a50>, <Element FontFamily at 0x101004aa0>,
+    [<Element FontFamily at 0x1010048c0>,
+     <Element FontFamily at 0x101004a50>,
+     <Element FontFamily at 0x101004aa0>,
         <Element FontFamily at 0x101004af0>]
     >>> [e.get("Name") for e in my_package.font_families]
     ['Minion Pro', 'Myriad Pro', 'Kozuka Mincho Pro', 'Vollkorn']
@@ -142,6 +145,28 @@ There is a convenient script to create a IDML package from a flat directory call
 Compose document
 ----------------
 
+**Important**: You should always use a ``with`` context when using side-effect methods on
+``IDMLPackage`` instances returning new instances.
+
+
+For example, the following is bad because ``my_doc`` initial instance reference is lost and
+the associated file cannot be properly closed. This may rise an exception on Windows platform 
+if you try to ``os.unlink()`` an unclosed file.
+
+.. code-block:: python
+
+    from simple_idml import idml
+    my_doc = idml.IDMLPackage("/path/to/my_main_document.idml")
+    my_doc = my_doc.prefix("main")
+
+Instead, use:
+
+.. code-block:: python
+
+    from simple_idml import idml
+    my_doc = idml.IDMLPackage("/path/to/my_main_document.idml")
+    with my_doc.prefix("main") as f:
+        # some code.
 
 Insert elements
 '''''''''''''''
@@ -152,23 +177,25 @@ Note that you should always make a copy of your idml files before altering them 
 ``shutil.copy2(src, dst)`` for instance and prefix your document before using ``insert_idml()``
 to avoid reference collisions.
 
-::
-
+.. code-block:: python
 
     >>> from simple_idml import idml
     >>> idml_main = idml.IDMLPackage("/path/to/my_main_document.idml")
     >>> idml_module = idml.IDMLPackage("/path/to/my_small_document.idml")
 
-    >>> idml_main = idml_main.prefix("main")
-    >>> idml_article = idml_module.prefix("article")
+    >>> with idml_main.prefix("main") as p_idml_main, \
+    >>>      idml_module.prefix("article") as p_idml_article:
 
-    >>> idml_main = idml_main.insert_idml(idml_article, at="/Root/article[3]", only="/Root/module[1]")
-    >>> idml_main.stories
-    ['Stories/Story_article1u188.xml', 'Stories/Story_article1u19f.xml', 'Stories/Story_article1u1db.xml', 
-     'Stories/Story_mainu102.xml', 'Stories/Story_mainu11b.xml', 'Stories/Story_mainu139.xml', 'Stories/Story_mainue4.xml']
+    >>>     with p_idml_main.insert_idml(idml_article, at="/Root/article[3]",
+                                         only="/Root/module[1]") as f:
+    >>>         f.stories
+    ['Stories/Story_article1u188.xml', 'Stories/Story_article1u19f.xml',
+     'Stories/Story_article1u1db.xml', 'Stories/Story_mainu102.xml',
+     'Stories/Story_mainu11b.xml', 'Stories/Story_mainu139.xml',
+     'Stories/Story_mainue4.xml']
 
 
-    >>> print idml_main.xml_structure_pretty()
+    >>>         print f.xml_structure_pretty()
     <Root Self="maindi2">
       <article XMLContent="mainu102" Self="maindi2i3">
         <Story XMLContent="mainue4" Self="maindi2i3i1">
@@ -197,26 +224,28 @@ to avoid reference collisions.
 Combine pages
 '''''''''''''
 
-You may need to gather pages from severals documents into a single one::
+You may need to gather pages from severals documents into a single one:
+
+.. code-block:: python
 
     >>> edito_idml_file = IDMLPackage("magazineA-edito.idml")
     >>> courrier_idml_file = IDMLPackage("magazineA-courrier-des-lecteurs.idml")
 
     >>> # Always start by prefixing packages to avoid collision.
-    >>> edito_idml_file = edito_idml_file.prefix("edito")
-    >>> courrier_idml_file = courrier_idml_file.prefix("courrier")
-    >>> len(edito_idml_file.pages)
+    >>> with edito_idml_file.prefix("edito") as p_edito,\
+    >>>      courrier_idml_file.prefix("courrier") as p_courrier:
+    >>>     len(edito_idml_file.pages)
     2
 
-    >>> new_idml = edito_idml_file.add_page_from_idml(courrier_idml_file,
-    ...                                               page_number=1,
-    ...                                               at="/Root",
-    ...                                               only="/Root/page[1]")
-    >>> len(new_idml.pages)
+    >>>     new_idml = p_edito.add_page_from_idml(p_courrier,
+    ...                                           page_number=1,
+    ...                                           at="/Root",
+    ...                                           only="/Root/page[1]")
+    >>>     len(new_idml.pages)
     3
 
     # The XML Structure has integrated the new file.
-    >>> print etree.tostring(new_idml.xml_structure, pretty_print=True)
+    >>>     print etree.tostring(new_idml.xml_structure, pretty_print=True)
     <Root Self="editodi2">
       <page Self="editodi2ib">
         <article Self="editodi2ibif">
@@ -240,26 +269,30 @@ You may need to gather pages from severals documents into a single one::
     </Root>
 
 
-There is a convenient method to add several pages at once::
+There is a convenient method to add several pages at once:
+
+.. code-block:: python
 
     >>> edito_idml_file = IDMLPackage("magazineA-edito.idml")
     >>> courrier_idml_file = IDMLPackage("magazineA-courrier-des-lecteurs.idml")
     >>> bloc_notes_idml_file = IDMLPackage("magazineA-bloc-notes.idml")
 
-    >>> edito_idml_file = edito_idml_file.prefix("edito")
-    >>> courrier_idml_file = courrier_idml_file.prefix("courrier")
-    >>> bloc_notes_idml_file = bloc_notes_idml_file.prefix("blocnotes")
+    >>> with edito_idml_file.prefix("edito") as p_edito,\
+    >>>      courrier_idml_file.prefix("courrier") as p_courrier,\
+    >>>      bloc_notes_idml_file.prefix("blocnotes") as p_bloc_notes:
 
-    >>> packages_to_add = [
-    ...     (courrier_idml_file, 1, "/Root", "/Root/page[1]"),
-    ...     (bloc_notes_idml_file, 1, "/Root", "/Root/page[1]"),
-    ... ]
+    >>>     packages_to_add = [
+    ...         (p_courrier, 1, "/Root", "/Root/page[1]"),
+    ...         (p_bloc_notes, 1, "/Root", "/Root/page[1]"),
+    ...     ]
 
-    >>> new_idml = edito_idml_file.add_pages_from_idml(packages_to_add)
-    >>> len(new_idml.pages)
+    >>>     new_idml = p_edito.add_pages_from_idml(packages_to_add)
+    >>>     len(new_idml.pages)
     4
-    >>> new_idml.spreads
-    ['Spreads/Spread_editoub6.xml', 'Spreads/Spread_editoubc.xml', 'Spreads/Spread_editoubd.xml']
+    >>>     new_idml.spreads
+    ['Spreads/Spread_editoub6.xml',
+     'Spreads/Spread_editoubc.xml',
+     'Spreads/Spread_editoubd.xml']
 
 
 Import/Export XML
@@ -380,6 +413,8 @@ Bug fixes
 
 - In ``IDMLPackage.insert_idml()``, Elements from the same layer (but not tagged in the structure)
   are now added in the Spread of the document of destination.
+
+- Better support for Windows platform.
 
 
 0.91.6
