@@ -8,6 +8,14 @@ SimpleIDML
 .. image:: https://pypip.in/v/SimpleIDML/badge.png
   :target: https://pypi.python.org/pypi/SimpleIDML
 
+.. image:: https://pypip.in/py_versions/SimpleIDML/badge.svg
+    :target: https://pypi.python.org/pypi/SimpleIDML/
+    :alt: Supported Python versions
+
+.. image:: https://pypip.in/license/SimpleIDML/badge.svg
+    :target: https://pypi.python.org/pypi/SimpleIDML/
+    :alt: License
+
 Installation
 ============
 
