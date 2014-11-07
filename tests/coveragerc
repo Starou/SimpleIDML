@@ -1,0 +1,4 @@
+[run]
+source = simple_idml
+omit = ../src/simple_idml/test.py
+
