@@ -384,6 +384,7 @@ class Story(IDMLXMLFile):
     def get_element_content_and_xmlelement_nodes(self, element):
         return element.xpath(("./ParagraphStyleRange/CharacterStyleRange/Content | \
                                ./CharacterStyleRange/Content | \
+                               ./CharacterStyleRange/XMLElement | \
                                ./ParagraphStyleRange/XMLElement | \
                                ./XMLElement | \
                                ./Content"))

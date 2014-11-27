@@ -430,6 +430,7 @@ Bug fixes
   are now added in the Spread of the document of destination.
 - Better support for Windows platform.
 - Fixed character style mapping with tag when using insert_idml.
+- Fixed Export XML in some edge case.
 
 
 0.91.6
