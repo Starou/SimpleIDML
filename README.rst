@@ -423,14 +423,13 @@ Revisions
 New features
 ''''''''''''
 
-
 Bug fixes
 '''''''''
 
 - In ``IDMLPackage.insert_idml()``, Elements from the same layer (but not tagged in the structure)
   are now added in the Spread of the document of destination.
-
 - Better support for Windows platform.
+- Fixed character style mapping with tag when using insert_idml.
 
 
 0.91.6
@@ -450,7 +449,6 @@ Backward incompatibilities
 
 - ``indesign.save_as()`` require both a client workdir and a server workdir parameter.
 
-
 0.91.5.5
 --------
 
@@ -469,7 +467,6 @@ New features
 
 Add a SOAP client to call a InDesign server to get INDD file and export in various
 formats.
-
 
 0.91.2
 ------

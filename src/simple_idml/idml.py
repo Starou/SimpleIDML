@@ -628,7 +628,8 @@ class IDMLPackage(zipfile.ZipFile):
             self.style_mapping.synchronize()
 
         # Update designmap.xml because it may not reference the Mapping file.
-        if self.designmap.style_mapping_node is not None:
+        # if self Package does not have any style mapping.
+        if self.designmap.style_mapping_node is None:
             self.designmap.set_style_mapping_node()
             self.designmap.synchronize()
 
