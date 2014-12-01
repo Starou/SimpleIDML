@@ -829,6 +829,17 @@ class IDMLPackage(zipfile.ZipFile):
         return self
 
     @use_working_copy
+    def merge_layers(self, with_name=None):
+        # Remove all Layer in Designmap but the first.
+        self.designmap.merge_layers(with_name)
+        layer_id = self.designmap.active_layer
+
+        # Update ItemLayer in spread elements.
+        for spread_object in self.spreads_objects:
+            spread_object.set_layer_references(layer_id)
+        return self
+
+    @use_working_copy
     def xml_element_leaf_to_node(self, xpath, xml_content_ref):
         spread = self.get_spread_object_by_xpath(xpath)
         page_item = spread.get_element_by_id(xml_content_ref, tag="*", attr="Self")

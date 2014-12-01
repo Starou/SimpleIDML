@@ -3314,6 +3314,16 @@ u"""<Root Self="di3">
 </Root>
 """)
 
+    def test_merge_layers(self):
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "2articles-1photo.idml"),
+                     os.path.join(OUTPUT_DIR, "2articles-1photo-merged_layers.idml"))
+        with IDMLPackage(os.path.join(OUTPUT_DIR, "2articles-1photo-merged_layers.idml")) as idml_file:
+            with idml_file.merge_layers("All layers") as f:
+                self.assertEqual(len(f.designmap.layer_nodes), 1)
+                self.assertEqual(f.designmap.active_layer, f.designmap.layer_nodes[0].get("Self"))
+                self.assertEqual(len(f.referenced_layers), 1)
+                self.assertEqual(f.referenced_layers[0], f.designmap.layer_nodes[0].get("Self"))
+
     def test_add_page_from_idml(self):
         edito_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-edito.idml")
         courrier_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-courrier-des-lecteurs.idml")

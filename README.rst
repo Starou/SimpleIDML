@@ -423,6 +423,8 @@ Revisions
 New features
 ''''''''''''
 
+- Add `IMDLPackage.merge_layers(with_name)` (Refs#7).
+
 Bug fixes
 '''''''''
 
@@ -431,7 +433,6 @@ Bug fixes
 - Better support for Windows platform.
 - Fixed character style mapping with tag when using insert_idml.
 - Fixed Export XML in some edge case.
-
 
 0.91.6
 ------

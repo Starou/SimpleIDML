@@ -267,6 +267,12 @@ class Spread(IDMLXMLFile):
     def get_node_name_from_xml_name(self):
         return rx_node_name_from_xml_name.match(self.name).groups()[0]
 
+    def set_layer_references(self, layer_id):
+        for elt in self.dom.iter():
+            if elt.get("ItemLayer"):
+                elt.set("ItemLayer", layer_id)
+        self.synchronize()
+
     def has_any_item_on_layer(self, layer_id):
         # The page Guide are not page items.
         return bool(len(self.node.xpath(".//*[not(self::Guide)][@ItemLayer='%s']" % layer_id)))
@@ -296,7 +302,7 @@ class Spread(IDMLXMLFile):
         textframe.set("PreviousTextFrame", "n")
         textframe.set("NextTextFrame", "n")
         # These attributes and subelements must be removed.
-        del textframe.attrib["StoryTitle"] # Suppose it is always present.
+        del textframe.attrib["StoryTitle"]  # Suppose it is always present.
         for sub_elt_name in ("InCopyExportOption", "FrameFittingOption", "ObjectExportOption"):
             try:
                 textframe.remove(textframe.find(sub_elt_name))
@@ -546,6 +552,16 @@ class Designmap(IDMLXMLFile):
     def suffix_layers(self, suffix):
         for layer in self.layer_nodes:
             layer.set("Name", "%s%s" % (layer.get("Name"), suffix))
+
+    def merge_layers(self, with_name=None):
+        layer_0 = self.layer_nodes.pop(0)
+        if with_name:
+            layer_0.set("Name", with_name)
+        for l in self.layer_nodes:
+            l.getparent().remove(l)
+        self._layer_nodes = None
+        self.active_layer = layer_0.get("Self")
+        self.synchronize()
 
     def get_layer_id_by_name(self, layer_name):
         layer_node = self.dom.xpath(".//Layer[@Name='%s']" % layer_name)[0]
