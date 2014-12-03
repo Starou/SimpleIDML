@@ -47,11 +47,14 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
     if indesign_server_path_style == "windows":
         server_path_mod = ntpath
 
-    def _save_as(dst_format):
+    def _save_as(dst_format_params):
         """
         o *_client_copy_filename : path/to/file as seen by the SOAP client.
         o *_server_copy_filename : localized/path/to/file as seen by the InDesign Server.
         """
+        dst_format = dst_format_params["fmt"]
+        js_params = dst_format_params["params"]
+
         src_rootname = os.path.splitext(src_basename)[0]
         dst_basename = "%sTMP.%s" % (src_rootname, dst_format)
         javascript_basename = "save_as.jsx"
@@ -83,6 +86,15 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
         dst.value = response_server_copy_filename
 
         params.scriptArgs = [src, dst]
+
+        # Extra parameters
+        extra_params = []
+        for k, v in js_params.items():
+            param = cl.factory.create("ns0:IDSP-ScriptArg")
+            param.name = k
+            param.value = v
+            extra_params.append(param)
+        params.scriptArgs.extend(extra_params)
 
         if dst_format in ('idml', 'pdf', 'jpeg'):
             fmt = cl.factory.create("ns0:IDSP-ScriptArg")
@@ -116,7 +128,7 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
 
     cl = Client("%s/service?wsdl" % indesign_server_url)
     cl.set_options(location=indesign_server_url)
-    responses = map(lambda fmt: _save_as(fmt), dst_formats)
+    responses = map(lambda fmt: _save_as(fmt), dst_formats_params)
 
     if clean_workdir:
         _unlink(src_client_copy_filename, ftp_params)

@@ -3,16 +3,37 @@
 
 """
 SOAP call to a InDesignServer to save a file in (an)other format(s).
+
+Export PDF parameters
+'''''''''''''''''''''
+
+o Boolean parameters just need to be present to be set on:
+
+    - colorBars, optimizePDF, cropMarks, pageInformationMarks,
+        registrationMarks,
+
+o String parameters:
+
+    - acrobatCompatibility: 4, 5, 6, 7 or 8
+    - colorSpace: CMYK, iGry, rCMY, rRGB, cRGB or unFc
+    - colorProfile (output > color > destination) and
+        (output > PDF/X > profile): Generic CMYK Profile, ...
+    - flattenerPresetName: [High resolution print], ...
+    - standartsCompliance: 1A2001, 1A2003, 32002, 32003 or 42010
+
 """
 
+import locale
 import logging
 import os
+import sys
 from optparse import OptionParser
 from simple_idml.indesign import indesign
 
 
 def main():
-    usage = "usage: %prog /path/to/source-file /path/to/destination-fileA,/path/to/destination-fileA"
+    usage = ("usage: %prog /path/to/source-file"
+             " \"/path/to/destination-fileA|colorsBars=1,colorSpace=cRGB;/path/to/destination-fileB\"")
     version = "%prog 0.1"
     parser = OptionParser(usage=usage, version=version, description=__doc__)
     parser.add_option("-u", "--url", default="http://127.0.0.1:8082",
@@ -35,13 +56,30 @@ def main():
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       default=False)
 
+    # Fix encoding first.
+    encoding = locale.getpreferredencoding()
+    for i, a in enumerate(sys.argv):
+        sys.argv[i] = unicode(a.decode(encoding))
+
     (options, args) = parser.parse_args()
 
     if len(args) != 2:
         parser.error("You must provide the source file and the destination file paths as parameters")
     else:
-        src, destinations = args[0], args[1].split(",")
-        formats = [os.path.splitext(dst)[1].replace(".", "") for dst in destinations]
+        src, destinations = args[0], args[1].split(";")
+
+        def parse_destination_arg(arg):
+            try:
+                dest, params = arg.split("|")
+            except ValueError:
+                dest = arg
+                params = {}
+            else:
+                params = dict([keyval.split("=") for keyval in params.split(",")])
+            return {"fmt": os.path.splitext(dest)[1].replace(".", ""),
+                    "params": params}
+
+        formats = map(parse_destination_arg, destinations)
 
         ftp_params = None
         if options.ftp_url:
@@ -59,7 +97,7 @@ def main():
                                      not options.no_clean_workdir, ftp_params)
 
         def _save_as(response, dst):
-            with open(dst, mode="w+") as fobj:
+            with open(dst.split("|")[0], mode="w+") as fobj:
                 fobj.write(response)
 
         map(_save_as, responses, destinations)
