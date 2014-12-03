@@ -53,7 +53,7 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
         o *_server_copy_filename : localized/path/to/file as seen by the InDesign Server.
         """
         dst_format = dst_format_params["fmt"]
-        js_params = dst_format_params["params"]
+        js_params = dst_format_params.get("params", {})
 
         src_rootname = os.path.splitext(src_basename)[0]
         dst_basename = "%sTMP.%s" % (src_rootname, dst_format)

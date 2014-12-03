@@ -352,9 +352,13 @@ Use InDesign server SOAP interface to convert a file
 
 This require an *InDesign Server* and a directory that it can access in read/write.
 The same directory must be accessible by the client either by the filesystem or by FTP.
-The ``formats`` parameter is a list of formats you want your file to be exported into.
+The ``formats`` parameter is a list (of dicts) of formats you want your file to be exported into.
 The supported formats are ``jpeg``, ``idml``, ``pdf``, ``indd`` and ``zip`` (this one
 returning a zipped InDesign package).
+
+You can provide exports parameters using the ``params`` key. The list of supported parameters
+can be found with a ``simpleidml_indesign_save_as.py --help`` command.
+
 
 Here some snippets:
 
@@ -362,21 +366,24 @@ Here some snippets:
 
     from simple_idml.indesign import indesign
 
-    response = indesign.save_as("/path_to_file.idml", ["indd"],
+    response = indesign.save_as("/path_to_file.idml", [{"fmt": "indd"}],
                                 "http://url-to-indesign-server:port",
                                 "/path/to/client/workdir",
                                 "/path/to/indesign-server/workdir")[0]
     with open("my_file.indd", "w+") as f:
         f.write(response)
 
-    response = indesign.save_as("/path_to_file.indd", ["idml"],
+    response = indesign.save_as("/path_to_file.indd", [{"fmt": "idml"}],
                                 "http://url-to-indesign-server:port",
                                 "/path/to/client/workdir",
                                 "/path/to/indesign-server/workdir")[0]
     with open("my_file.idml", "w+") as f:
         f.write(response)
 
-    response = indesign.save_as("/path_to_file.indd", ["pdf"],
+    response = indesign.save_as("/path_to_file.indd", [{
+                                    "fmt": "pdf",
+                                    "params": {"colorSpace": "CMYK"},
+                                }],
                                 "http://url-to-indesign-server:port",
                                 "/path/to/client/workdir",
                                 "/path/to/indesign-server/workdir")[0]
@@ -391,7 +398,7 @@ and so generate several exports in a row (if performances matter):
     from simple_idml.indesign import indesign
     pdf_response, jpeg_response, zip_response = indesign.save_as(
                                     "/path_to_file.indd",
-                                    ["pdf", "jpeg", "zip"],
+                                    [{"fmt": "pdf"}, {"fmt": "jpeg"}, {"fmt": "zip"}],
                                     "http://url-to-indesign-server:port",
                                     "/path/to/client/workdir",
                                     "/path/to/indesign-server/workdir")
@@ -423,7 +430,8 @@ Revisions
 New features
 ''''''''''''
 
-- Add `IMDLPackage.merge_layers(with_name)` (Refs#7).
+- Added ``IMDLPackage.merge_layers(with_name)`` (Refs#7).
+- Added a new script ``simpleidml_indesign_close_all_documents.py``.
 
 Bug fixes
 '''''''''
@@ -433,6 +441,12 @@ Bug fixes
 - Better support for Windows platform.
 - Fixed character style mapping with tag when using insert_idml.
 - Fixed Export XML in some edge case.
+- Added parameters to ``simpleidml_indesign_save_as`` when exporting to PDF.
+
+Backward incompatibilities
+''''''''''''''''''''''''''
+
+- ``indesign.save_as()`` formats parameters is now a list of dictionaries.
 
 0.91.6
 ------
