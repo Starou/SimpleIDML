@@ -28,6 +28,7 @@ setup(
     scripts=[
         'src/scripts/simpleidml_create_package_from_dir.py',
         'src/scripts/simpleidml_indesign_save_as.py',
+        'src/scripts/simpleidml_indesign_close_all_documents.py',
     ],
     classifiers=[
         'Environment :: Console',

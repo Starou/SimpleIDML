@@ -15,7 +15,30 @@ CURRENT_DIR = os.path.abspath(os.path.split(__file__)[0])
 SCRIPTS_DIR = os.path.join(CURRENT_DIR, "scripts")
 
 
-def save_as(src_filename, dst_formats, indesign_server_url, indesign_client_workdir,
+def close_all_documents(indesign_server_url, indesign_client_workdir, indesign_server_workdir,
+                        indesign_server_path_style="posix", ftp_params=None):
+    server_path_mod = os.path
+    if indesign_server_path_style == "windows":
+        server_path_mod = ntpath
+
+    javascript_basename = "close_all_documents.jsx"
+    javascript_master_filename = os.path.join(SCRIPTS_DIR, javascript_basename)
+    javascript_client_copy_filename = os.path.join(indesign_client_workdir, javascript_basename)
+    javascript_server_copy_filename = server_path_mod.join(indesign_server_workdir, javascript_basename)
+
+    _copy(javascript_master_filename, javascript_client_copy_filename, ftp_params, src_open_mode="r")
+
+    cl = Client("%s/service?wsdl" % indesign_server_url)
+    cl.set_options(location=indesign_server_url)
+
+    params = cl.factory.create("ns0:RunScriptParameters")
+    params.scriptLanguage = 'javascript'
+    params.scriptFile = javascript_server_copy_filename
+
+    cl.service.RunScript(params)
+
+
+def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_client_workdir,
             indesign_server_workdir, indesign_server_path_style="posix",
             clean_workdir=True, ftp_params=None):
     """SOAP call to an InDesign Server to make one or more conversions. """
