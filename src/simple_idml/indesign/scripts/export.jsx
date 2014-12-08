@@ -1,4 +1,34 @@
 /* Export In various formats */
+var SAMPLING = {
+    'subSample': Sampling.SUBSAMPLE,
+    'downSample': Sampling.DOWNSAMPLE,
+    'bicubicDownSample': Sampling.BICUBIC_DOWNSAMPLE
+};
+
+var BMP_QUALITY = {
+    'minimum': CompressionQuality.MINIMUM,
+    'low': CompressionQuality.LOW,
+    'medium': CompressionQuality.MEDIUM,
+    'high': CompressionQuality.HIGH,
+    'maximum': CompressionQuality.MAXIMUM,
+    '4bits': CompressionQuality.FOUR_BIT,
+    '8bits': CompressionQuality.EIGHT_BIT
+};
+
+var BMP_COMPRESSION = {
+    'auto': BitmapCompression.AUTO_COMPRESSION,
+    'jpeg': BitmapCompression.JPEG,
+    'zip': BitmapCompression.ZIP,
+    'jpeg2000': BitmapCompression.JPEG_2000,
+    'autoJpeg2000': BitmapCompression.AUTOMATIC_JPEG_2000
+};
+
+var MONO_COMPRESSION = {
+    'CCIT3': MonoBitmapCompression.CCIT3,
+    'CCIT4': MonoBitmapCompression.CCIT4,
+    'zip': MonoBitmapCompression.ZIP,
+    'RLE': MonoBitmapCompression.RUN_LENGTH
+};
 
 var COLOR_SPACES = {
     'CMYK': PDFColorSpace.CMYK,
@@ -51,6 +81,26 @@ if (format === "pdf") {
     var _flattenerPresetName = app.scriptArgs.get("flattenerPresetName") || app.flattenerPresets.firstItem().name;
     var _standartsCompliance = app.scriptArgs.get("standartsCompliance") ? PDFX_STANDARDS[app.scriptArgs.get("standartsCompliance")] : PDFXStandards.NONE;
 
+    var _colorBitmapSampling = app.scriptArgs.get("colorBitmapSampling") ? SAMPLING[app.scriptArgs.get("colorBitmapSampling")] : Sampling.NONE;
+    var _colorBitmapQuality = app.scriptArgs.get("colorBitmapQuality") ? BMP_QUALITY[app.scriptArgs.get("colorBitmapQuality")] : CompressionQuality.HIGH;
+    var _colorBitmapCompression = app.scriptArgs.get("colorBitmapCompression") ? BMP_COMPRESSION[app.scriptArgs.get("colorBitmapCompression")] : BitmapCompression.NONE;
+    var _colorBitmapSamplingDPI = parseInt(app.scriptArgs.get("colorBitmapSamplingDPI")) || 150;
+
+    var _grayscaleBitmapSampling = app.scriptArgs.get("grayscaleBitmapSampling") ? SAMPLING[app.scriptArgs.get("grayscaleBitmapSampling")] : Sampling.NONE;
+    var _grayscaleBitmapQuality = app.scriptArgs.get("grayscaleBitmapQuality") ? BMP_QUALITY[app.scriptArgs.get("grayscaleBitmapQuality")] : CompressionQuality.HIGH;
+    var _grayscaleBitmapCompression = app.scriptArgs.get("grayscaleBitmapCompression") ? BMP_COMPRESSION[app.scriptArgs.get("grayscaleBitmapCompression")] : BitmapCompression.NONE;
+    var _grayscaleBitmapSamplingDPI = parseInt(app.scriptArgs.get("grayscaleBitmapSamplingDPI")) || 150;
+
+    var _monochromeBitmapSampling = app.scriptArgs.get("monochromeBitmapSampling") ? SAMPLING[app.scriptArgs.get("monochromeBitmapSampling")] : Sampling.NONE;
+    var _monochromeBitmapCompression = app.scriptArgs.get("monochromeBitmapCompression") ? MONO_COMPRESSION[app.scriptArgs.get("monochromeBitmapCompression")] : MonoBitmapCompression.NONE;
+    var _monochromeBitmapSamplingDPI = parseInt(app.scriptArgs.get("monochromeBitmapSamplingDPI")) || 600;
+
+    var bleeds = {
+        top:  parseFloat(app.scriptArgs.get("bleedTop")) || 0,
+        bottom: parseFloat(app.scriptArgs.get("bleedBottom")) || 0,
+        inside: parseFloat(app.scriptArgs.get("bleedInside")) || 0,
+        outside: parseFloat(app.scriptArgs.get("bleedOutside")) || 0
+    };
 
     with(app.pdfExportPreferences){
         //Basic PDF output options.
@@ -77,23 +127,26 @@ if (format === "pdf") {
         subsetFontsBelow = 0;
         //
         //Bitmap compression/sampling/quality options.
-        colorBitmapCompression = BitmapCompression.zip;
-        colorBitmapQuality = CompressionQuality.eightBit;
-        colorBitmapSampling = Sampling.none;
-        //thresholdToCompressColor is not needed in this example.
-        //colorBitmapSamplingDPI is not needed when colorBitmapSampling
-        //is set to none.
-        grayscaleBitmapCompression = BitmapCompression.zip;
-        grayscaleBitmapQuality = CompressionQuality.eightBit;
-        grayscaleBitmapSampling = Sampling.none;
-        //thresholdToCompressGray is not needed in this example.
-        //grayscaleBitmapSamplingDPI is not needed when grayscaleBitmapSampling
-        //is set to none.
-        monochromeBitmapCompression = BitmapCompression.zip;
-        monochromeBitmapSampling = Sampling.none;
-        //thresholdToCompressMonochrome is not needed in this example.
-        //monochromeBitmapSamplingDPI is not needed when
-        //monochromeBitmapSampling is set to none.
+        colorBitmapCompression = _colorBitmapCompression;
+        colorBitmapQuality = _colorBitmapQuality;
+        colorBitmapSampling = _colorBitmapSampling;
+        if (colorBitmapSampling != Sampling.NONE) {
+            colorBitmapSamplingDPI = _colorBitmapSamplingDPI;
+            thresholdToCompressColor = colorBitmapSamplingDPI * 1.5;
+        }
+        grayscaleBitmapCompression = _grayscaleBitmapCompression;
+        grayscaleBitmapQuality = _grayscaleBitmapQuality;
+        grayscaleBitmapSampling = _grayscaleBitmapSampling;
+        if (grayscaleBitmapSampling != Sampling.NONE) {
+            grayscaleBitmapSamplingDPI = _grayscaleBitmapSamplingDPI;
+            thresholdToCompressGray = grayscaleBitmapSamplingDPI * 1.5;
+        }
+        monochromeBitmapCompression = _monochromeBitmapCompression;
+        monochromeBitmapSampling = _monochromeBitmapSampling;
+        if (monochromeBitmapSampling != Sampling.NONE) {
+            monochromeBitmapSamplingDPI = _monochromeBitmapSamplingDPI;
+            thresholdToCompressMonochrome = monochromeBitmapSamplingDPI * 1.5;
+        }
         //
         //Other compression options.
         compressionType = PDFCompressionType.compressNone;
@@ -103,12 +156,13 @@ if (format === "pdf") {
         //
         //Printers marks and prepress options.
         //Get the bleed amounts from the document's bleed.
-        bleedBottom = 0; // app.activeDocument.documentPreferences.documentBleedBottomOffset;
-        bleedTop = 0; //app.activeDocument.documentPreferences.documentBleedTopOffset;
-        bleedInside = 0; //app.activeDocument.documentPreferences.documentBleedInsideOrLeftOffset;
-        bleedOutside = 0; //app.activeDocument.documentPreferences.documentBleedOutsideOrRightOffset;
+        bleedBottom = bleeds.bottom;
+        bleedTop = bleeds.top;
+        bleedInside = bleeds.inside;
+        bleedOutside = bleeds.outside;
         //If any bleed area is greater than zero, then export the bleed marks.
-        if (bleedBottom == 0 && bleedTop == 0 && bleedInside == 0 && bleedOutside == 0){
+        useDocumentBleedWithPDF = false;
+        if (bleedBottom === 0 && bleedTop === 0 && bleedInside === 0 && bleedOutside === 0){
             bleedMarks = true;
         } else {
             bleedMarks = false;
@@ -129,7 +183,6 @@ if (format === "pdf") {
             simulateOverprint = false;
         }
         catch(e){}
-        useDocumentBleedWithPDF = true;
         //Set viewPDF to true to open the PDF in Acrobat or Adobe Reader.
         viewPDF = false;
         //

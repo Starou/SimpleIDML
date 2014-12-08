@@ -20,6 +20,18 @@ o String parameters:
         (output > PDF/X > profile): Generic CMYK Profile, ...
     - flattenerPresetName: [High resolution print], ...
     - standartsCompliance: 1A2001, 1A2003, 32002, 32003 or 42010
+    - bleedTop, bleedBottom, bleedInside, bleedOutside: (float value)
+    - colorBitmapSampling: subSample, downSample or bicubicDownSample
+    - colorBitmapQuality: minimum, low, medium, high, maximum, 4bits or 8bits
+    - colorBitmapCompression: auto, jpeg, zip, jpeg2000 or autoJpeg2000
+    - colorBitmapSamplingDPI: [9 to 2400]
+    - grayscaleBitmapSampling: subSample, downSample or bicubicDownSample
+    - grayscaleBitmapQuality: minimum, low, medium, high, maximum, 4bits or 8bits
+    - grayscaleBitmapCompression: auto, jpeg, zip, jpeg2000 or autoJpeg2000
+    - grayscaleBitmapSamplingDPI: [9 to 2400]
+    - monochromeBitmapSampling: subSample, downSample or bicubicDownSample
+    - monochromeBitmapCompression: CCIT3, CCIT4, zip, RLE
+    - monochromeBitmapSamplingDPI: [9 to 2400]
 
 """
 
