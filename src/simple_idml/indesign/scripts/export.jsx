@@ -101,6 +101,7 @@ if (format === "pdf") {
         inside: parseFloat(app.scriptArgs.get("bleedInside")) || 0,
         outside: parseFloat(app.scriptArgs.get("bleedOutside")) || 0
     };
+    var _pageMarksOffset = parseInt(app.scriptArgs.get("pageMarksOffset")) || 12;
 
     with(app.pdfExportPreferences){
         //Basic PDF output options.
@@ -175,7 +176,7 @@ if (format === "pdf") {
         omitEPS = false;
         omitPDF = false;
         pageInformationMarks = _pageInformationMarks;
-        pageMarksOffset = 12;
+        pageMarksOffset = _pageMarksOffset;
         pdfMarkType = MarkTypes.DEFAULT_VALUE;
         printerMarkWeight = PDFMarkWeight.p125pt;
         registrationMarks = _registrationMarks;
@@ -187,8 +188,7 @@ if (format === "pdf") {
         viewPDF = false;
         //
         // Output
-        //pdfColorSpace = PDFColorSpace.unchangedColorSpace; //Default mark type.
-        pdfColorSpace = _colorSpace; //PDFColorSpace.CMYK;
+        pdfColorSpace = _colorSpace;
         pdfDestinationProfile = _colorProfile;
         pdfXProfile = _colorProfile;
         //

@@ -21,6 +21,7 @@ o String parameters:
     - flattenerPresetName: [High resolution print], ...
     - standartsCompliance: 1A2001, 1A2003, 32002, 32003 or 42010
     - bleedTop, bleedBottom, bleedInside, bleedOutside: (float value)
+    - pageMarksOffset: [0 to 72]
     - colorBitmapSampling: subSample, downSample or bicubicDownSample
     - colorBitmapQuality: minimum, low, medium, high, maximum, 4bits or 8bits
     - colorBitmapCompression: auto, jpeg, zip, jpeg2000 or autoJpeg2000
