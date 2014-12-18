@@ -40,9 +40,14 @@ Dependencies
 - unittest2 if Python < 2.7
 - suds (if you want to use the SOAP interface of the InDesign Server.)
 
+Any questions?
+--------------
 
-What is SimpleIDML ?
-====================
+https://groups.google.com/forum/#!forum/simpleidml-users
+
+
+What is SimpleIDML?
+===================
 
 SimpleIDML is a Python library to manipulate Adobe® InDesign® IDML file. The main purpose being
 the ability to compose IDML files together and produce complex documents from simple pieces and
@@ -85,8 +90,8 @@ queue (RabbitMQ/Celery).
 
 The performances are quite good. Composing a document require a fraction of a second.
 
-What are IDML files ?
-=====================
+What are IDML files?
+====================
 
 IDML (*InDesign Markup Language*) files are a Zip archives (Adobe calls them packages) storing
 essentially XML files. Adobe made a descent job because those files can completely express the
@@ -95,8 +100,8 @@ This is a small revolution in the print world when it comes to automatically pro
 ways from templates and database (Round-trip) without using proprietary server-edition of
 Publishing Software.
 
-What does SimpleIDML do ?
-=========================
+What does SimpleIDML do?
+========================
 
 Package exploration
 -------------------
