@@ -45,7 +45,8 @@ class InDesignTestCase(unittest.TestCase):
     def test_save_as(self):
         from simple_idml.indesign import indesign
 
-        responses = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"), ["indd"],
+        responses = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
+                                     [{"fmt": "indd"}],
                                      "http://url-to-indesign-server:8080",
                                      CLIENT_WORKDIR, SERVER_WORKDIR,
                                      indesign_server_path_style="posix")
@@ -54,7 +55,7 @@ class InDesignTestCase(unittest.TestCase):
         self.assertEqual(responses, ['save_as.jsx, 4-pagesTMP.indd'])
 
         responses = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
-                                     ["pdf", "jpeg", "zip"],
+                                     [{"fmt": "pdf"}, {"fmt": "jpeg"}, {"fmt": "zip"}],
                                      "http://url-to-indesign-server:8080",
                                      CLIENT_WORKDIR, SERVER_WORKDIR,
                                      indesign_server_path_style="posix")
