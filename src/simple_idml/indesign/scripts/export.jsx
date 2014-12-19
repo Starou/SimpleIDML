@@ -68,6 +68,14 @@ if (!app.scriptArgs.isDefined("source")) {
 app.open(File(src_filename));
 var myDocument = app.documents.item(0);
 
+// Update out-of-date links.
+for (var i = 0; i < myDocument.links.count(); i++) {
+    var link = myDocument.links.item(i);
+    if (link.status === LinkStatus.LINK_OUT_OF_DATE) {
+        link.update();
+    }
+}
+
 if (format === "pdf") {
     var _colorBars = app.scriptArgs.get("colorBars") ? true : false;
     var _cropMarks = app.scriptArgs.get("cropMarks") ? true : false;
