@@ -51,22 +51,38 @@ class InDesignTestCase(unittest.TestCase):
                                      indesign_server_path_style="posix")
 
         self.assertTrue(self.runscript_mock.called)
-        self.assertEqual(responses, ['save_as.jsx, 4-pagesTMP.indd'])
+        self.assertEqual(responses, ['save_as.jsx, 4-pagesTMP.indd, {}'])
 
         responses = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
-                                     [{"fmt": "pdf"}, {"fmt": "jpeg"}, {"fmt": "zip"}],
+                                     [{"fmt": "pdf",
+                                       "params": {
+                                           "colorSpace": "CMYK",
+                                           "standartsCompliance": "1A2003",
+                                       }},
+                                      {"fmt": "jpeg"},
+                                      {"fmt": "zip"}],
                                      "http://url-to-indesign-server:8080",
                                      CLIENT_WORKDIR, SERVER_WORKDIR,
                                      indesign_server_path_style="posix")
         self.assertTrue(self.runscript_mock.called)
-        self.assertEqual(responses[:2], ['export.jsx, 4-pagesTMP.pdf',
-                                         'export.jsx, 4-pagesTMP.jpeg'])
+        self.assertEqual(responses[:2], [
+            "export.jsx, 4-pagesTMP.pdf, {'colorSpace': 'CMYK', 'standartsCompliance': '1A2003', 'format': 'pdf'}",
+            "export.jsx, 4-pagesTMP.jpeg, {'format': 'jpeg'}"
+        ])
         zip_buf = StringIO()
         zip_buf.write(responses[2])
         self.assertTrue(zipfile.is_zipfile(zip_buf))
 
     def test_close_all_documents(self):
-        pass
+        indesign.close_all_documents("http://url-to-indesign-server:8080",
+                                     CLIENT_WORKDIR, SERVER_WORKDIR,
+                                     indesign_server_path_style="posix")
+        self.assertTrue(self.runscript_mock.called)
+
+        indesign.close_all_documents("http://url-to-indesign-server:8080",
+                                     CLIENT_WORKDIR, SERVER_WORKDIR,
+                                     indesign_server_path_style="windows")
+        self.assertTrue(self.runscript_mock.called)
 
 
 class OpenerDirectorMock(OpenerDirector):
@@ -79,15 +95,22 @@ class OpenerDirectorMock(OpenerDirector):
 class ServiceSelectorMock(ServiceSelector):
     def RunScript(self, params):
         script = os.path.basename(params['scriptFile'])
+        script_args = dict([(p["name"], p["value"]) for p in params['scriptArgs']])
         if script in indesign.JS_SAVE_AS_SCRIPTS:
-            dst = params['scriptArgs'][1]['value']
+            script_args.pop("source")
+            dst_filename = script_args.pop("destination")
+            extra_params = script_args
             if script == indesign.JS_PACKAGE_SCRIPT:
-                os.mkdir(dst)  # Create the destination dir.
-                dst = "%s.zip" % dst
+                os.mkdir(dst_filename)  # Create the destination dir.
+                dst_filename = "%s.zip" % dst_filename
 
             # Create the file in workdir and write something testable in it.
-            fobj = open(dst, "w+")
-            fobj.write("%s, %s" % (script, os.path.basename(dst)))
+            fobj = open(dst_filename, "w+")
+            fobj.write("%s, %s, %s" % (script,
+                                       os.path.basename(dst_filename),
+                                       extra_params))
+        elif script in indesign.JS_CLOSE_ALL_SCRIPT:
+            pass
 
 
 def suite():
