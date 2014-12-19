@@ -6,14 +6,14 @@ try:
     import unittest2 as unittest
 except ImportError:
     import unittest
-   
+
 from xml.dom.minidom import parseString, Node
 
 
 # This code came from the Django Project.
 # https://github.com/django/django/blob/1.6a1/django/test/testcases.py
-class SimpleTestCase(unittest.TestCase):   
-   def assertXMLEqual(self, xml1, xml2, msg=None):
+class SimpleTestCase(unittest.TestCase):
+    def assertXMLEqual(self, xml1, xml2, msg=None):
         """
         Asserts that two XML snippets are semantically the same.
         Whitespace in most cases is ignored, and attribute ordering is not
@@ -40,6 +40,7 @@ def compare_xml(want, got):
     Based on http://codespeak.net/svn/lxml/trunk/src/lxml/doctestcompare.py
     """
     _norm_whitespace_re = re.compile(r'[ \t\n][ \t\n]+')
+
     def norm_whitespace(v):
         return _norm_whitespace_re.sub(' ', v)
 
@@ -79,8 +80,8 @@ def compare_xml(want, got):
                 return node
 
     want, got = strip_quotes(want, got)
-    want = want.replace('\\n','\n')
-    got = got.replace('\\n','\n')
+    want = want.replace('\\n', '\n')
+    got = got.replace('\\n', '\n')
 
     # If the string is not a complete xml document, we may need to add a
     # root element. This allow us to compare fragments, like "<foo/><bar/>"
@@ -129,6 +130,8 @@ def strip_quotes(want, got):
 
 # https://github.com/django/django/blob/1.6a1/django/utils/unittest/util.py
 _MAX_LENGTH = 80
+
+
 def safe_repr(obj, short=False):
     try:
         result = repr(obj)

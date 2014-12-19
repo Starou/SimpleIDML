@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import copy
 import os
 import re
-import copy
-from lxml import etree
 from decimal import Decimal
-
+from lxml import etree
 from simple_idml import IdPkgNS, BACKINGSTORY
 from simple_idml.utils import increment_xmltag_id, prefix_content_filename
 from simple_idml.utils import Proxy
@@ -344,9 +343,11 @@ class Story(IDMLXMLFile):
        <XMLElement Self="%(xml_element_id)s" MarkupTag="XMLTag/%(xml_element_tag)s" XMLContent="%(story_id)s" />
      </Story>
 </idPkg:Story>
-""" % {"story_id": story_id,
-       "xml_element_tag": xml_element_tag,
-       "xml_element_id": xml_element_id})
+""" % {
+            "story_id": story_id,
+            "xml_element_tag": xml_element_tag,
+            "xml_element_id": xml_element_id
+        })
 
         story.fobj.close()
         story._fobj = None
@@ -368,7 +369,7 @@ class Story(IDMLXMLFile):
         element = self.get_element_by_id(element_id)
         try:
             self.get_element_content_nodes(element)[0].text = content
-        except IndexError as e:
+        except IndexError:
             pass
 
     def clear_element_content(self, element_id):

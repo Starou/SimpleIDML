@@ -1,21 +1,18 @@
 # -*- coding: utf-8 -*-
 
+import copy
 import os
+import re
 import shutil
 import zipfile
-import re
-import copy
 from decimal import Decimal
-
 from lxml import etree
-
+from simple_idml import BACKINGSTORY, SETCONTENT_TAG, IGNORECONTENT_TAG, FORCECONTENT_TAG
 from simple_idml.components import get_idml_xml_file_by_name
 from simple_idml.components import (Designmap, Spread, Story, BackingStory,
                                     Style, StyleMapping, Graphic, Tags, Fonts, XMLElement)
 from simple_idml.decorators import use_working_copy
 from simple_idml.utils import increment_filename, prefix_content_filename, tree_to_etree_dom
-
-from simple_idml import BACKINGSTORY, SETCONTENT_TAG, IGNORECONTENT_TAG, FORCECONTENT_TAG
 
 STORIES_DIRNAME = "Stories"
 
@@ -563,7 +560,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         try:
             node = self.xml_structure.xpath(under)[0]
-        except IndexError, err:
+        except IndexError:
             raise IndexError(u"Cannot remove content under path '%s'. Are you sure the path exists ?" % under)
         map(_remove_content, node.iterchildren())
         # `under' node may have a reference to its first children in his story.

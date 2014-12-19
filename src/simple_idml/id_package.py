@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import zipfile
 import re
+import zipfile
 from copy import deepcopy
 
 DOCUMENT_FONT_DIR = "Document fonts"
@@ -13,7 +13,7 @@ class ZipInDesignPackage(zipfile.ZipFile):
     """ Wrapper over a zipped InDesign Package.
 
        The Package is obtained with the action `File > Package' from InDesign menu. """
-    
+
     # Maybe we should exlude '__MACOSX/foo/Document fonts/._AdobeFnt13.lst'.
     # Anyway, do not exclude the whole __MACOSX since it contains font fork resources.
     rx_font = re.compile("(?P<root_dir>.*)/%s/(?P<font_name>.+)" % DOCUMENT_FONT_DIR)

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import copy
+import new
 import os
 import re
-import new
 from lxml import etree
 from types import MethodType
 
@@ -84,11 +84,11 @@ class Proxy(object):
 def tree_to_etree_dom(tree):
     """Convert a tree in a elementTree dom instance.
 
-    >>> tree = {
-    ...     "tag": "Root",
-    ...     "attrs": {...},
-    ...     "content": ["foo", {subtree}, "bar", ...]
-    ... }
+    tree = {
+        "tag": "Root",
+        "attrs": {...},
+        "content": ["foo", {subtree}, "bar", ...]
+    }
 
     """
 
