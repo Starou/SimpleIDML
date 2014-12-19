@@ -14,6 +14,12 @@ from tempfile import mkdtemp
 CURRENT_DIR = os.path.abspath(os.path.split(__file__)[0])
 SCRIPTS_DIR = os.path.join(CURRENT_DIR, "scripts")
 
+JS_SAVE_AS_SCRIPT = "save_as.jsx"
+JS_EXPORT_SCRIPT = "export.jsx"
+JS_PACKAGE_SCRIPT = "package_to_print.jsx"
+JS_CLOSE_ALL_SCRIPT = "close_all_documents.jsx"
+JS_SAVE_AS_SCRIPTS = [JS_SAVE_AS_SCRIPT, JS_EXPORT_SCRIPT, JS_PACKAGE_SCRIPT]
+
 
 def close_all_documents(indesign_server_url, indesign_client_workdir, indesign_server_workdir,
                         indesign_server_path_style="posix", ftp_params=None):
@@ -21,7 +27,7 @@ def close_all_documents(indesign_server_url, indesign_client_workdir, indesign_s
     if indesign_server_path_style == "windows":
         server_path_mod = ntpath
 
-    javascript_basename = "close_all_documents.jsx"
+    javascript_basename = JS_CLOSE_ALL_SCRIPT
     javascript_master_filename = os.path.join(SCRIPTS_DIR, javascript_basename)
     javascript_client_copy_filename = os.path.join(indesign_client_workdir, javascript_basename)
     javascript_server_copy_filename = server_path_mod.join(indesign_server_workdir, javascript_basename)
@@ -57,11 +63,11 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
 
         src_rootname = os.path.splitext(src_basename)[0]
         dst_basename = "%sTMP.%s" % (src_rootname, dst_format)
-        javascript_basename = "save_as.jsx"
+        javascript_basename = JS_SAVE_AS_SCRIPT
         if dst_format in ('idml', 'pdf', 'jpeg'):
-            javascript_basename = "export.jsx"
+            javascript_basename = JS_EXPORT_SCRIPT
         elif dst_format == 'zip':
-            javascript_basename = "package_to_print.jsx"
+            javascript_basename = JS_PACKAGE_SCRIPT
             dst_basename = src_rootname  # a directory.
 
         javascript_master_filename = os.path.join(SCRIPTS_DIR, javascript_basename)

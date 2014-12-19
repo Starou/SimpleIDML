@@ -7,8 +7,9 @@ import shutil
 import unittest
 import zipfile
 from cStringIO import StringIO
-from urllib2 import OpenerDirector
+from simple_idml.indesign import indesign
 from suds.client import ServiceSelector
+from urllib2 import OpenerDirector
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
@@ -43,8 +44,6 @@ class InDesignTestCase(unittest.TestCase):
         self.runscript_patcher.stop()
 
     def test_save_as(self):
-        from simple_idml.indesign import indesign
-
         responses = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                                      [{"fmt": "indd"}],
                                      "http://url-to-indesign-server:8080",
@@ -66,6 +65,9 @@ class InDesignTestCase(unittest.TestCase):
         zip_buf.write(responses[2])
         self.assertTrue(zipfile.is_zipfile(zip_buf))
 
+    def test_close_all_documents(self):
+        pass
+
 
 class OpenerDirectorMock(OpenerDirector):
     def open(self, fullurl=None, data=None, timeout=None):
@@ -77,14 +79,15 @@ class OpenerDirectorMock(OpenerDirector):
 class ServiceSelectorMock(ServiceSelector):
     def RunScript(self, params):
         script = os.path.basename(params['scriptFile'])
-        dst = params['scriptArgs'][1]['value']
-        if script == 'package_to_print.jsx':
-            os.mkdir(dst)  # Create the destination dir.
-            dst = "%s.zip" % dst
+        if script in indesign.JS_SAVE_AS_SCRIPTS:
+            dst = params['scriptArgs'][1]['value']
+            if script == indesign.JS_PACKAGE_SCRIPT:
+                os.mkdir(dst)  # Create the destination dir.
+                dst = "%s.zip" % dst
 
-        # Create the file in workdir and write something testable in it.
-        fobj = open(dst, "w+")
-        fobj.write("%s, %s" % (script, os.path.basename(dst)))
+            # Create the file in workdir and write something testable in it.
+            fobj = open(dst, "w+")
+            fobj.write("%s, %s" % (script, os.path.basename(dst)))
 
 
 def suite():
