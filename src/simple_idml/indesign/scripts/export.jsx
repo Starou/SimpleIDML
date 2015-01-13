@@ -86,6 +86,7 @@ if (format === "pdf") {
     var _acrobatCompatibility = app.scriptArgs.get("acrobatCompatibility") ? ACROBAT_COMPAT[app.scriptArgs.get("acrobatCompatibility")] : AcrobatCompatibility.ACROBAT_4;
     var _colorSpace = app.scriptArgs.get("colorSpace") ? COLOR_SPACES[app.scriptArgs.get("colorSpace")] : PDFColorSpace.UNCHANGED_COLOR_SPACE;
     var _colorProfile = app.scriptArgs.get("colorProfile") || PDFProfileSelector.USE_NO_PROFILE;
+    var _outputCondition = app.scriptArgs.get("outputCondition") || "";
     var _flattenerPresetName = app.scriptArgs.get("flattenerPresetName") || app.flattenerPresets.firstItem().name;
     var _standartsCompliance = app.scriptArgs.get("standartsCompliance") ? PDFX_STANDARDS[app.scriptArgs.get("standartsCompliance")] : PDFXStandards.NONE;
 
@@ -196,6 +197,7 @@ if (format === "pdf") {
         viewPDF = false;
         //
         // Output
+        outputCondition = _outputCondition;
         pdfColorSpace = _colorSpace;
         pdfDestinationProfile = _colorProfile;
         pdfXProfile = _colorProfile;
