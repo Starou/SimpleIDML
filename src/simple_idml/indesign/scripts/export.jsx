@@ -77,135 +77,142 @@ for (var i = 0; i < myDocument.links.count(); i++) {
 }
 
 if (format === "pdf") {
-    var _colorBars = app.scriptArgs.get("colorBars") ? true : false;
-    var _cropMarks = app.scriptArgs.get("cropMarks") ? true : false;
-    var _optimizePDF = app.scriptArgs.get("optimizePDF") ? true : false;
-    var _pageInformationMarks = app.scriptArgs.get("pageInformationMarks") ? true : false;
-    var _registrationMarks = app.scriptArgs.get("registrationMarks") ? true : false;
-
-    var _acrobatCompatibility = app.scriptArgs.get("acrobatCompatibility") ? ACROBAT_COMPAT[app.scriptArgs.get("acrobatCompatibility")] : AcrobatCompatibility.ACROBAT_4;
-    var _colorSpace = app.scriptArgs.get("colorSpace") ? COLOR_SPACES[app.scriptArgs.get("colorSpace")] : PDFColorSpace.UNCHANGED_COLOR_SPACE;
-    var _colorProfile = app.scriptArgs.get("colorProfile") || PDFProfileSelector.USE_NO_PROFILE;
-    var _outputCondition = app.scriptArgs.get("outputCondition") || "";
-    var _flattenerPresetName = app.scriptArgs.get("flattenerPresetName") || app.flattenerPresets.firstItem().name;
-    var _standartsCompliance = app.scriptArgs.get("standartsCompliance") ? PDFX_STANDARDS[app.scriptArgs.get("standartsCompliance")] : PDFXStandards.NONE;
-
-    var _colorBitmapSampling = app.scriptArgs.get("colorBitmapSampling") ? SAMPLING[app.scriptArgs.get("colorBitmapSampling")] : Sampling.NONE;
-    var _colorBitmapQuality = app.scriptArgs.get("colorBitmapQuality") ? BMP_QUALITY[app.scriptArgs.get("colorBitmapQuality")] : CompressionQuality.HIGH;
-    var _colorBitmapCompression = app.scriptArgs.get("colorBitmapCompression") ? BMP_COMPRESSION[app.scriptArgs.get("colorBitmapCompression")] : BitmapCompression.NONE;
-    var _colorBitmapSamplingDPI = parseInt(app.scriptArgs.get("colorBitmapSamplingDPI")) || 150;
-
-    var _grayscaleBitmapSampling = app.scriptArgs.get("grayscaleBitmapSampling") ? SAMPLING[app.scriptArgs.get("grayscaleBitmapSampling")] : Sampling.NONE;
-    var _grayscaleBitmapQuality = app.scriptArgs.get("grayscaleBitmapQuality") ? BMP_QUALITY[app.scriptArgs.get("grayscaleBitmapQuality")] : CompressionQuality.HIGH;
-    var _grayscaleBitmapCompression = app.scriptArgs.get("grayscaleBitmapCompression") ? BMP_COMPRESSION[app.scriptArgs.get("grayscaleBitmapCompression")] : BitmapCompression.NONE;
-    var _grayscaleBitmapSamplingDPI = parseInt(app.scriptArgs.get("grayscaleBitmapSamplingDPI")) || 150;
-
-    var _monochromeBitmapSampling = app.scriptArgs.get("monochromeBitmapSampling") ? SAMPLING[app.scriptArgs.get("monochromeBitmapSampling")] : Sampling.NONE;
-    var _monochromeBitmapCompression = app.scriptArgs.get("monochromeBitmapCompression") ? MONO_COMPRESSION[app.scriptArgs.get("monochromeBitmapCompression")] : MonoBitmapCompression.NONE;
-    var _monochromeBitmapSamplingDPI = parseInt(app.scriptArgs.get("monochromeBitmapSamplingDPI")) || 600;
-
-    var bleeds = {
-        top:  parseFloat(app.scriptArgs.get("bleedTop")) || 0,
-        bottom: parseFloat(app.scriptArgs.get("bleedBottom")) || 0,
-        inside: parseFloat(app.scriptArgs.get("bleedInside")) || 0,
-        outside: parseFloat(app.scriptArgs.get("bleedOutside")) || 0
-    };
-    var _pageMarksOffset = parseInt(app.scriptArgs.get("pageMarksOffset")) || 12;
-
-    with(app.pdfExportPreferences){
-        //Basic PDF output options.
-        pageRange = PageRange.allPages;
-        acrobatCompatibility = _acrobatCompatibility;
-        standartsCompliance = _standartsCompliance;
-        exportGuidesAndGrids = false;
-        exportLayers = false;
-        exportNonPrintingObjects = false;
-        exportReaderSpreads = false;
-        generateThumbnails = false;
-        try{
-            ignoreSpreadOverrides = false;
-        }
-        catch(e){}
-        includeBookmarks = true;
-        includeHyperlinks = true;
-        includeICCProfiles = true;
-        includeSlugWithPDF = false;
-        includeStructure = false;
-        interactiveElementsOption = InteractiveElementsOptions.doNotInclude;
-        //Setting subsetFontsBelow to zero disallows font subsetting;
-        //set subsetFontsBelow to some other value to use font subsetting.
-        subsetFontsBelow = 0;
-        //
-        //Bitmap compression/sampling/quality options.
-        colorBitmapCompression = _colorBitmapCompression;
-        colorBitmapQuality = _colorBitmapQuality;
-        colorBitmapSampling = _colorBitmapSampling;
-        if (colorBitmapSampling != Sampling.NONE) {
-            colorBitmapSamplingDPI = _colorBitmapSamplingDPI;
-            thresholdToCompressColor = colorBitmapSamplingDPI * 1.5;
-        }
-        grayscaleBitmapCompression = _grayscaleBitmapCompression;
-        grayscaleBitmapQuality = _grayscaleBitmapQuality;
-        grayscaleBitmapSampling = _grayscaleBitmapSampling;
-        if (grayscaleBitmapSampling != Sampling.NONE) {
-            grayscaleBitmapSamplingDPI = _grayscaleBitmapSamplingDPI;
-            thresholdToCompressGray = grayscaleBitmapSamplingDPI * 1.5;
-        }
-        monochromeBitmapCompression = _monochromeBitmapCompression;
-        monochromeBitmapSampling = _monochromeBitmapSampling;
-        if (monochromeBitmapSampling != Sampling.NONE) {
-            monochromeBitmapSamplingDPI = _monochromeBitmapSamplingDPI;
-            thresholdToCompressMonochrome = monochromeBitmapSamplingDPI * 1.5;
-        }
-        //
-        //Other compression options.
-        compressionType = PDFCompressionType.compressNone;
-        compressTextAndLineArt = true;
-        cropImagesToFrames = true;
-        optimizePDF = _optimizePDF;
-        //
-        //Printers marks and prepress options.
-        //Get the bleed amounts from the document's bleed.
-        bleedBottom = bleeds.bottom;
-        bleedTop = bleeds.top;
-        bleedInside = bleeds.inside;
-        bleedOutside = bleeds.outside;
-        //If any bleed area is greater than zero, then export the bleed marks.
-        useDocumentBleedWithPDF = false;
-        if (bleedBottom === 0 && bleedTop === 0 && bleedInside === 0 && bleedOutside === 0){
-            bleedMarks = true;
-        } else {
-            bleedMarks = false;
-        }
-        colorBars = _colorBars;
-        colorTileSize = 128;
-        grayTileSize = 128;
-        cropMarks = _cropMarks;
-        omitBitmaps = false;
-        omitEPS = false;
-        omitPDF = false;
-        pageInformationMarks = _pageInformationMarks;
-        pageMarksOffset = _pageMarksOffset;
-        pdfMarkType = MarkTypes.DEFAULT_VALUE;
-        printerMarkWeight = PDFMarkWeight.p125pt;
-        registrationMarks = _registrationMarks;
-        try {
-            simulateOverprint = false;
-        }
-        catch(e){}
-        //Set viewPDF to true to open the PDF in Acrobat or Adobe Reader.
-        viewPDF = false;
-        //
-        // Output
-        outputCondition = _outputCondition;
-        pdfColorSpace = _colorSpace;
-        pdfDestinationProfile = _colorProfile;
-        pdfXProfile = _colorProfile;
-        //
-        // Advanced
-        appliedFlattenerPreset = app.flattenerPresets.itemByName(_flattenerPresetName);
+    var pdfExportPresetName = app.scriptArgs.get("pdfExportPresetName");
+    // Use an export preset.
+    if (pdfExportPresetName !== "") {
+        myDocument.exportFile(ExportFormat.pdfType, new File(dst_filename),
+                              app.pdfExportPresets.item(pdfExportPresetName));
     }
-    myDocument.exportFile(ExportFormat.pdfType, new File(dst_filename));
+    // Or parameters.
+    else {
+        var _colorBars = app.scriptArgs.get("colorBars") ? true : false;
+        var _cropMarks = app.scriptArgs.get("cropMarks") ? true : false;
+        var _optimizePDF = app.scriptArgs.get("optimizePDF") ? true : false;
+        var _pageInformationMarks = app.scriptArgs.get("pageInformationMarks") ? true : false;
+        var _registrationMarks = app.scriptArgs.get("registrationMarks") ? true : false;
+
+        var _acrobatCompatibility = app.scriptArgs.get("acrobatCompatibility") ? ACROBAT_COMPAT[app.scriptArgs.get("acrobatCompatibility")] : AcrobatCompatibility.ACROBAT_4;
+        var _colorSpace = app.scriptArgs.get("colorSpace") ? COLOR_SPACES[app.scriptArgs.get("colorSpace")] : PDFColorSpace.UNCHANGED_COLOR_SPACE;
+        var _colorProfile = app.scriptArgs.get("colorProfile") || PDFProfileSelector.USE_NO_PROFILE;
+        var _flattenerPresetName = app.scriptArgs.get("flattenerPresetName") || app.flattenerPresets.firstItem().name;
+        var _standartsCompliance = app.scriptArgs.get("standartsCompliance") ? PDFX_STANDARDS[app.scriptArgs.get("standartsCompliance")] : PDFXStandards.NONE;
+
+        var _colorBitmapSampling = app.scriptArgs.get("colorBitmapSampling") ? SAMPLING[app.scriptArgs.get("colorBitmapSampling")] : Sampling.NONE;
+        var _colorBitmapQuality = app.scriptArgs.get("colorBitmapQuality") ? BMP_QUALITY[app.scriptArgs.get("colorBitmapQuality")] : CompressionQuality.HIGH;
+        var _colorBitmapCompression = app.scriptArgs.get("colorBitmapCompression") ? BMP_COMPRESSION[app.scriptArgs.get("colorBitmapCompression")] : BitmapCompression.NONE;
+        var _colorBitmapSamplingDPI = parseInt(app.scriptArgs.get("colorBitmapSamplingDPI")) || 150;
+
+        var _grayscaleBitmapSampling = app.scriptArgs.get("grayscaleBitmapSampling") ? SAMPLING[app.scriptArgs.get("grayscaleBitmapSampling")] : Sampling.NONE;
+        var _grayscaleBitmapQuality = app.scriptArgs.get("grayscaleBitmapQuality") ? BMP_QUALITY[app.scriptArgs.get("grayscaleBitmapQuality")] : CompressionQuality.HIGH;
+        var _grayscaleBitmapCompression = app.scriptArgs.get("grayscaleBitmapCompression") ? BMP_COMPRESSION[app.scriptArgs.get("grayscaleBitmapCompression")] : BitmapCompression.NONE;
+        var _grayscaleBitmapSamplingDPI = parseInt(app.scriptArgs.get("grayscaleBitmapSamplingDPI")) || 150;
+
+        var _monochromeBitmapSampling = app.scriptArgs.get("monochromeBitmapSampling") ? SAMPLING[app.scriptArgs.get("monochromeBitmapSampling")] : Sampling.NONE;
+        var _monochromeBitmapCompression = app.scriptArgs.get("monochromeBitmapCompression") ? MONO_COMPRESSION[app.scriptArgs.get("monochromeBitmapCompression")] : MonoBitmapCompression.NONE;
+        var _monochromeBitmapSamplingDPI = parseInt(app.scriptArgs.get("monochromeBitmapSamplingDPI")) || 600;
+
+        var bleeds = {
+            top:  parseFloat(app.scriptArgs.get("bleedTop")) || 0,
+            bottom: parseFloat(app.scriptArgs.get("bleedBottom")) || 0,
+            inside: parseFloat(app.scriptArgs.get("bleedInside")) || 0,
+            outside: parseFloat(app.scriptArgs.get("bleedOutside")) || 0
+        };
+        var _pageMarksOffset = parseInt(app.scriptArgs.get("pageMarksOffset")) || 12;
+
+        with(app.pdfExportPreferences){
+            //Basic PDF output options.
+            pageRange = PageRange.allPages;
+            acrobatCompatibility = _acrobatCompatibility;
+            standartsCompliance = _standartsCompliance;
+            exportGuidesAndGrids = false;
+            exportLayers = false;
+            exportNonPrintingObjects = false;
+            exportReaderSpreads = false;
+            generateThumbnails = false;
+            try{
+                ignoreSpreadOverrides = false;
+            }
+            catch(e){}
+            includeBookmarks = true;
+            includeHyperlinks = true;
+            includeICCProfiles = true;
+            includeSlugWithPDF = false;
+            includeStructure = false;
+            interactiveElementsOption = InteractiveElementsOptions.doNotInclude;
+            //Setting subsetFontsBelow to zero disallows font subsetting;
+            //set subsetFontsBelow to some other value to use font subsetting.
+            subsetFontsBelow = 0;
+            //
+            //Bitmap compression/sampling/quality options.
+            colorBitmapCompression = _colorBitmapCompression;
+            colorBitmapQuality = _colorBitmapQuality;
+            colorBitmapSampling = _colorBitmapSampling;
+            if (colorBitmapSampling != Sampling.NONE) {
+                colorBitmapSamplingDPI = _colorBitmapSamplingDPI;
+                thresholdToCompressColor = colorBitmapSamplingDPI * 1.5;
+            }
+            grayscaleBitmapCompression = _grayscaleBitmapCompression;
+            grayscaleBitmapQuality = _grayscaleBitmapQuality;
+            grayscaleBitmapSampling = _grayscaleBitmapSampling;
+            if (grayscaleBitmapSampling != Sampling.NONE) {
+                grayscaleBitmapSamplingDPI = _grayscaleBitmapSamplingDPI;
+                thresholdToCompressGray = grayscaleBitmapSamplingDPI * 1.5;
+            }
+            monochromeBitmapCompression = _monochromeBitmapCompression;
+            monochromeBitmapSampling = _monochromeBitmapSampling;
+            if (monochromeBitmapSampling != Sampling.NONE) {
+                monochromeBitmapSamplingDPI = _monochromeBitmapSamplingDPI;
+                thresholdToCompressMonochrome = monochromeBitmapSamplingDPI * 1.5;
+            }
+            //
+            //Other compression options.
+            compressionType = PDFCompressionType.compressNone;
+            compressTextAndLineArt = true;
+            cropImagesToFrames = true;
+            optimizePDF = _optimizePDF;
+            //
+            //Printers marks and prepress options.
+            //Get the bleed amounts from the document's bleed.
+            bleedBottom = bleeds.bottom;
+            bleedTop = bleeds.top;
+            bleedInside = bleeds.inside;
+            bleedOutside = bleeds.outside;
+            //If any bleed area is greater than zero, then export the bleed marks.
+            useDocumentBleedWithPDF = false;
+            if (bleedBottom === 0 && bleedTop === 0 && bleedInside === 0 && bleedOutside === 0){
+                bleedMarks = true;
+            } else {
+                bleedMarks = false;
+            }
+            colorBars = _colorBars;
+            colorTileSize = 128;
+            grayTileSize = 128;
+            cropMarks = _cropMarks;
+            omitBitmaps = false;
+            omitEPS = false;
+            omitPDF = false;
+            pageInformationMarks = _pageInformationMarks;
+            pageMarksOffset = _pageMarksOffset;
+            pdfMarkType = MarkTypes.DEFAULT_VALUE;
+            printerMarkWeight = PDFMarkWeight.p125pt;
+            registrationMarks = _registrationMarks;
+            try {
+                simulateOverprint = false;
+            }
+            catch(e){}
+            //Set viewPDF to true to open the PDF in Acrobat or Adobe Reader.
+            viewPDF = false;
+            //
+            // Output
+            pdfColorSpace = _colorSpace;
+            pdfDestinationProfile = _colorProfile;
+            pdfXProfile = _colorProfile;
+            //
+            // Advanced
+            appliedFlattenerPreset = app.flattenerPresets.itemByName(_flattenerPresetName);
+        }
+        myDocument.exportFile(ExportFormat.pdfType, new File(dst_filename), pdfExportPreset);
+    }
 } else if (format === "jpeg") {
     myDocument.exportFile(ExportFormat.JPG, new File(dst_filename));
 } else if (format === "idml") {
@@ -213,4 +220,3 @@ if (format === "pdf") {
 }
 
 app.documents.item(0).close();
-

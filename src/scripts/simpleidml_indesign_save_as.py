@@ -12,13 +12,20 @@ o Boolean parameters just need to be present to be set on:
     - colorBars, optimizePDF, cropMarks, pageInformationMarks,
         registrationMarks,
 
+
 o String parameters:
+
+    You can call a predifined preset (.joboptions file) with
+    pdfExportPresetName:
+
+    - pdfExportPresetName: [Press Quality], ...
+
+    Or the the following parameters:
 
     - acrobatCompatibility: 4, 5, 6, 7 or 8
     - colorSpace: CMYK, iGry, rCMY, rRGB, cRGB or unFc
     - colorProfile (output > color > destination) and
         (output > PDF/X > profile): Generic CMYK Profile, ...
-    - outputCondition: Convert to Destination, ...
     - flattenerPresetName: [High resolution print], ...
     - standartsCompliance: 1A2001, 1A2003, 32002, 32003 or 42010
     - bleedTop, bleedBottom, bleedInside, bleedOutside: (float value)

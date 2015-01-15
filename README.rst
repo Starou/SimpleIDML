@@ -429,6 +429,14 @@ in your PATH.
 Revisions
 =========
 
+0.91.8
+------
+
+New features
+''''''''''''
+
+- Added support for PDF export presets in ``indesign.save_as()``.
+
 0.91.7
 ------
 
