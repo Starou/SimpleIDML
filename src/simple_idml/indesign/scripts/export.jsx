@@ -211,7 +211,7 @@ if (format === "pdf") {
             // Advanced
             appliedFlattenerPreset = app.flattenerPresets.itemByName(_flattenerPresetName);
         }
-        myDocument.exportFile(ExportFormat.pdfType, new File(dst_filename), pdfExportPreset);
+        myDocument.exportFile(ExportFormat.pdfType, new File(dst_filename));
     }
 } else if (format === "jpeg") {
     myDocument.exportFile(ExportFormat.JPG, new File(dst_filename));
