@@ -586,9 +586,11 @@ u"""<Root>
             with idml_file.prefix("FOO") as prefixed_f:
 
                 # Spreads.
-                self.assertEqual(prefixed_f.spreads, ['Spreads/Spread_FOOub6.xml',
-                                                    'Spreads/Spread_FOOubc.xml',
-                                                    'Spreads/Spread_FOOuc3.xml'])
+                self.assertEqual(set(prefixed_f.spreads), set([
+                    'Spreads/Spread_FOOub6.xml',
+                    'Spreads/Spread_FOOubc.xml',
+                    'Spreads/Spread_FOOuc3.xml']
+                ))
 
                 with prefixed_f.open("Spreads/Spread_FOOub6.xml") as f:
                     spread = etree.fromstring(f.read())
@@ -598,15 +600,17 @@ u"""<Root>
                     self.assertEqual(spread.xpath(".//Spread[1]/TextFrame[1]")[0].get("ParentStory"), "FOOu102")
 
                 # Stories.
-                self.assertEqual(prefixed_f.stories, ['Stories/Story_FOOu102.xml',
-                                                    'Stories/Story_FOOu11b.xml',
-                                                    'Stories/Story_FOOu139.xml',
-                                                    'Stories/Story_FOOue4.xml'])
+                self.assertEqual(set(prefixed_f.stories), set([
+                    'Stories/Story_FOOu102.xml',
+                    'Stories/Story_FOOu11b.xml',
+                    'Stories/Story_FOOu139.xml',
+                    'Stories/Story_FOOue4.xml']
+                ))
 
                 with prefixed_f.open("Stories/Story_FOOu102.xml") as f:
                     story = etree.fromstring(f.read())
                     self.assertEqual(story.xpath("//CharacterStyleRange")[0].get("AppliedCharacterStyle"),
-                                    "FOOCharacterStyle/$ID/[No character style]")
+                                     "FOOCharacterStyle/$ID/[No character style]")
 
                 # XML Structure.
                 self.assertXMLEqual(unicode(prefixed_f.xml_structure_pretty()),
@@ -629,14 +633,13 @@ u"""<Root Self="FOOdi2">
                 with prefixed_f.open("designmap.xml") as f:
                     designmap = etree.fromstring(f.read())
                     self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
-                                    "FOOue4 FOOu102 FOOu11b FOOu139 FOOu9c")
+                                     "FOOue4 FOOu102 FOOu11b FOOu139 FOOu9c")
                     self.assertEqual(designmap.xpath(".//idPkg:Story",
-                                                    namespaces={'idPkg': IDPKG_NS})[0].get("src"),
-                                    "Stories/Story_FOOu139.xml")
+                                                     namespaces={'idPkg': IDPKG_NS})[0].get("src"),
+                                     "Stories/Story_FOOu139.xml")
                     self.assertEqual(designmap.xpath(".//idPkg:Spread",
-                                                    namespaces={'idPkg': IDPKG_NS})[0].get("src"),
-                                    "Spreads/Spread_FOOub6.xml")
-
+                                                     namespaces={'idPkg': IDPKG_NS})[0].get("src"),
+                                     "Spreads/Spread_FOOub6.xml")
 
         # Prefix d'un fichier avec un mapping Style/Tag XML.
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
@@ -683,19 +686,23 @@ u"""<Root Self="FOOdi2">
                                                only="/Root/module[1]") as f:
 
                     # Stories.
-                    self.assertEqual(f.stories, ['Stories/Story_article1u188.xml',
-                                                 'Stories/Story_article1u19f.xml',
-                                                 'Stories/Story_article1u1db.xml',
-                                                 'Stories/Story_mainu102.xml',
-                                                 'Stories/Story_mainu11b.xml',
-                                                 'Stories/Story_mainu139.xml',
-                                                 'Stories/Story_mainudd.xml',
-                                                 'Stories/Story_mainue4.xml'])
+                    self.assertEqual(set(f.stories), set([
+                        'Stories/Story_article1u188.xml',
+                        'Stories/Story_article1u19f.xml',
+                        'Stories/Story_article1u1db.xml',
+                        'Stories/Story_mainu102.xml',
+                        'Stories/Story_mainu11b.xml',
+                        'Stories/Story_mainu139.xml',
+                        'Stories/Story_mainudd.xml',
+                        'Stories/Story_mainue4.xml']
+                    ))
 
                     # Spreads
-                    self.assertEqual(f.spreads, ['Spreads/Spread_mainub6.xml',
-                                                 'Spreads/Spread_mainubc.xml',
-                                                 'Spreads/Spread_mainuc3.xml'])
+                    self.assertEqual(set(f.spreads), set([
+                        'Spreads/Spread_mainub6.xml',
+                        'Spreads/Spread_mainubc.xml',
+                        'Spreads/Spread_mainuc3.xml']
+                    ))
 
                     self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in f.spreads_objects[0].dom.iter()], [
                         ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
@@ -1817,17 +1824,17 @@ u"""<Root Self="FOOdi2">
                             'ColumnDirection': 'Horizontal',
                             'Left': '36'
                         }),
-                    ('GridDataInformation', {
-                        'LineAki': '9',
-                        'FontStyle': 'Regular',
-                        'PointSize': '12',
-                        'CharacterAki': '0',
-                        'GridAlignment': 'AlignEmCenter',
-                        'LineAlignment': 'LeftOrTopLineJustify',
-                        'HorizontalScale': '100',
-                        'CharacterAlignment': 'AlignEmCenter',
-                        'VerticalScale': '100'
-                    }),
+                        ('GridDataInformation', {
+                            'LineAki': '9',
+                            'FontStyle': 'Regular',
+                            'PointSize': '12',
+                            'CharacterAki': '0',
+                            'GridAlignment': 'AlignEmCenter',
+                            'LineAlignment': 'LeftOrTopLineJustify',
+                            'HorizontalScale': '100',
+                            'CharacterAlignment': 'AlignEmCenter',
+                            'VerticalScale': '100'
+                        }),
                         ('Properties', {}),
                         ('AppliedFont', {'type': 'string'})
                     ])
@@ -1919,19 +1926,23 @@ u"""<Root Self="FOOdi2">
                                                only="/Root/module[1]") as f:
 
                     # Stories.
-                    self.assertEqual(f.stories, ['Stories/Story_article1u188.xml',
-                                                 'Stories/Story_article1u19f.xml',
-                                                 'Stories/Story_article1u1db.xml',
-                                                 'Stories/Story_mainu102.xml',
-                                                 'Stories/Story_mainu11b.xml',
-                                                 'Stories/Story_mainu139.xml',
-                                                 'Stories/Story_mainudd.xml',
-                                                 'Stories/Story_mainue4.xml'])
+                    self.assertEqual(set(f.stories), set([
+                        'Stories/Story_article1u188.xml',
+                        'Stories/Story_article1u19f.xml',
+                        'Stories/Story_article1u1db.xml',
+                        'Stories/Story_mainu102.xml',
+                        'Stories/Story_mainu11b.xml',
+                        'Stories/Story_mainu139.xml',
+                        'Stories/Story_mainudd.xml',
+                        'Stories/Story_mainue4.xml']
+                    ))
 
                     # Spreads
-                    self.assertEqual(f.spreads, ['Spreads/Spread_mainub6.xml',
-                                                 'Spreads/Spread_mainubc.xml',
-                                                 'Spreads/Spread_mainuc3.xml'])
+                    self.assertEqual(set(f.spreads), set([
+                        'Spreads/Spread_mainub6.xml',
+                        'Spreads/Spread_mainubc.xml',
+                        'Spreads/Spread_mainuc3.xml']
+                    ))
 
                     self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in f.spreads_objects[0].dom.iter()], [
                         ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
@@ -3267,19 +3278,23 @@ u"""<Root Self="FOOdi2">
                                                only="/Root/module[1]") as f:
 
                     # Stories.
-                    self.assertEqual(f.stories, ['Stories/Story_article1u188.xml',
-                                                 'Stories/Story_article1u19f.xml',
-                                                 'Stories/Story_article1u1db.xml',
-                                                 'Stories/Story_mainu102.xml',
-                                                 'Stories/Story_mainu11b.xml',
-                                                 'Stories/Story_mainu139.xml',
-                                                 'Stories/Story_mainudd.xml',
-                                                 'Stories/Story_mainue4.xml'])
+                    self.assertEqual(set(f.stories), set([
+                        'Stories/Story_article1u188.xml',
+                        'Stories/Story_article1u19f.xml',
+                        'Stories/Story_article1u1db.xml',
+                        'Stories/Story_mainu102.xml',
+                        'Stories/Story_mainu11b.xml',
+                        'Stories/Story_mainu139.xml',
+                        'Stories/Story_mainudd.xml',
+                        'Stories/Story_mainue4.xml']
+                    ))
 
                     # Spreads
-                    self.assertEqual(f.spreads, ['Spreads/Spread_mainub6.xml',
-                                                 'Spreads/Spread_mainubc.xml',
-                                                 'Spreads/Spread_mainuc3.xml'])
+                    self.assertEqual(set(f.spreads), set([
+                        'Spreads/Spread_mainub6.xml',
+                        'Spreads/Spread_mainubc.xml',
+                        'Spreads/Spread_mainuc3.xml']
+                    ))
 
     def test_insert_idml_with_elements_on_same_layer(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
