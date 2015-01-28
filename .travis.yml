@@ -7,4 +7,6 @@ install:
   - pip install lxml suds
   - pip install .
 
-script: cd tests; python runtests.py
+before_script: cd tests
+
+script: python runtests.py
