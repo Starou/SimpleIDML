@@ -41,4 +41,6 @@ if __name__ == '__main__':
         only = sys.argv[1]
     suites = load_suite_tests(only=only)
     suite = unittest.TestSuite(suites)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    if result.failures:
+        sys.exit(bool(result.failures))
