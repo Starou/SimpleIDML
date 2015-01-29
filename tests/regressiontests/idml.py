@@ -3412,9 +3412,11 @@ u"""<Root Self="editodi2">
                 ]
                 with prefixed_edito.add_pages_from_idml(packages_to_add) as new_idml:
                     self.assertEqual(len(new_idml.pages), 5)
-                    self.assertEqual(new_idml.spreads, ['Spreads/Spread_editoub6.xml',
-                                                        'Spreads/Spread_editoubc.xml',
-                                                        'Spreads/Spread_editoubd.xml'])
+                    self.assertEqual(set(new_idml.spreads), set([
+                        'Spreads/Spread_editoub6.xml',
+                        'Spreads/Spread_editoubc.xml',
+                        'Spreads/Spread_editoubd.xml']
+                    ))
 
     def test_add_pages_from_idml_to_template(self):
         # Now we use an empty document to hold the pages.

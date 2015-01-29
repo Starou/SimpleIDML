@@ -16,6 +16,10 @@ SimpleIDML
     :target: https://pypi.python.org/pypi/SimpleIDML/
     :alt: License
 
+.. image:: https://travis-ci.org/Starou/SimpleIDML.svg
+    :target: https://travis-ci.org/Starou/SimpleIDML
+    :alt: Travis C.I.
+
 Installation
 ============
 
