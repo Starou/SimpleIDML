@@ -701,7 +701,7 @@ u"""<Root Self="FOOdi2">
                         'Spreads/Spread_mainuc3.xml']
                     ))
 
-                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in f.spreads_objects[0].dom.iter()], [
+                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in f.get_spread_object_by_name("Spreads/Spread_mainub6.xml").dom.iter()], [
                         ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
                          {'DOMVersion': '7.5'}),
                         ('Spread',
@@ -1765,7 +1765,7 @@ u"""<Root Self="FOOdi2">
                          {'NamespacePrefix': '$ID/', 'PropertyPath': '$ID/'})
                     ])
 
-                    self.assertEqual([(elt.tag, elt.attrib) for elt in f.spreads_objects[2].dom.iter()], [
+                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in f.get_spread_object_by_name("Spreads/Spread_mainuc3.xml").dom.iter()], [
                         ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
                          {'DOMVersion': '7.5'}),
                         ('Spread', {
@@ -1941,7 +1941,7 @@ u"""<Root Self="FOOdi2">
                         'Spreads/Spread_mainuc3.xml']
                     ))
 
-                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in f.spreads_objects[0].dom.iter()], [
+                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in f.get_spread_object_by_name("Spreads/Spread_mainub6.xml").dom.iter()], [
                         ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
                          {'DOMVersion': '7.5'}),
                         ('Spread',
@@ -3005,7 +3005,7 @@ u"""<Root Self="FOOdi2">
                          {'NamespacePrefix': '$ID/', 'PropertyPath': '$ID/'})
                     ])
 
-                    self.assertEqual([(elt.tag, elt.attrib) for elt in f.spreads_objects[1].dom.iter()], [
+                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in f.get_spread_object_by_name("Spreads/Spread_mainubc.xml").dom.iter()], [
                         ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread', {'DOMVersion': '7.5'}),
                         ('Spread', {
                             'PageTransitionDirection': 'NotApplicable',
@@ -3120,7 +3120,7 @@ u"""<Root Self="FOOdi2">
                         ('AppliedFont', {'type': 'string'})
                     ])
 
-                    self.assertEqual([(elt.tag, elt.attrib) for elt in f.spreads_objects[2].dom.iter()], [
+                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in f.get_spread_object_by_name("Spreads/Spread_mainuc3.xml").dom.iter()], [
                         ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread', {'DOMVersion': '7.5'}),
                         ('Spread', {
                             'PageTransitionDirection': 'NotApplicable',
