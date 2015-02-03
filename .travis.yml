@@ -4,7 +4,11 @@ python:
   - 2.7
 
 install: 
-  - pip install coverage coveralls lxml mock suds
+  - pip install -q coverage
+  - pip install -q coveralls
+  - pip install -q lxml
+  - pip install -q mock
+  - pip install -q suds
   - pip install .
 
 before_script: cd tests
