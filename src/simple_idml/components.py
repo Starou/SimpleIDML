@@ -56,7 +56,8 @@ class IDMLXMLFile(object):
         self._dom = None
 
     def __repr__(self):
-        return "%s %s" % (self.__class__.__name__, self.name)
+        return "<%s object %s at %s>" % (self.__class__.__name__,
+                                         self.name, hex(id(self)))
 
     @property
     def fobj(self):
