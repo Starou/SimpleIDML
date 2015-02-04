@@ -514,6 +514,13 @@ class Designmap(IDMLXMLFile):
                 etree.Element("{%s}Spread" % IdPkgNS, src=spread.name)
             )
 
+    def prefix(self, prefix):
+        self.prefix_active_layer(prefix)
+        self.prefix_page_start(prefix)
+
+    def prefix_active_layer(self, prefix):
+        self.active_layer = "%s%s" % (prefix, self.active_layer)
+
     def prefix_page_start(self, prefix):
         section_node = self.section_node
         current_page_start = section_node.get(self.page_start_attr)
@@ -567,6 +574,10 @@ class Designmap(IDMLXMLFile):
     def get_layer_id_by_name(self, layer_name):
         layer_node = self.dom.xpath(".//Layer[@Name='%s']" % layer_name)[0]
         return layer_node.get("Self")
+
+    def get_active_layer_name(self):
+        layer_node = self.dom.xpath(".//Layer[@Self='%s']" % self.active_layer)[0]
+        return layer_node.get("Name")
 
 
 class Style(IDMLXMLFile):

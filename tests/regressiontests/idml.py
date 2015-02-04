@@ -626,7 +626,7 @@ u"""<Root Self="FOOdi2">
   <advertise XMLContent="FOOudf" Self="FOOdi2i6"/>
 </Root>
 """)
-            # designmap.xml
+                # designmap.xml
                 with prefixed_f.open("designmap.xml") as f:
                     designmap = etree.fromstring(f.read())
                     self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
@@ -637,6 +637,8 @@ u"""<Root Self="FOOdi2">
                     self.assertEqual(designmap.xpath(".//idPkg:Spread",
                                                      namespaces={'idPkg': IDPKG_NS})[0].get("src"),
                                      "Spreads/Spread_FOOub6.xml")
+                # Layer(s)
+                self.assertEqual(prefixed_f.get_active_layer_name(), "Layer 1")
 
         # Prefix d'un fichier avec un mapping Style/Tag XML.
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),

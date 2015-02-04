@@ -508,7 +508,7 @@ class IDMLPackage(zipfile.ZipFile):
             os.rename(old_name, new_name)
 
         # Update designmap.xml.
-        self.designmap.prefix_page_start(prefix)
+        self.designmap.prefix(prefix)
         self.designmap.synchronize()
 
         return self
@@ -935,6 +935,9 @@ class IDMLPackage(zipfile.ZipFile):
 
     def get_layer_id_by_name(self, layer_name):
         return self.designmap.get_layer_id_by_name(layer_name)
+
+    def get_active_layer_name(self):
+        return self.designmap.get_active_layer_name()
 
     def get_structure_element_layer_id(self, xml_element):
         spread_elt = self.get_spread_elem_by_id(xml_element.get("XMLContent"))
