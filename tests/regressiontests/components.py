@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import shutil
 import unittest
 from decimal import Decimal
 from lxml import etree
-
-from simple_idml.idml import IDMLPackage
 from simple_idml.components import RECTO, VERSO
 from simple_idml.components import Spread, Story, Style, StyleMapping, XMLElement
+from simple_idml.idml import IDMLPackage
+from simple_idml.utils import etree_dom_to_tree
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
@@ -266,8 +265,43 @@ class StyleTestCase(unittest.TestCase):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), mode="r")
         style = Style(idml_file)
         style_node = style.get_style_node_by_name("CharacterStyle/bold")
-        self.assertEqual(etree.tostring(style_node, pretty_print=True).replace("\t", " ").replace("\n", ""),
-                         """<CharacterStyle xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" Self="CharacterStyle/bold" Imported="false" KeyboardShortcut="0 0" Name="bold" FontStyle="Bold">   <Properties>    <BasedOn type="string">$ID/[No character style]</BasedOn>    <PreviewColor type="enumeration">Nothing</PreviewColor>   </Properties>  </CharacterStyle>  """)
+        self.assertEqual(style_node.nsmap, {'idPkg': 'http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging'})
+        self.assertEqual(etree_dom_to_tree(style_node, True), {
+            'attrs': {
+                'FontStyle': 'Bold',
+                'Imported': 'false',
+                'KeyboardShortcut': '0 0',
+                'Name': 'bold',
+                'Self': 'CharacterStyle/bold'
+            },
+            'content': [
+                {
+                    'attrs': {},
+                    'content': [
+                        {
+                            'attrs': {'type': 'string'},
+                            'content': [],
+                            'tag': 'BasedOn',
+                            'tail': '',
+                            'text': '$ID/[No character style]'
+                        },
+                        {
+                            'attrs': {'type': 'enumeration'},
+                            'content': [],
+                            'tag': 'PreviewColor',
+                            'tail': '',
+                            'text': 'Nothing'
+                        }
+                    ],
+                    'tag': 'Properties',
+                    'tail': '',
+                    'text': ''
+                }
+            ],
+            'tag': 'CharacterStyle',
+            'tail': '',
+            'text': ''
+        })
 
 
 class StyleMappingTestCase(unittest.TestCase):
