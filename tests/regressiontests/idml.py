@@ -200,10 +200,15 @@ class IdmlTestCase(SimpleTestCase):
 
             # Styles mapping.
             self.assertEqual(idml_file.style_mapping.tostring(),
-                             '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">                   </idPkg:Mapping>\n')
+                             "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n<idPkg:Mapping xmlns:idPkg=\"http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging\" DOMVersion=\"7.5\">                   </idPkg:Mapping>\n")
 
             # Fonts.
-            self.assertEqual([font.get("Name") for font in idml_file.font_families], ['Minion Pro', 'Myriad Pro', 'Kozuka Mincho Pro', 'Vollkorn'])
+            self.assertEqual([font.get("Name") for font in idml_file.font_families], [
+                'Minion Pro',
+                'Myriad Pro',
+                'Kozuka Mincho Pro',
+                'Vollkorn'
+            ])
 
             # XML Structure.
             self.assertXMLEqual(unicode(idml_file.xml_structure_pretty()),
@@ -603,7 +608,7 @@ u"""<Root Self="di2">
                                             {
                                                 'tag': 'italique',
                                                 'attrs': {},
-                                                'content': [u'Pel\xe9 dos Santos (Seu Jorge)'],
+                                                'content': [u'Pelé dos Santos (Seu Jorge)'],
                                             },
                                             ', a safety expert and Brazilian musician who sings David Bowie songs in Portuguese, and Klaus Daimler (Willem Dafoe), the German second-in-command who viewed Zissou and Esteban as father figures'
                                         ],
@@ -1977,10 +1982,17 @@ u"""<Root Self="FOOdi2">
                     # Designmap.xml.
                     with f.open("designmap.xml") as df:
                         designmap = etree.fromstring(df.read())
-                        self.assertEqual(
-                            designmap.xpath("/Document")[0].get("StoryList"),
-                            "mainue4 mainu102 mainu11b mainu139 mainu9c mainudd article1u1db article1u188 article1u19f"
-                        )
+                        self.assertEqual(designmap.xpath("/Document")[0].get("StoryList").split(" "), [
+                            "mainue4",
+                            "mainu102",
+                            "mainu11b",
+                            "mainu139",
+                            "mainu9c",
+                            "mainudd",
+                            "article1u1db",
+                            "article1u188",
+                            "article1u19f"
+                        ])
                         self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
                                                              namespaces={'idPkg': IDPKG_NS})), 8)
 
@@ -1988,26 +2000,36 @@ u"""<Root Self="FOOdi2">
                     styles = [[style.get("Self") for style in style_group.iterchildren()]
                               for style_group in f.style_groups]
                     self.assertEqual(styles, [
-                        ['mainCharacterStyle/$ID/[No character style]',
-                         'article1CharacterStyle/$ID/[No character style]',
-                         'article1CharacterStyle/MyBoldStyle'],
-                        ['mainParagraphStyle/$ID/[No paragraph style]',
-                         'mainParagraphStyle/$ID/NormalParagraphStyle',
-                         'article1ParagraphStyle/$ID/[No paragraph style]',
-                         'article1ParagraphStyle/$ID/NormalParagraphStyle'],
-                        ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
-                        ['mainTableStyle/$ID/[No table style]',
-                         'mainTableStyle/$ID/[Basic Table]',
-                         'article1TableStyle/$ID/[No table style]',
-                         'article1TableStyle/$ID/[Basic Table]'],
-                        ['mainObjectStyle/$ID/[None]',
-                         'mainObjectStyle/$ID/[Normal Graphics Frame]',
-                         'mainObjectStyle/$ID/[Normal Text Frame]',
-                         'mainObjectStyle/$ID/[Normal Grid]',
-                         'article1ObjectStyle/$ID/[None]',
-                         'article1ObjectStyle/$ID/[Normal Graphics Frame]',
-                         'article1ObjectStyle/$ID/[Normal Text Frame]',
-                         'article1ObjectStyle/$ID/[Normal Grid]']
+                        [
+                            'mainCharacterStyle/$ID/[No character style]',
+                            'article1CharacterStyle/$ID/[No character style]',
+                            'article1CharacterStyle/MyBoldStyle',
+                        ],
+                        [
+                            'mainParagraphStyle/$ID/[No paragraph style]',
+                            'mainParagraphStyle/$ID/NormalParagraphStyle',
+                            'article1ParagraphStyle/$ID/[No paragraph style]',
+                            'article1ParagraphStyle/$ID/NormalParagraphStyle'
+                        ],
+                        [
+                            'mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'
+                        ],
+                        [
+                            'mainTableStyle/$ID/[No table style]',
+                            'mainTableStyle/$ID/[Basic Table]',
+                            'article1TableStyle/$ID/[No table style]',
+                            'article1TableStyle/$ID/[Basic Table]'
+                        ],
+                        [
+                            'mainObjectStyle/$ID/[None]',
+                            'mainObjectStyle/$ID/[Normal Graphics Frame]',
+                            'mainObjectStyle/$ID/[Normal Text Frame]',
+                            'mainObjectStyle/$ID/[Normal Grid]',
+                            'article1ObjectStyle/$ID/[None]',
+                            'article1ObjectStyle/$ID/[Normal Graphics Frame]',
+                            'article1ObjectStyle/$ID/[Normal Text Frame]',
+                            'article1ObjectStyle/$ID/[Normal Grid]'
+                        ]
                     ])
 
                     # Style mapping.
@@ -3331,8 +3353,17 @@ u"""<Root Self="FOOdi2">
                     # Designmap.xml.
                     with f.open("designmap.xml") as df:
                         designmap = etree.fromstring(df.read())
-                        self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
-                                         "mainue4 mainu102 mainu11b mainu139 mainu9c mainudd article1u1db article1u188 article1u19f")
+                        self.assertEqual(designmap.xpath("/Document")[0].get("StoryList").split(" "), [
+                            "mainue4",
+                            "mainu102",
+                            "mainu11b",
+                            "mainu139",
+                            "mainu9c",
+                            "mainudd",
+                            "article1u1db",
+                            "article1u188",
+                            "article1u19f"
+                        ])
                         self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
                                              namespaces={'idPkg': IDPKG_NS})), 8)
 
@@ -3340,26 +3371,36 @@ u"""<Root Self="FOOdi2">
                     styles = [[style.get("Self") for style in style_group.iterchildren()]
                               for style_group in f.style_groups]
                     self.assertEqual(styles, [
-                        ['mainCharacterStyle/$ID/[No character style]',
-                         'article1CharacterStyle/$ID/[No character style]',
-                         'article1CharacterStyle/MyBoldStyle'],
-                        ['mainParagraphStyle/$ID/[No paragraph style]',
-                         'mainParagraphStyle/$ID/NormalParagraphStyle',
-                         'article1ParagraphStyle/$ID/[No paragraph style]',
-                         'article1ParagraphStyle/$ID/NormalParagraphStyle'],
-                        ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
-                        ['mainTableStyle/$ID/[No table style]',
-                         'mainTableStyle/$ID/[Basic Table]',
-                         'article1TableStyle/$ID/[No table style]',
-                         'article1TableStyle/$ID/[Basic Table]'],
-                        ['mainObjectStyle/$ID/[None]',
-                         'mainObjectStyle/$ID/[Normal Graphics Frame]',
-                         'mainObjectStyle/$ID/[Normal Text Frame]',
-                         'mainObjectStyle/$ID/[Normal Grid]',
-                         'article1ObjectStyle/$ID/[None]',
-                         'article1ObjectStyle/$ID/[Normal Graphics Frame]',
-                         'article1ObjectStyle/$ID/[Normal Text Frame]',
-                         'article1ObjectStyle/$ID/[Normal Grid]']
+                        [
+                            'mainCharacterStyle/$ID/[No character style]',
+                            'article1CharacterStyle/$ID/[No character style]',
+                            'article1CharacterStyle/MyBoldStyle'
+                        ],
+                        [
+                            'mainParagraphStyle/$ID/[No paragraph style]',
+                            'mainParagraphStyle/$ID/NormalParagraphStyle',
+                            'article1ParagraphStyle/$ID/[No paragraph style]',
+                            'article1ParagraphStyle/$ID/NormalParagraphStyle'
+                        ],
+                        [
+                            'mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'
+                        ],
+                        [
+                            'mainTableStyle/$ID/[No table style]',
+                            'mainTableStyle/$ID/[Basic Table]',
+                            'article1TableStyle/$ID/[No table style]',
+                            'article1TableStyle/$ID/[Basic Table]'
+                        ],
+                        [
+                            'mainObjectStyle/$ID/[None]',
+                            'mainObjectStyle/$ID/[Normal Graphics Frame]',
+                            'mainObjectStyle/$ID/[Normal Text Frame]',
+                            'mainObjectStyle/$ID/[Normal Grid]',
+                            'article1ObjectStyle/$ID/[None]',
+                            'article1ObjectStyle/$ID/[Normal Graphics Frame]',
+                            'article1ObjectStyle/$ID/[Normal Text Frame]',
+                            'article1ObjectStyle/$ID/[Normal Grid]'
+                        ]
                     ])
 
                     # Style mapping.
