@@ -308,15 +308,15 @@ class StyleMappingTestCase(unittest.TestCase):
     def test_styles(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), mode="r")
         style_mapping = StyleMapping(idml_file)
-        self.assertEqual(
-            [line.strip() for line in style_mapping.tostring().split("\n")],
-            ["<?xml version='1.0' encoding='UTF-8' standalone='yes'?>",
-             '<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="10.0">',
-             '<XMLImportMap Self="did2" MarkupTag="XMLTag/bold" MappedStyle="CharacterStyle/bold"/>',
-             '<XMLImportMap Self="di13f" MarkupTag="XMLTag/italique" MappedStyle="CharacterStyle/italique"/>',
-             '<XMLImportMap Self="di141" MarkupTag="XMLTag/sup" MappedStyle="CharacterStyle/sup"/>',
-             '</idPkg:Mapping>',
-             ''])
+        self.assertEqual([line.strip() for line in style_mapping.tostring().split("\n")], [
+            "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>",
+            '<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="10.0">',
+            '<XMLImportMap Self="did2" MarkupTag="XMLTag/bold" MappedStyle="CharacterStyle/bold"/>',
+            '<XMLImportMap Self="di13f" MarkupTag="XMLTag/italique" MappedStyle="CharacterStyle/italique"/>',
+            '<XMLImportMap Self="di141" MarkupTag="XMLTag/sup" MappedStyle="CharacterStyle/sup"/>',
+            '</idPkg:Mapping>',
+            ''
+        ])
 
         # The XML/Mapping.xml may not be present.
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
@@ -382,126 +382,6 @@ class XMLElementTestCase(unittest.TestCase):
                                     "style": "fancy"})
         self.assertEqual(picture_elt.get_attribute("href"), "file:///maison.jpg")
         self.assertEqual(picture_elt.get_attribute("style"), "fancy")
-
-    # TODO: this code is no longer in component. These tests need to be rewritten somewhere else.
-    def notest_create_style_element(self):
-        parent = XMLElement(etree.fromstring("""
-            <XMLElement Self="di3i4i1i2i2i2" MarkupTag="XMLTag/texte">
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
-                                  FontStyle="Semibold" PointSize="9" HorizontalScale="90" Tracking="-30">
-                    <Properties>
-                        <Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-                    <Content>Lorem ipsum dolor sit amet, consectetur adipisicing elit,
-                                  sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </Content>
-                </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
-                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
-                    <Properties>
-                        <Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-                    <Content>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum d</Content>
-                </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
-                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
-                    <Properties>
-                        <Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-                    <Content> nulla pariatur. Excepteur </Content>
-                </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
-                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
-                    <Properties>
-                        <Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-                    <Content> cupidatat </Content>
-                </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
-                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
-                    <Properties>
-                        <Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-                    <Content>, sunt in culpa qui officia dese</Content>
-                </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
-                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-10">
-                    <Properties>
-                        <Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-                    <Br/>
-                </CharacterStyleRange>
-            </XMLElement>"""))
-
-        # No style provided > parent style used.
-        xml_element = XMLElement(tag="bold")
-        style_element = xml_element._create_style_element(parent, style_node=None)
-        self.assertEqual(etree.tostring(style_element, pretty_print=True),
-"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" PointSize="9" FontStyle="Semibold" HorizontalScale="90" Tracking="-30">
-  <Properties><Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-</CharacterStyleRange>
-""")
-
-        # Style specify the font style only : parent font-face and size are added.
-        style_node = etree.fromstring("""
-            <CharacterStyle Self="CharacterStyle/bold" Imported="false" KeyboardShortcut="0 0" Name="bold" FontStyle="Bold">
-                <Properties>
-                    <BasedOn type="string">$ID/[No character style]</BasedOn>
-                    <PreviewColor type="enumeration">Nothing</PreviewColor>
-                </Properties>
-            </CharacterStyle>""")
-        xml_element = XMLElement(tag="bold")
-        style_element = xml_element._create_style_element(parent, style_node)
-        self.assertEqual(etree.tostring(style_element, pretty_print=True),
-"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/bold" PointSize="9" HorizontalScale="90" Tracking="-30">
-  <Properties><Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-</CharacterStyleRange>
-""")
-
-        # Style specify the font style and size : parent font-face is added.
-        style_node = etree.fromstring("""
-            <CharacterStyle Self="CharacterStyle/bold12" Imported="false" KeyboardShortcut="0 0" Name="bold12" FontStyle="Bold" PointSize="12">
-                <Properties>
-                    <BasedOn type="string">$ID/[No character style]</BasedOn>
-                    <PreviewColor type="enumeration">Nothing</PreviewColor>
-                </Properties>
-            </CharacterStyle>""")
-        xml_element = XMLElement(tag="bold12")
-        style_element = xml_element._create_style_element(parent, style_node)
-        self.assertEqual(etree.tostring(style_element, pretty_print=True),
-"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/bold12" HorizontalScale="90" Tracking="-30">
-  <Properties><Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-</CharacterStyleRange>
-""")
-
-        # Style specify the font style, font-face and size.
-        style_node = etree.fromstring("""
-            <CharacterStyle Self="CharacterStyle/CSBold11" Imported="false" KeyboardShortcut="0 0" Name="CSBold11" FontStyle="Bold" PointSize="11">
-                <Properties>
-                    <BasedOn type="string">$ID/[No character style]</BasedOn>
-                    <PreviewColor type="enumeration">Nothing</PreviewColor>
-                    <AppliedFont type="string">Comic Sans MS</AppliedFont>
-                </Properties>
-            </CharacterStyle>""")
-        xml_element = XMLElement(tag="CSBold11")
-        style_element = xml_element._create_style_element(parent, style_node)
-        self.assertEqual(etree.tostring(style_element, pretty_print=True),
-"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/CSBold11" HorizontalScale="90" Tracking="-30">
-  <Properties><Leading type="unit">10</Leading>
-                        </Properties>
-</CharacterStyleRange>
-""")
 
     def test_get_character_style_range(self):
         elt = XMLElement(etree.fromstring("""
