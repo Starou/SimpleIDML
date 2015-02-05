@@ -266,6 +266,31 @@ class PageTestCase(unittest.TestCase):
             'y2': Decimal('379.8425196850394'),
         })
 
+    def test_geometric_bounds(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml"), mode="r")
+        spread = Spread(idml_file, idml_file.spreads[1])
+
+        page3 = spread.pages[1]
+        self.assertEqual(page3.geometric_bounds, [
+            Decimal('0'),
+            Decimal('0'),
+            Decimal('759.6850393700788'),
+            Decimal('566.9291338582677')
+        ])
+
+        page3.geometric_bounds = [
+            Decimal('210'),
+            Decimal('297'),
+            Decimal('10.51'),
+            Decimal('7.23')
+        ]
+        self.assertEqual(page3.geometric_bounds, [
+            Decimal('210'),
+            Decimal('297'),
+            Decimal('10.51'),
+            Decimal('7.23')
+        ])
+
     def test_is_recto(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml"), mode="r")
         spread1 = Spread(idml_file, idml_file.spreads[0])
