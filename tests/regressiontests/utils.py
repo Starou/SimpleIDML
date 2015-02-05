@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
+from lxml import etree
 
 
 class UtilsTestCase(unittest.TestCase):
@@ -62,7 +63,6 @@ class UtilsTestCase(unittest.TestCase):
         self.assertTrue(str_is_prefixed("foo", "foobar"))
 
     def test_tree_to_etree_dom(self):
-        from lxml import etree
         from simple_idml.utils import tree_to_etree_dom
         tree = {
             'tag': 'Root',
@@ -151,6 +151,30 @@ class UtilsTestCase(unittest.TestCase):
   </module>
 </Root>
 """)
+
+    def test_etree_dom_to_tree(self):
+        from simple_idml.utils import etree_dom_to_tree
+        dom = etree.fromstring("""<XMLTag Self="XMLTag/advertise" Name="advertise">
+                               <Properties>
+                               <TagColor type="enumeration">Green</TagColor>
+                               </Properties>
+                               </XMLTag>
+                               """)
+        self.assertEqual(etree_dom_to_tree(dom, True), {
+            'attrs': {'Name': 'advertise', 'Self': 'XMLTag/advertise'},
+            'content': [{'attrs': {},
+                         'content': [{'attrs': {'type': 'enumeration'},
+                                      'content': [],
+                                      'tag': 'TagColor',
+                                      'tail': '',
+                                      'text': 'Green'}],
+                         'tag': 'Properties',
+                         'tail': '',
+                         'text': ''}],
+            'tag': 'XMLTag',
+            'tail': None,
+            'text': ''
+        })
 
 
 def suite():

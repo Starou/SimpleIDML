@@ -111,6 +111,17 @@ def tree_to_etree_dom(tree):
     return dom
 
 
+def etree_dom_to_tree(dom, strip_text=False):
+    """A mapping representation of a etree node. """
+    return {
+        "tag": dom.tag,
+        "attrs": copy.deepcopy(dom.attrib),
+        "text": dom.text.strip() if (dom.text and strip_text) else dom.text,
+        "tail": dom.tail.strip() if (dom.tail and strip_text) else dom.tail,
+        "content": [etree_dom_to_tree(elt, strip_text) for elt in dom.iterchildren()]
+    }
+
+
 def deepcopy_element_as(element, tag):
     new_element = etree.Element(tag, **element.attrib)
     for child in element.iterchildren():
