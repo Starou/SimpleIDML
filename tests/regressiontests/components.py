@@ -15,11 +15,18 @@ IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 
 
 class DesignmapTestCase(unittest.TestCase):
+    def test_repr(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
+        designmap = idml_file.designmap
+        self.assertEqual(repr(designmap), '<Designmap object designmap.xml at %s>' % hex(id(designmap)))
+        idml_file.close()
+
     def test_layer_nodes(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
         designmap = idml_file.designmap
         self.assertEqual(len(designmap.layer_nodes), 1)
         self.assertEqual(designmap.layer_nodes[0].get("Name"), 'Layer 1')
+        idml_file.close()
 
     def test_add_layer_nodes(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
@@ -44,6 +51,7 @@ class DesignmapTestCase(unittest.TestCase):
         self.assertEqual(len(designmap.layer_nodes), 3)
         self.assertEqual([n.get("Name") for n in designmap.layer_nodes],
                          ['Layer 1', 'Layer 2', 'Layer 3'])
+        idml_file.close()
 
     def test_suffix_layers(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
@@ -51,6 +59,7 @@ class DesignmapTestCase(unittest.TestCase):
         self.assertEqual(designmap.layer_nodes[0].get("Name"), 'Layer 1')
         designmap.suffix_layers(" #66")
         self.assertEqual(designmap.layer_nodes[0].get("Name"), 'Layer 1 #66')
+        idml_file.close()
 
     def test_active_layer(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
@@ -62,6 +71,7 @@ class DesignmapTestCase(unittest.TestCase):
 
         del designmap.active_layer
         self.assertEqual(designmap.active_layer, None)
+        idml_file.close()
 
     def test_remove_layer(self):
         # Remove active layer.
@@ -385,6 +395,14 @@ class StyleMappingTestCase(unittest.TestCase):
 
 
 class XMLElementTestCase(unittest.TestCase):
+    def test_repr(self):
+        node = etree.fromstring('<XMLElement Self="di3i4i1" MarkupTag="XMLTag/main_picture" XMLContent="u143" />')
+        elt = XMLElement(node)
+        self.assertEqual(
+            repr(elt),
+            '<Element XMLElement at %s> {Self: di3i4i1, MarkupTag: XMLTag/main_picture, XMLContent: u143}' % hex(id(elt.element))
+        )
+
     def test_attributes(self):
         dom = etree.fromstring("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
