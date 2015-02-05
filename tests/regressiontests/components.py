@@ -84,6 +84,34 @@ class DesignmapTestCase(unittest.TestCase):
         self.assertEqual(designmap.active_layer, None)
         idml_file.close()
 
+    def test_spread_nodes(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        designmap = idml_file.designmap
+        self.assertEqual([etree_dom_to_tree(n, True) for n in designmap.spread_nodes], [
+            {
+                'attrs': {'src': 'Spreads/Spread_ud8.xml'},
+                'content': [],
+                'tag': '{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
+                'tail': '',
+                'text': None
+            },
+            {
+                'attrs': {'src': 'Spreads/Spread_u13b.xml'},
+                'content': [],
+                'tag': '{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
+                'tail': '',
+                'text': None
+            },
+            {
+                'attrs': {'src': 'Spreads/Spread_u142.xml'},
+                'content': [],
+                'tag': '{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
+                'tail': '',
+                'text': None
+            }
+        ])
+        idml_file.close()
+
 
 class SpreadTestCase(unittest.TestCase):
     def test_pages(self):
