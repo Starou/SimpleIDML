@@ -368,10 +368,8 @@ class Story(IDMLXMLFile):
     def set_element_content(self, element_id, content):
         self.clear_element_content(element_id)
         element = self.get_element_by_id(element_id)
-        try:
-            self.get_element_content_nodes(element)[0].text = content
-        except IndexError:
-            pass
+        xml_element = XMLElement(element=element)
+        xml_element.set_content(content)
 
     def clear_element_content(self, element_id):
         element = self.get_element_by_id(element_id)
@@ -831,6 +829,27 @@ class XMLElement(Proxy):
         style_range_node.append(content_element)
         self.element.append(style_range_node)
 
+    def set_content(self, content):
+        try:
+            self.get_element_content_nodes()[0].text = content
+        except IndexError:
+            return
+        # Ticket #8 - Fix the style locally.
+        local_style = self.get_local_character_style_range()
+        if not local_style:
+            super_style = self.get_super_character_style_range()
+            if super_style:
+                # Force super style locally.
+                local_style = self._create_style_range_from_parent(self)
+                self.apply_style_locally(local_style)
+
+    def apply_style_locally(self, style_range_node):
+        """The content node of self is moved into style_range_node. """
+        content_node = self.get_element_content_nodes()[0]
+        style_range_node.append(content_node)
+        self.append(style_range_node)
+
+    # TODO: Why not calling this method directly on parent (which is a XMLElement too)?
     def _create_style_range_from_parent(self, parent):
         parent_style_node = parent.get_character_style_range()
         applied_style = parent_style_node.get("AppliedCharacterStyle")
@@ -893,6 +912,13 @@ class XMLElement(Proxy):
         if node.tag != "CharacterStyleRange":
             node = None
         return node
+
+    # TODO: factorize with Story.get_element_content_nodes().
+    def get_element_content_nodes(self):
+        return self.xpath(("./ParagraphStyleRange/CharacterStyleRange/Content | "
+                           "./CharacterStyleRange/Content | "
+                           "./XMLElement/CharacterStyleRange/Content | "
+                           "./Content"))
 
     def to_xml_structure_element(self):
         """Return the node as seen in the Structure panel of InDesign. """
