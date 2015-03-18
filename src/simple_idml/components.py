@@ -836,7 +836,7 @@ class XMLElement(Proxy):
             return
         # Ticket #8 - Fix the style locally.
         local_style = self.get_local_character_style_range()
-        if not local_style:
+        if local_style is None:
             super_style = self.get_super_character_style_range()
             if super_style:
                 # Force super style locally.
@@ -896,7 +896,7 @@ class XMLElement(Proxy):
     def get_character_style_range(self):
         """The applied style may be contained or the container. """
         node = self.get_local_character_style_range()
-        if not node:
+        if node is None:
             node = self.get_super_character_style_range()
         return node
 
