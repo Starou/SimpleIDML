@@ -310,7 +310,12 @@ class IDMLPackage(zipfile.ZipFile):
             return parent.get(font_style_to_apply, font_style_to_apply)
 
         def _get_nested_style_range_node(xml_structure_node):
-            """Use the more distant parent as base style and then apply its children styles until the new tag itself."""
+            """Use the more distant parent as base style and then apply its children styles until the new tag itself.
+
+            Returns:
+             o new_style_range_node: unbound element.
+             o root_style_node
+            """
             nested_styles = []
             while(xml_structure_node is not None):
                 style_name = self.style_mapping.character_style_mapping.get(xml_structure_node.tag)
