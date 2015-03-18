@@ -876,12 +876,22 @@ class XMLElement(Proxy):
 
     def get_character_style_range(self):
         """The applied style may be contained or the container. """
+        node = self.get_local_character_style_range()
+        if not node:
+            node = self.get_super_character_style_range()
+        return node
+
+    def get_local_character_style_range(self):
         try:
             node = self.xpath(("./ParagraphStyleRange/CharacterStyleRange | ./CharacterStyleRange"))[0]
         except (IndexError, AttributeError):
-            node = self.getparent()
-            if node.tag != "CharacterStyleRange":
-                node = None
+            node = None
+        return node
+
+    def get_super_character_style_range(self):
+        node = self.getparent()
+        if node.tag != "CharacterStyleRange":
+            node = None
         return node
 
     def to_xml_structure_element(self):
