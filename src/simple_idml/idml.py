@@ -430,6 +430,7 @@ class IDMLPackage(zipfile.ZipFile):
             "content": ["foo", {subtree}, "bar", ...]
         }
         """
+
         def _export_content_as_tree(xml_structure_node):
             content = []
             tree = {"tag": xml_structure_node.tag,

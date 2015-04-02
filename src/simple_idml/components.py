@@ -382,18 +382,19 @@ class Story(IDMLXMLFile):
             content_node.text = ""
 
     def get_element_content_nodes(self, element):
-        return element.xpath(("./ParagraphStyleRange/CharacterStyleRange/Content | \
-                               ./CharacterStyleRange/Content | \
-                               ./XMLElement/CharacterStyleRange/Content | \
-                               ./Content"))
+        return element.xpath(("./ParagraphStyleRange/CharacterStyleRange/Content | "
+                              "./CharacterStyleRange/Content | "
+                              "./XMLElement/CharacterStyleRange/Content | "
+                              "./Content"))
 
     def get_element_content_and_xmlelement_nodes(self, element):
-        return element.xpath(("./ParagraphStyleRange/CharacterStyleRange/Content | \
-                               ./CharacterStyleRange/Content | \
-                               ./CharacterStyleRange/XMLElement | \
-                               ./ParagraphStyleRange/XMLElement | \
-                               ./XMLElement | \
-                               ./Content"))
+        return element.xpath(("./ParagraphStyleRange/CharacterStyleRange/Content | "
+                              "./CharacterStyleRange/Content | "
+                              "./ParagraphStyleRange/CharacterStyleRange/XMLElement | "
+                              "./CharacterStyleRange/XMLElement | "
+                              "./ParagraphStyleRange/XMLElement | "
+                              "./XMLElement | "
+                              "./Content"))
 
     def set_element_id(self, element):
         ref_element = [e for e in element.itersiblings(tag="XMLElement", preceding=True)]
