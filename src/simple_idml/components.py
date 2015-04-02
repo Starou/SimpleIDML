@@ -838,7 +838,7 @@ class XMLElement(Proxy):
         local_style = self.get_local_character_style_range()
         if local_style is None:
             super_style = self.get_super_character_style_range()
-            if super_style:
+            if super_style is not None:
                 # Force super style locally.
                 local_style = self._create_style_range_from_parent(self)
                 self.apply_style_locally(local_style)
