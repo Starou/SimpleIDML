@@ -6,8 +6,11 @@ import os
 import shlex
 import shutil
 import subprocess
+import tempfile
+import uuid
 import zipfile
 from io import BytesIO
+from simple_idml.decorators import simple_decorator
 from suds.client import Client
 from tempfile import mkdtemp
 
@@ -44,6 +47,32 @@ def close_all_documents(indesign_server_url, indesign_client_workdir, indesign_s
     cl.service.RunScript(params)
 
 
+@simple_decorator
+def use_dedicated_working_directory(view_func):
+    def new_func(src_filename, dst_formats_params, indesign_server_url, indesign_client_workdir,
+                 indesign_server_workdir, indesign_server_path_style="posix",
+                 clean_workdir=True, ftp_params=None):
+
+        server_path_mod = os.path
+        if indesign_server_path_style == "windows":
+            server_path_mod = ntpath
+
+        # Create a unique sub-directory.
+        working_dir = _mkdir_unique(indesign_client_workdir, ftp_params)
+
+        # update the *_workdir parameters with the new working dir value.
+        indesign_client_workdir = working_dir
+        indesign_server_workdir = server_path_mod.join(indesign_server_workdir, os.path.basename(working_dir))
+
+        response = view_func(src_filename, dst_formats_params, indesign_server_url, indesign_client_workdir,
+                             indesign_server_workdir, indesign_server_path_style, clean_workdir, ftp_params)
+        if clean_workdir:
+            _rmtree(working_dir, ftp_params)
+        return response
+    return new_func
+
+
+@use_dedicated_working_directory
 def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_client_workdir,
             indesign_server_workdir, indesign_server_path_style="posix",
             clean_workdir=True, ftp_params=None):
@@ -270,3 +299,15 @@ def rmtree_ftp(ftp, path):
         ftp.rmd(path)
     except ftplib.all_errors as e:
         raise e
+
+
+def _mkdir_unique(dir, ftp_params=None):
+    if not ftp_params:
+        unique_path = tempfile.mkdtemp(dir=dir)
+    else:
+        unique_path = os.path.join(dir, uuid.uuid1().hex)
+        ftp = ftplib.FTP(*ftp_params["auth"])
+        ftp.set_pasv(ftp_params["passive"])
+        ftp.mkd(unique_path)
+        ftp.quit()
+    return unique_path
