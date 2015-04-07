@@ -433,6 +433,16 @@ in your PATH.
 Revisions
 =========
 
+0.92.1
+------
+
+Bug fixes
+'''''''''
+
+- ``indesign.save_as()`` uses a dedicated temporary working directory to avoid
+  concurrent access on files.
+
+
 0.91.8
 ------
 
