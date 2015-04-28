@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import ftplib
+import logging
 import ntpath
 import os
 import shlex
@@ -51,7 +52,7 @@ def close_all_documents(indesign_server_url, indesign_client_workdir, indesign_s
 def use_dedicated_working_directory(view_func):
     def new_func(src_filename, dst_formats_params, indesign_server_url, indesign_client_workdir,
                  indesign_server_workdir, indesign_server_path_style="posix",
-                 clean_workdir=True, ftp_params=None):
+                 clean_workdir=True, ftp_params=None, logger=None, logger_extra=None):
 
         server_path_mod = os.path
         if indesign_server_path_style == "windows":
@@ -65,7 +66,8 @@ def use_dedicated_working_directory(view_func):
         indesign_server_workdir = server_path_mod.join(indesign_server_workdir, os.path.basename(working_dir))
 
         response = view_func(src_filename, dst_formats_params, indesign_server_url, indesign_client_workdir,
-                             indesign_server_workdir, indesign_server_path_style, clean_workdir, ftp_params)
+                             indesign_server_workdir, indesign_server_path_style, clean_workdir, ftp_params,
+                             logger, logger_extra)
         if clean_workdir:
             _rmtree(working_dir, ftp_params)
         return response
@@ -75,8 +77,13 @@ def use_dedicated_working_directory(view_func):
 @use_dedicated_working_directory
 def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_client_workdir,
             indesign_server_workdir, indesign_server_path_style="posix",
-            clean_workdir=True, ftp_params=None):
+            clean_workdir=True, ftp_params=None, logger=None, logger_extra=None):
     """SOAP call to an InDesign Server to make one or more conversions. """
+
+    if not logger:
+        logger = logging.getLogger('simpleidml.indesign')
+        logger.addHandler(logging.NullHandler())
+    logger_extra = logger_extra or {}
 
     server_path_mod = os.path
     if indesign_server_path_style == "windows":
@@ -137,7 +144,9 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
             fmt.value = dst_format
             params.scriptArgs.append(fmt)
 
+        logger.debug('Calling SOAP "RunScript" service... (params: %s)' % params, extra=logger_extra)
         response = cl.service.RunScript(params)
+        logger.debug('"RunScript" successful! Response: %s' % response, extra=logger_extra)
 
         if dst_format == 'zip':
             # Zip the tree generated in response_client_copy_filename and
@@ -146,11 +155,15 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
             _zip_dir(response_client_copy_filename, zip_filename, ftp_params)
             response_client_copy_filename = zip_filename
 
+        logger.debug('Reading response...')
         response = _read(response_client_copy_filename, ftp_params)
+        logger.debug('Reading response done!')
 
         if clean_workdir:
+            logger.debug('Cleaning workir...')
             _unlink(response_client_copy_filename, ftp_params)
             _unlink(javascript_client_copy_filename, ftp_params)
+            logger.debug('Cleaning workir done!')
 
         return response
 
