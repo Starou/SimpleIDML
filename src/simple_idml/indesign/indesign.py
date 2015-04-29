@@ -6,6 +6,7 @@ import ntpath
 import os
 import shlex
 import shutil
+import socket
 import subprocess
 import tempfile
 import uuid
@@ -236,6 +237,7 @@ def _read(filename, ftp_params=None):
         with BytesIO() as r:
             ftp = ftplib.FTP(*ftp_params["auth"])
             ftp.set_pasv(ftp_params["passive"])
+            fix_ftp_retrieve_hangs(ftp)
             ftp.retrbinary('RETR %s' % filename, r.write)
             ftp.quit()
             r.seek(0)
@@ -324,3 +326,13 @@ def _mkdir_unique(dir, ftp_params=None):
         ftp.mkd(unique_path)
         ftp.quit()
     return unique_path
+
+
+def fix_ftp_retrieve_hangs(ftp):
+    #https://bbs.archlinux.org/viewtopic.php?id=134529
+    #https://github.com/keepitsimple/pyFTPclient/blob/master/pyftpclient.py
+    ftp.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+    if hasattr(socket, "TCP_KEEPINTVL"):
+        ftp.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 75)
+    if hasattr(socket, "TCP_KEEPIDLE"):
+        ftp.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60)
