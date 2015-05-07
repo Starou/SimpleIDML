@@ -441,7 +441,8 @@ Bug fixes
 
 - ``indesign.save_as()`` uses a dedicated temporary working directory to avoid
   concurrent access on files.
-
+- Added a logger to ``indesign.save_as()`` ('simpleidml.indesign') and some debug messages.
+- Fixed hanging ``ftp.retrbinary()`` in ``indesign.save_as()`` calls by tuning the socket.
 
 0.91.8
 ------
