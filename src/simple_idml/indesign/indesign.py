@@ -333,6 +333,6 @@ def fix_ftp_retrieve_hangs(ftp):
     #https://github.com/keepitsimple/pyFTPclient/blob/master/pyftpclient.py
     ftp.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
     if hasattr(socket, "TCP_KEEPINTVL"):
-        ftp.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 25)
+        ftp.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 15)
     if hasattr(socket, "TCP_KEEPIDLE"):
-        ftp.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 20)
+        ftp.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 10)
