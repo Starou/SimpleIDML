@@ -423,7 +423,11 @@ in the ``ftp_params`` parameter:
 
     {
         'auth': ("ftp://ftp.foo.org", "user_account", "s3cret-pa55word"),
-        'passive': False
+        'passive': False,
+        'keepalive': True,         # False by default (optional)
+        'keepalive_interval': 30,  # set socket.TCP_KEEPINTVL (optional)
+        'keepalive_idle': 45,      # set socket.TCP_KEEPIDLE  (optional)
+        'polite': False,           # Unilaterally close ftp connection (optional)
     }
 
 A script (``simpleidml_indesign_save_as``) that wraps that function should be installed
@@ -432,6 +436,18 @@ in your PATH.
 
 Revisions
 =========
+
+0.92.2
+------
+
+New features
+''''''''''''
+
+- More ftp parameters for `indesign.save_as()` function. Hardcoded socket parameters are now
+  modifiable. And you can set the flag `polite` to `False` if you encounter hanging problem
+  on `ftp.quit()` as I do. Being unpolite calls an unilateral and rude `ftp.close()`.
+  Please upgrade your code with explicite values if you rely on the previous default 
+  behavior.
 
 0.92.1
 ------

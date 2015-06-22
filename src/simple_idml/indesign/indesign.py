@@ -191,8 +191,7 @@ def _copy(src_filename, dst_filename, ftp_params=None, src_open_mode="rb"):
         return
 
     with open(src_filename, src_open_mode) as f:
-        ftp = ftplib.FTP(*ftp_params["auth"])
-        ftp.set_pasv(ftp_params["passive"])
+        ftp = get_ftp(ftp_params)
         command = 'STOR %s' % dst_filename
         try:
             if "b" in src_open_mode:
@@ -201,30 +200,28 @@ def _copy(src_filename, dst_filename, ftp_params=None, src_open_mode="rb"):
                 ftp.storlines(command, f)
         except BaseException, e:
             print "Cannot STOR %s" % dst_filename
-            ftp.quit()
+            close_ftp_conn(ftp, ftp_params)
             raise e
 
-        ftp.quit()
+        close_ftp_conn(ftp, ftp_params)
 
 
 def _unlink(filename, ftp_params=None):
     if not ftp_params:
         os.unlink(filename)
         return
-    ftp = ftplib.FTP(*ftp_params["auth"])
-    ftp.set_pasv(ftp_params["passive"])
+    ftp = get_ftp(ftp_params)
     ftp.delete(filename)
-    ftp.quit()
+    close_ftp_conn(ftp, ftp_params)
 
 
 def _rmtree(tree, ftp_params=None):
     if not ftp_params:
         shutil.rmtree(tree)
         return
-    ftp = ftplib.FTP(*ftp_params["auth"])
-    ftp.set_pasv(ftp_params["passive"])
+    ftp = get_ftp(ftp_params)
     rmtree_ftp(ftp, tree)
-    ftp.quit()
+    close_ftp_conn(ftp, ftp_params)
 
 
 def _read(filename, ftp_params=None):
@@ -235,11 +232,9 @@ def _read(filename, ftp_params=None):
             response = f.read()
     else:
         with BytesIO() as r:
-            ftp = ftplib.FTP(*ftp_params["auth"])
-            ftp.set_pasv(ftp_params["passive"])
-            fix_ftp_retrieve_hangs(ftp)
+            ftp = get_ftp(ftp_params)
             ftp.retrbinary('RETR %s' % filename, r.write)
-            ftp.quit()
+            close_ftp_conn(ftp, ftp_params)
             r.seek(0)
             response = r.read()
 
@@ -321,18 +316,34 @@ def _mkdir_unique(dir, ftp_params=None):
         unique_path = tempfile.mkdtemp(dir=dir)
     else:
         unique_path = os.path.join(dir, uuid.uuid1().hex)
-        ftp = ftplib.FTP(*ftp_params["auth"])
-        ftp.set_pasv(ftp_params["passive"])
+        ftp = get_ftp(ftp_params)
         ftp.mkd(unique_path)
-        ftp.quit()
+        close_ftp_conn(ftp, ftp_params)
     return unique_path
 
 
-def fix_ftp_retrieve_hangs(ftp):
+def close_ftp_conn(ftp, ftp_params=None):
+    """ Go figure. For some reason ftp.quit() may hangs forever.
+    Try not to be polite in that case. """
+    if ftp_params and (ftp_params.get('polite', True) is False):
+        ftp.close()
+    else:
+        ftp.quit()
+
+
+def get_ftp(ftp_params):
+    ftp = ftplib.FTP(*ftp_params["auth"])
+    ftp.set_pasv(ftp_params["passive"])
+
     #https://bbs.archlinux.org/viewtopic.php?id=134529
     #https://github.com/keepitsimple/pyFTPclient/blob/master/pyftpclient.py
-    ftp.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-    if hasattr(socket, "TCP_KEEPINTVL"):
-        ftp.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 15)
-    if hasattr(socket, "TCP_KEEPIDLE"):
-        ftp.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 10)
+    if ftp_params.get('keepalive', False) is True:
+        ftp.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+    if 'keepalive_interval' in ftp_params and hasattr(socket, "TCP_KEEPINTVL"):
+        ftp.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL,
+                            ftp_params['keepalive_interval'])
+    if 'keepalive_idle' in ftp_params and hasattr(socket, "TCP_KEEPIDLE"):
+        ftp.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE,
+                            ftp_params['keepalive_idle'])
+
+    return ftp
