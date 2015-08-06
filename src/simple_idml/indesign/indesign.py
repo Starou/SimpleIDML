@@ -176,7 +176,7 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
     _copy(src_filename, src_client_copy_filename, ftp_params)
 
     cl = Client("%s/service?wsdl" % indesign_server_url)
-    cl.set_options(location=indesign_server_url, timeout=30)
+    cl.set_options(location=indesign_server_url, timeout=90)
     responses = map(lambda fmt: _save_as(fmt), dst_formats_params)
 
     if clean_workdir:
