@@ -5,14 +5,14 @@ SimpleIDML
 .. image:: https://coveralls.io/repos/Starou/SimpleIDML/badge.png
   :target: https://coveralls.io/r/Starou/SimpleIDML
 
-.. image:: https://pypip.in/v/SimpleIDML/badge.png
+.. image:: https://img.shields.io/pypi/v/simpleidml.svg
   :target: https://pypi.python.org/pypi/SimpleIDML
 
-.. image:: https://pypip.in/py_versions/SimpleIDML/badge.svg
+.. image:: https://img.shields.io/pypi/pyversions/simpleidml.svg
     :target: https://pypi.python.org/pypi/SimpleIDML/
     :alt: Supported Python versions
 
-.. image:: https://pypip.in/license/SimpleIDML/badge.svg
+.. image:: https://img.shields.io/pypi/l/simpleidml.svg
     :target: https://pypi.python.org/pypi/SimpleIDML/
     :alt: License
 
