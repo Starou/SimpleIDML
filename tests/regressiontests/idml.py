@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import glob
 import os
 import shutil
-import glob
 import unittest
 from tempfile import mkdtemp
 from lxml import etree
-
 from simple_idml.idml import IDMLPackage
 from simple_idml.test import SimpleTestCase
 from simple_idml.utils import etree_dom_to_tree
@@ -122,71 +121,71 @@ class IdmlTestCase(SimpleTestCase):
                  'tag': 'XMLTag',
                  'tail': '',
                  'text': ''},
-            {'attrs': {'Name': 'illustration', 'Self': 'XMLTag/illustration'},
-             'content': [{'attrs': {},
-                          'content': [{'attrs': {'type': 'enumeration'},
-                                       'content': [],
-                                       'tag': 'TagColor',
-                                       'tail': '',
-                                       'text': 'Cyan'}],
-                          'tag': 'Properties',
-                          'tail': '',
-                          'text': ''}],
-             'tag': 'XMLTag',
-             'tail': '',
-             'text': ''},
-            {'attrs': {'Name': 'Root', 'Self': 'XMLTag/Root'},
-             'content': [{'attrs': {},
-                          'content': [{'attrs': {'type': 'enumeration'},
-                                       'content': [],
-                                       'tag': 'TagColor',
-                                       'tail': '',
-                                       'text': 'LightBlue'}],
-                          'tag': 'Properties',
-                          'tail': '',
-                          'text': ''}],
-             'tag': 'XMLTag',
-             'tail': '',
-             'text': ''},
-            {'attrs': {'Name': 'Story', 'Self': 'XMLTag/Story'},
-             'content': [{'attrs': {},
-                          'content': [{'attrs': {'type': 'enumeration'},
-                                       'content': [],
-                                       'tag': 'TagColor',
-                                       'tail': '',
-                                       'text': 'BrickRed'}],
-                          'tag': 'Properties',
-                          'tail': '',
-                          'text': ''}],
-             'tag': 'XMLTag',
-             'tail': '',
-             'text': ''},
-            {'attrs': {'Name': 'subtitle', 'Self': 'XMLTag/subtitle'},
-             'content': [{'attrs': {},
-                          'content': [{'attrs': {'type': 'enumeration'},
-                                       'content': [],
-                                       'tag': 'TagColor',
-                                       'tail': '',
-                                       'text': 'Yellow'}],
-                          'tag': 'Properties',
-                          'tail': '',
-                          'text': ''}],
-             'tag': 'XMLTag',
-             'tail': '',
-             'text': ''},
-            {'attrs': {'Name': 'title', 'Self': 'XMLTag/title'},
-             'content': [{'attrs': {},
-                          'content': [{'attrs': {'type': 'enumeration'},
-                                       'content': [],
-                                       'tag': 'TagColor',
-                                       'tail': '',
-                                       'text': 'Blue'}],
-                          'tag': 'Properties',
-                          'tail': '',
-                          'text': ''}],
-             'tag': 'XMLTag',
-             'tail': '',
-             'text': ''}
+                {'attrs': {'Name': 'illustration', 'Self': 'XMLTag/illustration'},
+                 'content': [{'attrs': {},
+                              'content': [{'attrs': {'type': 'enumeration'},
+                                           'content': [],
+                                           'tag': 'TagColor',
+                                           'tail': '',
+                                           'text': 'Cyan'}],
+                              'tag': 'Properties',
+                              'tail': '',
+                              'text': ''}],
+                 'tag': 'XMLTag',
+                 'tail': '',
+                 'text': ''},
+                {'attrs': {'Name': 'Root', 'Self': 'XMLTag/Root'},
+                 'content': [{'attrs': {},
+                              'content': [{'attrs': {'type': 'enumeration'},
+                                           'content': [],
+                                           'tag': 'TagColor',
+                                           'tail': '',
+                                           'text': 'LightBlue'}],
+                              'tag': 'Properties',
+                              'tail': '',
+                              'text': ''}],
+                 'tag': 'XMLTag',
+                 'tail': '',
+                 'text': ''},
+                {'attrs': {'Name': 'Story', 'Self': 'XMLTag/Story'},
+                 'content': [{'attrs': {},
+                              'content': [{'attrs': {'type': 'enumeration'},
+                                           'content': [],
+                                           'tag': 'TagColor',
+                                           'tail': '',
+                                           'text': 'BrickRed'}],
+                              'tag': 'Properties',
+                              'tail': '',
+                              'text': ''}],
+                 'tag': 'XMLTag',
+                 'tail': '',
+                 'text': ''},
+                {'attrs': {'Name': 'subtitle', 'Self': 'XMLTag/subtitle'},
+                 'content': [{'attrs': {},
+                              'content': [{'attrs': {'type': 'enumeration'},
+                                           'content': [],
+                                           'tag': 'TagColor',
+                                           'tail': '',
+                                           'text': 'Yellow'}],
+                              'tag': 'Properties',
+                              'tail': '',
+                              'text': ''}],
+                 'tag': 'XMLTag',
+                 'tail': '',
+                 'text': ''},
+                {'attrs': {'Name': 'title', 'Self': 'XMLTag/title'},
+                 'content': [{'attrs': {},
+                              'content': [{'attrs': {'type': 'enumeration'},
+                                           'content': [],
+                                           'tag': 'TagColor',
+                                           'tail': '',
+                                           'text': 'Blue'}],
+                              'tag': 'Properties',
+                              'tail': '',
+                              'text': ''}],
+                 'tag': 'XMLTag',
+                 'tail': '',
+                 'text': ''}
             ])
 
             # Styles.
@@ -291,8 +290,11 @@ u"""<Root Self="di2">
 
     def test_get_spread_elements_by_layer(self):
         with IDMLPackage(os.path.join(IDMLFILES_DIR, "2articles-1photo-elts-same-layer.idml")) as idml_file:
-            self.assertEqual(set([elt.get("Name") for elt in idml_file.get_spread_elements_by_layer(layer_name="Layer 2")]),
-                             set(['module2-Red_background', 'module2-Text', 'module2-Frame', 'module2-Image']))
+            self.assertEqual(
+                set([elt.get("Name") for elt in
+                     idml_file.get_spread_elements_by_layer(layer_name="Layer 2")]),
+                set(['module2-Red_background', 'module2-Text', 'module2-Frame', 'module2-Image'])
+            )
 
     def test_get_spread_object_by_xpath(self):
         with IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml")) as idml_file:
@@ -755,7 +757,7 @@ u"""<Root Self="FOOdi2">
                 # Layer(s)
                 self.assertEqual(prefixed_f.get_active_layer_name(), "Layer 1")
 
-        # Prefix d'un fichier avec un mapping Style/Tag XML.
+        # Prefixing a file with a Style / XML tag mapping.
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-prefixed.idml"))
 
@@ -818,7 +820,8 @@ u"""<Root Self="FOOdi2">
                         'Spreads/Spread_mainuc3.xml']
                     ))
 
-                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in f.get_spread_object_by_name("Spreads/Spread_mainub6.xml").dom.iter()], [
+                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in
+                                      f.get_spread_object_by_name("Spreads/Spread_mainub6.xml").dom.iter()], [
                         ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
                          {'DOMVersion': '7.5'}),
                         ('Spread',
@@ -2075,7 +2078,8 @@ u"""<Root Self="FOOdi2">
                         'Spreads/Spread_mainuc3.xml']
                     ))
 
-                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in f.get_spread_object_by_name("Spreads/Spread_mainub6.xml").dom.iter()], [
+                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in
+                                      f.get_spread_object_by_name("Spreads/Spread_mainub6.xml").dom.iter()], [
                         ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
                          {'DOMVersion': '7.5'}),
                         ('Spread',
@@ -3139,7 +3143,8 @@ u"""<Root Self="FOOdi2">
                          {'NamespacePrefix': '$ID/', 'PropertyPath': '$ID/'})
                     ])
 
-                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in f.get_spread_object_by_name("Spreads/Spread_mainubc.xml").dom.iter()], [
+                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in
+                                      f.get_spread_object_by_name("Spreads/Spread_mainubc.xml").dom.iter()], [
                         ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread', {'DOMVersion': '7.5'}),
                         ('Spread', {
                             'PageTransitionDirection': 'NotApplicable',
@@ -3254,7 +3259,8 @@ u"""<Root Self="FOOdi2">
                         ('AppliedFont', {'type': 'string'})
                     ])
 
-                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in f.get_spread_object_by_name("Spreads/Spread_mainuc3.xml").dom.iter()], [
+                    self.assertEqual([(elt.tag, dict(elt.attrib)) for elt in
+                                      f.get_spread_object_by_name("Spreads/Spread_mainuc3.xml").dom.iter()], [
                         ('{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread', {'DOMVersion': '7.5'}),
                         ('Spread', {
                             'PageTransitionDirection': 'NotApplicable',
