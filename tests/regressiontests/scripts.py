@@ -34,8 +34,8 @@ class CreatePackageTestCase(unittest.TestCase):
 
     @unittest.skipIf((platform.system() == "Windows"), u"test skipped on Windows (needs fix).")
     def test_create_package_from_dir(self):
-        flat_package_filename = os.path.join(IDMLFILES_DIR, "\"article-1photo.idml Folder\"")
-        destination_filename = os.path.join(OUTPUT_DIR, "article-1photo_2.idml")
+        flat_package_filename = "\"%s\"" % os.path.join(IDMLFILES_DIR, "article-1photo.idml Folder")
+        destination_filename = "\"%s\"" % os.path.join(OUTPUT_DIR, "article-1photo_2.idml")
         args = [flat_package_filename, destination_filename]
 
         os.popen(('export PYTHONPATH="%(path)s":$PYTHONPATH && '
