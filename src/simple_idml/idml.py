@@ -352,6 +352,22 @@ class IDMLPackage(zipfile.ZipFile):
                 if attr_node is None and parent_attr_node is not None:
                     properties_element.append(copy.deepcopy(parent_attr_node))
 
+        def _move_siblings_content(at, element_id):
+            """ When new XML elements are inserted, the siblings of the initial <content> (<BR> etc) are
+                repositionned after the last <content> created.
+            """
+            story = self.get_story_object_by_xpath(at)
+            element = story.get_element_by_id(element_id)
+            content_nodes = element.get_element_content_nodes()
+            if len(content_nodes) < 2:
+                return
+
+            first_content_node = content_nodes[0]
+            last_content_node = content_nodes[-1]
+            for sibling in first_content_node.itersiblings():
+                last_content_node.addnext(sibling)
+            story.synchronize()
+
         def _import_new_node(source_node, at=None, element_id=None, story=None):
             xml_structure_parent_node = self.xml_structure.find("*//*[@Self='%s']" % element_id)
             xml_structure_new_node = etree.Element(source_node.tag)
@@ -418,6 +434,8 @@ class IDMLPackage(zipfile.ZipFile):
                         # Source does not match destination. It is added, but only if the tag is mapped to a style.
                         elif not ignorecontent and source_child.tag in self.style_mapping.character_style_mapping.keys():
                             _import_new_node(source_child, at, element_id)
+
+                    _move_siblings_content(at, element_id)
 
         _import_node(source_node, at)
         return self
