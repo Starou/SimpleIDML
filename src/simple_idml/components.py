@@ -367,10 +367,7 @@ class Story(IDMLXMLFile):
 
     def set_element_content(self, element_id, content):
         self.clear_element_content(element_id)
-        # FIXME/clarification: element is already a XMLElement.
-        # Why casting it again ??
-        element = self.get_element_by_id(element_id)
-        xml_element = XMLElement(element=element)
+        xml_element = self.get_element_by_id(element_id)
         xml_element.set_content(content)
         self._fix_siblings_style(xml_element)
 
