@@ -883,7 +883,24 @@ class XMLElement(Proxy):
         style_range_node = etree.Element("CharacterStyleRange", AppliedCharacterStyle=applied_style)
         properties_node = etree.SubElement(style_range_node, "Properties")
 
-        for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization"):
+        attrs = [
+            "PointSize",
+            "FontStyle",
+            "HorizontalScale",
+            "Tracking",
+            "FillColor",
+            "Capitalization",
+            "PointSize",
+            "StrokeWeight",
+            "MiterLimit",
+            "RubyFontSize",
+            "KentenFontSize",
+            "DiacriticPosition",
+            "Ligatures",
+            "OTFContextualAlternate",
+        ]
+
+        for attr in attrs:
             if parent_style_node.get(attr) is not None:
                 style_range_node.set(attr, parent_style_node.get(attr))
 
