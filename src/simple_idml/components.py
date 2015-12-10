@@ -384,7 +384,7 @@ class Story(IDMLXMLFile):
             return
 
         # The parent style is locally applied.
-        local_style = xml_element._create_style_range_from_parent(xml_element)
+        local_style = xml_element.clone_style_range()
         for sibling in siblings:
             local_style.append(sibling)
         xml_element.addnext(local_style)
@@ -844,7 +844,7 @@ class XMLElement(Proxy):
         content_element = etree.Element("Content")
         content_element.text = content
         if style_range_node is None:
-            style_range_node = self._create_style_range_from_parent(parent)
+            style_range_node = parent.clone_style_range()
         style_range_node.append(content_element)
         self.element.append(style_range_node)
 
@@ -856,7 +856,7 @@ class XMLElement(Proxy):
         # Ticket #8 - Fix the style locally.
         if self.get_local_character_style_range() is None and \
            self.get_super_character_style_range() is not None:
-            local_style = self._create_style_range_from_parent(self)
+            local_style = self.clone_style_range()
             self.apply_style_locally(local_style)
 
     def apply_style_locally(self, style_range_node):
@@ -865,12 +865,9 @@ class XMLElement(Proxy):
         style_range_node.append(content_node)
         self.append(style_range_node)
 
-    # TODO: Why not calling this method directly on parent (which is a XMLElement too)?
-    # TODO: change with _clone_style_range(self) called on parent.
-    # FIXME/clarification: why parent is an argument and not computed into that method ?
-    def _create_style_range_from_parent(self, parent):
-        parent_style_node = parent.get_character_style_range()
-        applied_style = parent_style_node.get("AppliedCharacterStyle")
+    def clone_style_range(self):
+        style_node = self.get_character_style_range()
+        applied_style = style_node.get("AppliedCharacterStyle")
         style_range_node = etree.Element("CharacterStyleRange", AppliedCharacterStyle=applied_style)
         properties_node = etree.SubElement(style_range_node, "Properties")
 
@@ -892,14 +889,14 @@ class XMLElement(Proxy):
         ]
 
         for attr in attrs:
-            if parent_style_node.get(attr) is not None:
-                style_range_node.set(attr, parent_style_node.get(attr))
+            if style_node.get(attr) is not None:
+                style_range_node.set(attr, style_node.get(attr))
 
         for attr in ("Leading", "AppliedFont"):
             path = "Properties/%s" % attr
-            parent_attr_node = parent_style_node.find(path)
-            if parent_attr_node is not None:
-                properties_node.append(copy.deepcopy(parent_attr_node))
+            attr_node = style_node.find(path)
+            if attr_node is not None:
+                properties_node.append(copy.deepcopy(attr_node))
         return style_range_node
 
     def get_attribute(self, name):
