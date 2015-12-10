@@ -364,7 +364,11 @@ class IDMLPackage(zipfile.ZipFile):
 
             first_content_node = content_nodes[0]
             last_content_node = content_nodes[-1]
-            for sibling in first_content_node.itersiblings():
+            siblings = [s for s in first_content_node.itersiblings()]
+            if not len(siblings):
+                return
+
+            for sibling in siblings:
                 last_content_node.addnext(sibling)
             story.synchronize()
 
