@@ -367,9 +367,30 @@ class Story(IDMLXMLFile):
 
     def set_element_content(self, element_id, content):
         self.clear_element_content(element_id)
+        # FIXME/clarification: element is already a XMLElement.
+        # Why casting it again ??
         element = self.get_element_by_id(element_id)
         xml_element = XMLElement(element=element)
         xml_element.set_content(content)
+        self._fix_siblings_style(xml_element)
+
+    def _fix_siblings_style(self, xml_element):
+        """Fix ticket #11 when importing XML."""
+        # Get the sibling elts that need to be styled.
+        siblings = []
+        for elt in xml_element.itersiblings():
+            if elt.tag not in ["Content", "Br"]:
+                break
+            siblings.append(elt)
+
+        if not len(siblings):
+            return
+
+        # The parent style is locally applied.
+        local_style = xml_element._create_style_range_from_parent(xml_element)
+        for sibling in siblings:
+            local_style.append(sibling)
+        xml_element.addnext(local_style)
 
     def clear_element_content(self, element_id):
         element = self.get_element_by_id(element_id)
@@ -836,11 +857,17 @@ class XMLElement(Proxy):
         except IndexError:
             return
         # Ticket #8 - Fix the style locally.
+        # TODO: oneliner.
+        # if (self.get_local_character_style_range() is None
+        #     and self.get_super_character_style_range() is not None:
+        #    local_style = self._create_style_range_from_parent(self)
+        #    self.apply_style_locally(local_style)
         local_style = self.get_local_character_style_range()
         if local_style is None:
             super_style = self.get_super_character_style_range()
             if super_style is not None:
                 # Force super style locally.
+                # FIXME/clarification: why parent == self ?
                 local_style = self._create_style_range_from_parent(self)
                 self.apply_style_locally(local_style)
 
@@ -851,6 +878,8 @@ class XMLElement(Proxy):
         self.append(style_range_node)
 
     # TODO: Why not calling this method directly on parent (which is a XMLElement too)?
+    # TODO: change with _clone_style_range(self) called on parent.
+    # FIXME/clarification: why parent is an argument and not computed into that method ?
     def _create_style_range_from_parent(self, parent):
         parent_style_node = parent.get_character_style_range()
         applied_style = parent_style_node.get("AppliedCharacterStyle")
