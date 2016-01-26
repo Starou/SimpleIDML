@@ -437,6 +437,14 @@ in your PATH.
 Revisions
 =========
 
+0.92.4
+------
+
+Bug fixes
+'''''''''
+
+- Fix issue #11: Parent CharacterStyle not applied in import_xml() in some cases.
+
 0.92.2
 ------
 
