@@ -367,9 +367,27 @@ class Story(IDMLXMLFile):
 
     def set_element_content(self, element_id, content):
         self.clear_element_content(element_id)
-        element = self.get_element_by_id(element_id)
-        xml_element = XMLElement(element=element)
+        xml_element = self.get_element_by_id(element_id)
         xml_element.set_content(content)
+        self._fix_siblings_style(xml_element)
+
+    def _fix_siblings_style(self, xml_element):
+        """Fix ticket #11 when importing XML."""
+        # Get the sibling elts that need to be styled.
+        siblings = []
+        for elt in xml_element.itersiblings():
+            if elt.tag not in ["Content", "Br"]:
+                break
+            siblings.append(elt)
+
+        if not len(siblings):
+            return
+
+        # The parent style is locally applied.
+        local_style = xml_element.clone_style_range()
+        for sibling in siblings:
+            local_style.append(sibling)
+        xml_element.addnext(local_style)
 
     def clear_element_content(self, element_id):
         element = self.get_element_by_id(element_id)
@@ -826,7 +844,7 @@ class XMLElement(Proxy):
         content_element = etree.Element("Content")
         content_element.text = content
         if style_range_node is None:
-            style_range_node = self._create_style_range_from_parent(parent)
+            style_range_node = parent.clone_style_range()
         style_range_node.append(content_element)
         self.element.append(style_range_node)
 
@@ -836,13 +854,10 @@ class XMLElement(Proxy):
         except IndexError:
             return
         # Ticket #8 - Fix the style locally.
-        local_style = self.get_local_character_style_range()
-        if local_style is None:
-            super_style = self.get_super_character_style_range()
-            if super_style is not None:
-                # Force super style locally.
-                local_style = self._create_style_range_from_parent(self)
-                self.apply_style_locally(local_style)
+        if self.get_local_character_style_range() is None and \
+           self.get_super_character_style_range() is not None:
+            local_style = self.clone_style_range()
+            self.apply_style_locally(local_style)
 
     def apply_style_locally(self, style_range_node):
         """The content node of self is moved into style_range_node. """
@@ -850,22 +865,38 @@ class XMLElement(Proxy):
         style_range_node.append(content_node)
         self.append(style_range_node)
 
-    # TODO: Why not calling this method directly on parent (which is a XMLElement too)?
-    def _create_style_range_from_parent(self, parent):
-        parent_style_node = parent.get_character_style_range()
-        applied_style = parent_style_node.get("AppliedCharacterStyle")
+    def clone_style_range(self):
+        style_node = self.get_character_style_range()
+        applied_style = style_node.get("AppliedCharacterStyle")
         style_range_node = etree.Element("CharacterStyleRange", AppliedCharacterStyle=applied_style)
         properties_node = etree.SubElement(style_range_node, "Properties")
 
-        for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization"):
-            if parent_style_node.get(attr) is not None:
-                style_range_node.set(attr, parent_style_node.get(attr))
+        attrs = [
+            "PointSize",
+            "FontStyle",
+            "HorizontalScale",
+            "Tracking",
+            "FillColor",
+            "Capitalization",
+            "PointSize",
+            "StrokeWeight",
+            "MiterLimit",
+            "RubyFontSize",
+            "KentenFontSize",
+            "DiacriticPosition",
+            "Ligatures",
+            "OTFContextualAlternate",
+        ]
+
+        for attr in attrs:
+            if style_node.get(attr) is not None:
+                style_range_node.set(attr, style_node.get(attr))
 
         for attr in ("Leading", "AppliedFont"):
             path = "Properties/%s" % attr
-            parent_attr_node = parent_style_node.find(path)
-            if parent_attr_node is not None:
-                properties_node.append(copy.deepcopy(parent_attr_node))
+            attr_node = style_node.find(path)
+            if attr_node is not None:
+                properties_node.append(copy.deepcopy(attr_node))
         return style_range_node
 
     def get_attribute(self, name):
