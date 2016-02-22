@@ -36,9 +36,9 @@ def use_working_copy(view_func):
             # Catch any exception to reset working_copy_path.
             try:
                 idml_package = view_func(idml_package, *args, **kwargs)
-            except BaseException, err:
+            except BaseException:
                 idml_package.working_copy_path = None
-                raise err
+                raise
 
         from simple_idml.idml import IDMLPackage
         # Create a new archive from the extracted one.
