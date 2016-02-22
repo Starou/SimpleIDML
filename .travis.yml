@@ -1,15 +1,33 @@
+sudo: false
+
 language: python
 
 python:
   - 2.7
+  - 3.4
+  - 3.5
 
-install: 
+env:
+  global:
+    PYTHONPATH: src
+
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+install:
   - pip install -q coverage
   - pip install -q coveralls
   - pip install -q lxml
   - pip install -q mock
-  - pip install -q suds
-  - pip install .
+  - if [ ${TRAVIS_PYTHON_VERSION:0:1} == 3 ]; then
+    pip install -e "git+https://github.com/andreif/suds-py3.git@56520440240307939f4771379c19e4a1d9281ee3#egg=suds";
+    else
+    pip install suds;
+    fi
 
 before_script: cd tests
 

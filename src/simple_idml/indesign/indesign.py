@@ -177,7 +177,7 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
 
     cl = Client("%s/service?wsdl" % indesign_server_url)
     cl.set_options(location=indesign_server_url, timeout=90)
-    responses = map(lambda fmt: _save_as(fmt), dst_formats_params)
+    responses = list(map(lambda fmt: _save_as(fmt), dst_formats_params))
 
     if clean_workdir:
         _unlink(src_client_copy_filename, ftp_params)
@@ -198,10 +198,10 @@ def _copy(src_filename, dst_filename, ftp_params=None, src_open_mode="rb"):
                 ftp.storbinary(command, f)
             else:
                 ftp.storlines(command, f)
-        except BaseException, e:
-            print "Cannot STOR %s" % dst_filename
+        except BaseException:
+            print("Cannot STOR %s" % dst_filename)
             close_ftp_conn(ftp, ftp_params)
-            raise e
+            raise
 
         close_ftp_conn(ftp, ftp_params)
 
@@ -225,8 +225,6 @@ def _rmtree(tree, ftp_params=None):
 
 
 def _read(filename, ftp_params=None):
-    response = ""
-
     if not ftp_params:
         with open(filename, "rb") as f:
             response = f.read()
@@ -289,7 +287,7 @@ def rmtree_ftp(ftp, path):
 
     try:
         names = ftp.nlst(path)
-    except ftplib.all_errors as e:
+    except ftplib.all_errors:
         # some FTP servers complain when you try and list non-existent paths
         #_log.debug('FtpRmTree: Could not remove {0}: {1}'.format(path, e))
         return

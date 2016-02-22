@@ -100,7 +100,7 @@ def main():
             return {"fmt": os.path.splitext(dest)[1].replace(".", ""),
                     "params": params}
 
-        formats = map(parse_destination_arg, destinations)
+        formats = list(map(parse_destination_arg, destinations))
 
         ftp_params = None
         if options.ftp_url:
@@ -121,7 +121,7 @@ def main():
             with open(dst.split("|")[0], mode="w+") as fobj:
                 fobj.write(response)
 
-        map(_save_as, responses, destinations)
+        list(map(_save_as, responses, destinations))
 
 
 if __name__ == "__main__":

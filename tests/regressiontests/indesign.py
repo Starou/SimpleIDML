@@ -1,17 +1,26 @@
 # -*- coding: utf-8 -*-
 
 import glob
+import json
 import mock
 import os
 import shutil
+import sys
 import unittest
 import zipfile
-from cStringIO import StringIO
 from simple_idml.indesign import indesign
 from suds.client import ServiceSelector
-from urllib2 import OpenerDirector
 
-CURRENT_DIR = os.path.dirname(__file__)
+PY3 = sys.version_info > (3,)
+
+if PY3:
+    from io import BytesIO
+    from urllib.request import OpenerDirector
+else:
+    from cStringIO import StringIO as BytesIO
+    from urllib2 import OpenerDirector
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 SOAP_DIR = os.path.join(CURRENT_DIR, "SOAP")
 
@@ -23,7 +32,8 @@ SERVER_WORKDIR = os.path.join(CURRENT_DIR, "workdir")
 class InDesignTestCase(unittest.TestCase):
     def setUp(self):
         super(InDesignTestCase, self).setUp()
-        self.u2open_patcher = mock.patch('urllib2.OpenerDirector')
+        self.u2open_patcher = mock.patch(
+            OpenerDirector.__module__ + '.OpenerDirector')
         self.u2open_mock = self.u2open_patcher.start()
         self.u2open_mock.side_effect = OpenerDirectorMock
 
@@ -51,7 +61,12 @@ class InDesignTestCase(unittest.TestCase):
                                      indesign_server_path_style="posix")
 
         self.assertTrue(self.runscript_mock.called)
-        self.assertEqual(responses, ['save_as.jsx, 4-pagesTMP.indd, {}'])
+        if PY3:
+            loads = lambda x: json.loads(x.decode())
+        else:
+            loads = json.loads
+        self.assertEqual(list(map(loads, responses)),
+                         [['save_as.jsx', '4-pagesTMP.indd', {}]])
 
         responses = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                                      [{"fmt": "pdf",
@@ -65,11 +80,12 @@ class InDesignTestCase(unittest.TestCase):
                                      CLIENT_WORKDIR, SERVER_WORKDIR,
                                      indesign_server_path_style="posix")
         self.assertTrue(self.runscript_mock.called)
-        self.assertEqual(responses[:2], [
-            "export.jsx, 4-pagesTMP.pdf, {'colorSpace': 'CMYK', 'standartsCompliance': '1A2003', 'format': 'pdf'}",
-            "export.jsx, 4-pagesTMP.jpeg, {'format': 'jpeg'}"
-        ])
-        zip_buf = StringIO()
+        self.assertEqual(list(map(loads, responses[:2])), [
+            ['export.jsx', '4-pagesTMP.pdf',
+             {'colorSpace': 'CMYK', 'standartsCompliance': '1A2003',
+              'format': 'pdf'}],
+            ['export.jsx', '4-pagesTMP.jpeg', {'format': 'jpeg'}]])
+        zip_buf = BytesIO()
         zip_buf.write(responses[2])
         self.assertTrue(zipfile.is_zipfile(zip_buf))
 
@@ -105,10 +121,9 @@ class ServiceSelectorMock(ServiceSelector):
                 dst_filename = "%s.zip" % dst_filename
 
             # Create the file in workdir and write something testable in it.
-            fobj = open(dst_filename, "w+")
-            fobj.write("%s, %s, %s" % (script,
-                                       os.path.basename(dst_filename),
-                                       extra_params))
+            with open(dst_filename, "w+") as fp:
+                json.dump(obj=[script, os.path.basename(dst_filename),
+                               extra_params], fp=fp)
         elif script in indesign.JS_CLOSE_ALL_SCRIPT:
             pass
 
