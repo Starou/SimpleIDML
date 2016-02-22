@@ -211,7 +211,7 @@ to avoid reference collisions.
     >>> with idml_main.prefix("main") as p_idml_main, \
     >>>      idml_module.prefix("article") as p_idml_article:
 
-    >>>     with p_idml_main.insert_idml(idml_article, at="/Root/article[3]",
+    >>>     with p_idml_main.insert_idml(p_idml_article, at="/Root/article[3]",
                                          only="/Root/module[1]") as f:
     >>>         f.stories
     ['Stories/Story_article1u188.xml', 'Stories/Story_article1u19f.xml',
@@ -329,16 +329,16 @@ Exporting as XML:
 
     >>> idml_file = IDMLPackage("path/to/file.idml")
     >>> print idml_file.export_xml()
-    ... <Root>
-    ...     <module>
-    ...         <main_picture/>
-    ...         <headline>Hello world!</headline>
-    ...         <Story>
-    ...             <article>Lorem ipsum dolor sit amet, ...</article>
-    ...             <informations>Lorem ipsum dolor sit amet,</informations>
-    ...         </Story>
-    ...     </module>
-    ... </Root>
+    <Root>
+        <module>
+            <main_picture/>
+            <headline>Hello world!</headline>
+            <Story>
+                <article>Lorem ipsum dolor sit amet, ...</article>
+                <informations>Lorem ipsum dolor sit amet,</informations>
+            </Story>
+        </module>
+    </Root>
 
 You can as well import XML file into your InDesign® documents. The following rules applies:
 
