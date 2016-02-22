@@ -329,16 +329,16 @@ Exporting as XML:
 
     >>> idml_file = IDMLPackage("path/to/file.idml")
     >>> print idml_file.export_xml()
-    ... <Root>
-    ...     <module>
-    ...         <main_picture/>
-    ...         <headline>Hello world!</headline>
-    ...         <Story>
-    ...             <article>Lorem ipsum dolor sit amet, ...</article>
-    ...             <informations>Lorem ipsum dolor sit amet,</informations>
-    ...         </Story>
-    ...     </module>
-    ... </Root>
+    <Root>
+        <module>
+            <main_picture/>
+            <headline>Hello world!</headline>
+            <Story>
+                <article>Lorem ipsum dolor sit amet, ...</article>
+                <informations>Lorem ipsum dolor sit amet,</informations>
+            </Story>
+        </module>
+    </Root>
 
 You can as well import XML file into your InDesign® documents. The following rules applies:
 
