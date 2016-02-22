@@ -211,7 +211,7 @@ to avoid reference collisions.
     >>> with idml_main.prefix("main") as p_idml_main, \
     >>>      idml_module.prefix("article") as p_idml_article:
 
-    >>>     with p_idml_main.insert_idml(idml_article, at="/Root/article[3]",
+    >>>     with p_idml_main.insert_idml(p_idml_article, at="/Root/article[3]",
                                          only="/Root/module[1]") as f:
     >>>         f.stories
     ['Stories/Story_article1u188.xml', 'Stories/Story_article1u19f.xml',
