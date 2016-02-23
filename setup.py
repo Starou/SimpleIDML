@@ -14,6 +14,7 @@ setup(
     author_email='stanislas.guerra@gmail.com',
     description='A library to manipulate Adobe(r) IDML(r) files.',
     long_description=README,
+    url='https://github.com/Starou/SimpleIDML',
     package_dir={'': 'src'},
     install_requires=['lxml>=1.3,<3.7', 'mock', 'suds'],
     packages=[
