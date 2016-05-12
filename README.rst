@@ -437,6 +437,14 @@ in your PATH.
 Revisions
 =========
 
+0.92.5
+------
+
+Bug fixes
+'''''''''
+
+- Handle <PDF> in `IDMLPackage._get_item_translation_for_insert()`
+
 0.92.4
 ------
 
