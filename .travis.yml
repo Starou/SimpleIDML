@@ -15,4 +15,4 @@ before_script: cd tests
 
 script: make coverage
 
-after_script: coveralls
+after_script: coveralls --rc=coveragerc
