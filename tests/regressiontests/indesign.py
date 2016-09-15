@@ -92,6 +92,11 @@ class OpenerDirectorMock(OpenerDirector):
             return open(os.path.join(SOAP_DIR, 'indesign-service.xml'), "r")
 
 
+class SoapResponse():
+    def __init__(self, errorNumber=0):
+        self.errorNumber = errorNumber
+
+
 class ServiceSelectorMock(ServiceSelector):
     def RunScript(self, params):
         script = os.path.basename(params['scriptFile'])
@@ -111,6 +116,8 @@ class ServiceSelectorMock(ServiceSelector):
                                        extra_params))
         elif script in indesign.JS_CLOSE_ALL_SCRIPT:
             pass
+
+        return SoapResponse()
 
 
 def suite():

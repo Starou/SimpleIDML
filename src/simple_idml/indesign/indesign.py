@@ -12,6 +12,7 @@ import tempfile
 import uuid
 import zipfile
 from io import BytesIO
+from simple_idml import exceptions
 from simple_idml.decorators import simple_decorator
 from suds.client import Client
 from tempfile import mkdtemp
@@ -147,6 +148,12 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
 
         logger.debug('Calling SOAP "RunScript" service... (params: %s)' % params, extra=logger_extra)
         response = cl.service.RunScript(params)
+        if response.errorNumber:
+            logger.error("InDesign server was unable to save as %s.\n"
+                         "SOAP response: %s\n"
+                         "SOAP RunScript params: %s" % (dst_format, response, params), extra=logger_extra)
+            raise exceptions.InDesignSoapException(params, response)
+
         logger.debug('"RunScript" successful! Response: %s' % response, extra=logger_extra)
 
         if dst_format == 'zip':
