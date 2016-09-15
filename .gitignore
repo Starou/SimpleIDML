@@ -6,4 +6,4 @@ dist
 MANIFEST
 tests/regressiontests/outputs
 tests/.coverage
-tests/coveralls.yaml
+tests/.coveralls.yml
