@@ -437,6 +437,15 @@ in your PATH.
 Revisions
 =========
 
+0.92.6
+------
+
+Bug fixes
+'''''''''
+
+- Catch errors when InDesign SOAP server fails to complete a task and raise
+  an exception.
+
 0.92.5
 ------
 
