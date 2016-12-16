@@ -153,7 +153,7 @@ Some attributes are *lxml.etree* Elements or Documents:
       <article XMLContent="udd" Self="di2i5"/>
       <advertise XMLContent="udf" Self="di2i6"/>
     </Root>
-    
+
 
 ``xml_structure`` attribute is a representation of the XML Structure of your InDesign XML-ready
 document (The one you want to use to populate the content with data from an external XML file
@@ -175,7 +175,7 @@ Compose document
 
 
 For example, the following is bad because ``my_doc`` initial instance reference is lost and
-the associated file cannot be properly closed. This may rise an exception on Windows platform 
+the associated file cannot be properly closed. This may rise an exception on Windows platform
 if you try to ``os.unlink()`` an unclosed file.
 
 .. code-block:: python
@@ -437,6 +437,15 @@ in your PATH.
 Revisions
 =========
 
+0.92.7
+------
+
+Bug fixes
+'''''''''
+
+- FillTint wasn't managed.
+- Force ``lxml < 4`` in dependencies.
+
 0.92.6
 ------
 
@@ -471,7 +480,7 @@ New features
 - More ftp parameters for `indesign.save_as()` function. Hardcoded socket parameters are now
   modifiable. And you can set the flag `polite` to `False` if you encounter hanging problem
   on `ftp.quit()` as I do. Being unpolite calls an unilateral and rude `ftp.close()`.
-  Please upgrade your code with explicite values if you rely on the previous default 
+  Please upgrade your code with explicite values if you rely on the previous default
   behavior.
 
 0.92.1
