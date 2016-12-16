@@ -877,6 +877,7 @@ class XMLElement(Proxy):
             "HorizontalScale",
             "Tracking",
             "FillColor",
+            "FillTint",
             "Capitalization",
             "PointSize",
             "StrokeWeight",
