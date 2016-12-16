@@ -15,7 +15,7 @@ setup(
     description='A library to manipulate Adobe(r) IDML(r) files.',
     long_description=README,
     package_dir={'': 'src'},
-    install_requires=['lxml>=1.3', 'mock', 'suds'],
+    install_requires=['lxml>=1.3,<3.7', 'mock', 'suds'],
     packages=[
         'simple_idml',
         'simple_idml.indesign',
