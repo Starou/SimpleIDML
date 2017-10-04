@@ -341,7 +341,8 @@ class IDMLPackage(zipfile.ZipFile):
             if parent_style_node is None:
                 return
             # If the parent specify a font face, a font style or a font size and the style_node don't, it is added.
-            for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization", "Position"):
+            for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking",
+                         "FillColor", "FillTint", "Capitalization", "Position"):
                 if parent_style_node.get(attr) is not None and (applied_style_node is None or not applied_style_node.get(attr)):
                     style_range_node.set(attr, parent_style_node.get(attr))
 
