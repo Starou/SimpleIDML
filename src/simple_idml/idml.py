@@ -390,7 +390,7 @@ class IDMLPackage(zipfile.ZipFile):
             forcecontent = (items.get(FORCECONTENT_TAG) == "true")
             if not ignorecontent_parent_flag or forcecontent:
                 if items:
-                    self.set_attributes(at, element_id, items)
+                    self.set_attributes(at, items, element_id)
                 if not (items.get(SETCONTENT_TAG) == "false"):
                     _set_content(at, element_id, source_node.text or "", story)
 
@@ -426,7 +426,8 @@ class IDMLPackage(zipfile.ZipFile):
         return self
 
     @use_working_copy
-    def set_attributes(self, xpath, element_id, items):
+    def set_attributes(self, xpath, items, element_id=None):
+        element_id = element_id or self.xml_structure.xpath(xpath)[0].get("Self")
         story = self.get_story_object_by_xpath(xpath)
         story.set_element_attributes(element_id, items)
         # Image references must be updated in the page item in Spread or Story.
@@ -445,7 +446,7 @@ class IDMLPackage(zipfile.ZipFile):
                                                      resource_path,
                                                      synchronize=True)
         story.synchronize()
-
+        return self
 
     def export_as_tree(self):
         """
