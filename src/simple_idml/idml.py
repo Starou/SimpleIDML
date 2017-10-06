@@ -251,26 +251,6 @@ class IDMLPackage(zipfile.ZipFile):
             story.set_element_content(element_id, content)
             story.synchronize()
 
-        def _set_attributes(xpath, element_id, items):
-            story = self.get_story_object_by_xpath(xpath)
-            story.set_element_attributes(element_id, items)
-            # Image references must be updated in the page item in Spread or Story.
-            if "href" in items:
-                resource_path = items.get("href")
-                element_content_id = self.get_element_content_id_by_xpath(xpath)
-                spread = self.get_spread_object_by_xpath(xpath)
-                if resource_path == "":
-                    story.remove_xml_element_page_items(element_id)
-                    if spread:
-                        spread.remove_page_item(element_content_id, synchronize=True)
-                else:
-                    story.set_element_resource_path(element_content_id, resource_path)
-                    if spread:
-                        spread.set_element_resource_path(element_content_id,
-                                                         resource_path,
-                                                         synchronize=True)
-            story.synchronize()
-
         def _apply_style(style_range_node, style_to_apply_node, applied_style_node):
             """ A style_range_node as an applied_style_node overriden with style_to_apply_node. """
             for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization", "Position"):
@@ -410,7 +390,7 @@ class IDMLPackage(zipfile.ZipFile):
             forcecontent = (items.get(FORCECONTENT_TAG) == "true")
             if not ignorecontent_parent_flag or forcecontent:
                 if items:
-                    _set_attributes(at, element_id, items)
+                    self.set_attributes(at, element_id, items)
                 if not (items.get(SETCONTENT_TAG) == "false"):
                     _set_content(at, element_id, source_node.text or "", story)
 
@@ -444,6 +424,28 @@ class IDMLPackage(zipfile.ZipFile):
 
         _import_node(source_node, at)
         return self
+
+    @use_working_copy
+    def set_attributes(self, xpath, element_id, items):
+        story = self.get_story_object_by_xpath(xpath)
+        story.set_element_attributes(element_id, items)
+        # Image references must be updated in the page item in Spread or Story.
+        if "href" in items:
+            resource_path = items.get("href")
+            element_content_id = self.get_element_content_id_by_xpath(xpath)
+            spread = self.get_spread_object_by_xpath(xpath)
+            if resource_path == "":
+                story.remove_xml_element_page_items(element_id)
+                if spread:
+                    spread.remove_page_item(element_content_id, synchronize=True)
+            else:
+                story.set_element_resource_path(element_content_id, resource_path)
+                if spread:
+                    spread.set_element_resource_path(element_content_id,
+                                                     resource_path,
+                                                     synchronize=True)
+        story.synchronize()
+
 
     def export_as_tree(self):
         """
