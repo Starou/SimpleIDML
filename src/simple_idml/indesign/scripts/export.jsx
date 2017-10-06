@@ -179,10 +179,10 @@ if (format === "pdf") {
             bleedOutside = bleeds.outside;
             //If any bleed area is greater than zero, then export the bleed marks.
             useDocumentBleedWithPDF = false;
-            if (bleedBottom === 0 && bleedTop === 0 && bleedInside === 0 && bleedOutside === 0){
-                bleedMarks = true;
-            } else {
+            if (bleedBottom == 0 && bleedTop == 0 && bleedInside == 0 && bleedOutside == 0){
                 bleedMarks = false;
+            } else {
+                bleedMarks = true;
             }
             colorBars = _colorBars;
             colorTileSize = 128;
