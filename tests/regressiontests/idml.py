@@ -551,6 +551,36 @@ u"""<Root Self="di2">
 </Root>
 """)
 
+    def test_import_pdf(self):
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "page-9modules.idml"),
+                     os.path.join(OUTPUT_DIR, "page-9modules.idml"))
+        with IDMLPackage(os.path.join(OUTPUT_DIR, "page-9modules.idml")) as idml_file:
+            xpath = "/Root/page/modules/module[2]"
+            with idml_file.import_pdf(os.path.join(IDMLFILES_DIR, "module1.pdf"), at=xpath) as f:
+                xml = f.export_xml()
+                self.assertXMLEqual(xml,
+"""<Root>
+  <page>
+    <modules>
+      <module/>
+      <module href="file://%s/module1.pdf"/>
+      <module/>
+      <module/>
+      <module/>
+      <module/>
+      <module/>
+      <module/>
+      <module/>
+    </modules>
+  </page>
+</Root>
+""" % IDMLFILES_DIR)
+                spread_elt = f.get_spread_elem_by_xpath(xpath)
+                self.assertEqual(spread_elt.tag, 'PDF')
+                self.assertEqual(spread_elt.get('ItemTransform'), '1 0 0 1 -548.7679708102072 -183.08907317650574')
+                link = spread_elt.find('Link')
+                self.assertEqual(link.get('LinkResourceURI'), "file:%s/module1.pdf" % IDMLFILES_DIR)
+
     def test_export_as_tree(self):
         with IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_imported-nested-xml.idml")) as idml_file:
             tree = idml_file.export_as_tree()
