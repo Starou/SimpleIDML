@@ -556,14 +556,14 @@ u"""<Root Self="di2">
                      os.path.join(OUTPUT_DIR, "page-9modules.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "page-9modules.idml")) as idml_file:
             xpath = "/Root/page/modules/module[2]"
-            with idml_file.import_pdf(os.path.join(IDMLFILES_DIR, "module1.pdf"), at=xpath) as f:
+            with idml_file.import_pdf("file:%s" % os.path.join(IDMLFILES_DIR, "module1.pdf"), at=xpath) as f:
                 xml = f.export_xml()
                 self.assertXMLEqual(xml,
 """<Root>
   <page>
     <modules>
       <module/>
-      <module href="file://%s/module1.pdf"/>
+      <module href="file:%s/module1.pdf"/>
       <module/>
       <module/>
       <module/>

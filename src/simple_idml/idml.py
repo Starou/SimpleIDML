@@ -427,7 +427,7 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def import_pdf(self, pdf_path, at):
-        self.set_attributes(at, {'href': "file://%s" % pdf_path})
+        self.set_attributes(at, {'href': "%s" % pdf_path})
         spread = self.get_spread_object_by_xpath(at)
 
         # spread_elt is a <Rectangle> that will host the <PDF>.
@@ -446,7 +446,7 @@ class IDMLPackage(zipfile.ZipFile):
         <PDFAttribute PageNumber="1" PDFCrop="CropContentVisibleLayers" TransparentBackground="true" />
         <MetadataPacketPreference>
         </MetadataPacketPreference>
-        <Link Self="%s" AssetURL="$ID/" AssetID="$ID/" LinkResourceURI="file:%s" LinkResourceFormat="$ID/Adobe Portable Document Format (PDF)" StoredState="Normal" LinkResourceModified="false" LinkObjectModified="false" ShowInUI="true" CanEmbed="true" CanUnembed="true" CanPackage="true" ImportPolicy="NoAutoImport" ExportPolicy="NoAutoExport" />
+        <Link Self="%s" AssetURL="$ID/" AssetID="$ID/" LinkResourceURI="%s" LinkResourceFormat="$ID/Adobe Portable Document Format (PDF)" StoredState="Normal" LinkResourceModified="false" LinkObjectModified="false" ShowInUI="true" CanEmbed="true" CanUnembed="true" CanPackage="true" ImportPolicy="NoAutoImport" ExportPolicy="NoAutoExport" />
         <ClippingPathSettings ClippingType="None" InvertPath="false" IncludeInsideEdges="false" RestrictToFrame="false" UseHighResolutionImage="true" Threshold="25" Tolerance="2" InsetFrame="0" AppliedPathName="$ID/" Index="-1" />
         <GraphicLayerOption UpdateLinkOption="KeepOverrides" />
     </PDF>""" % (element_id, x, y, "%s-link" % element_id, pdf_path))
