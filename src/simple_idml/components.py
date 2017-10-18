@@ -3,12 +3,14 @@
 import copy
 import os
 import re
+import sys
 from decimal import Decimal
 from lxml import etree
 from simple_idml import IdPkgNS, BACKINGSTORY
 from simple_idml.utils import increment_xmltag_id, prefix_content_filename
 from simple_idml.utils import Proxy
 
+PY3 = sys.version_info > (3,)
 RECTO = "recto"
 VERSO = "verso"
 
@@ -73,7 +75,10 @@ class IDMLXMLFile(object):
     @property
     def dom(self):
         if self._dom is None:
-            dom = etree.fromstring(self.fobj.read())
+            s = self.fobj.read()
+            if PY3 and isinstance(s, str):
+                s = s.encode()
+            dom = etree.fromstring(s)
             self._dom = dom
             self._fobj.close()
             self._fobj = None
@@ -96,6 +101,8 @@ class IDMLXMLFile(object):
         else:
             kwargs["doctype"] = self.doctype
             s = etree.tostring(self.dom, **kwargs)
+        if PY3:
+            s = s.decode()
         return s
 
     def synchronize(self):
@@ -436,7 +443,7 @@ class Story(IDMLXMLFile):
 
     def remove_children(self, element_id, synchronize=False):
         elt = self.get_element_by_id(element_id).element
-        map(lambda c: elt.remove(c), elt.iterchildren())
+        list(map(lambda c: elt.remove(c), elt.iterchildren()))
         if synchronize:
             self.synchronize()
 
@@ -643,7 +650,7 @@ class StyleMapping(IDMLXMLFile):
         try:
             super(StyleMapping, self).dom
         except AttributeError:
-            self._dom = etree.fromstring(self.initial_dom)
+            self._dom = etree.fromstring(self.initial_dom.encode())
         return self._dom
 
     @property

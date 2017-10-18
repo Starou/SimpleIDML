@@ -10,7 +10,7 @@ from simple_idml.components import Spread, Story, Style, StyleMapping, XMLElemen
 from simple_idml.idml import IDMLPackage
 from simple_idml.utils import etree_dom_to_tree
 
-CURRENT_DIR = os.path.dirname(__file__)
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 
 
@@ -420,7 +420,7 @@ class XMLElementTestCase(unittest.TestCase):
                         </ParagraphStyleRange>
                     </XMLElement>
                 </Story>
-            </idPkg:Story>""")
+            </idPkg:Story>""".encode())
 
         # Getter.
         module_node = dom.xpath(".//XMLElement[@Self='di3i4']")[0]
