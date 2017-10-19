@@ -76,7 +76,7 @@ class Proxy(object):
         target = self._target
         f = getattr(target, aname)
         if isinstance(f, MethodType):
-            return types.MethodType(f.im_func, self)
+            return types.MethodType(f.__func__, self)
         else:
             return f
 
