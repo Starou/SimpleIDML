@@ -16,7 +16,7 @@ setup(
     long_description=README,
     url='https://github.com/Starou/SimpleIDML',
     package_dir={'': 'src'},
-    install_requires=['lxml>=1.3,<3.7', 'mock', 'suds'],
+    install_requires=['lxml>=1.3,<3.7', 'mock', 'suds-jurko'],
     packages=[
         'simple_idml',
         'simple_idml.indesign',
