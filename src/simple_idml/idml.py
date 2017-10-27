@@ -251,26 +251,6 @@ class IDMLPackage(zipfile.ZipFile):
             story.set_element_content(element_id, content)
             story.synchronize()
 
-        def _set_attributes(xpath, element_id, items):
-            story = self.get_story_object_by_xpath(xpath)
-            story.set_element_attributes(element_id, items)
-            # Image references must be updated in the page item in Spread or Story.
-            if "href" in items:
-                resource_path = items.get("href")
-                element_content_id = self.get_element_content_id_by_xpath(xpath)
-                spread = self.get_spread_object_by_xpath(xpath)
-                if resource_path == "":
-                    story.remove_xml_element_page_items(element_id)
-                    if spread:
-                        spread.remove_page_item(element_content_id, synchronize=True)
-                else:
-                    story.set_element_resource_path(element_content_id, resource_path)
-                    if spread:
-                        spread.set_element_resource_path(element_content_id,
-                                                         resource_path,
-                                                         synchronize=True)
-            story.synchronize()
-
         def _apply_style(style_range_node, style_to_apply_node, applied_style_node):
             """ A style_range_node as an applied_style_node overriden with style_to_apply_node. """
             for attr in ("PointSize", "FontStyle", "HorizontalScale", "Tracking", "FillColor", "Capitalization", "Position"):
@@ -410,7 +390,7 @@ class IDMLPackage(zipfile.ZipFile):
             forcecontent = (items.get(FORCECONTENT_TAG) == "true")
             if not ignorecontent_parent_flag or forcecontent:
                 if items:
-                    _set_attributes(at, element_id, items)
+                    self.set_attributes(at, items, element_id)
                 if not (items.get(SETCONTENT_TAG) == "false"):
                     _set_content(at, element_id, source_node.text or "", story)
 
@@ -443,6 +423,59 @@ class IDMLPackage(zipfile.ZipFile):
                     _move_siblings_content(at, element_id)
 
         _import_node(source_node, at)
+        return self
+
+    @use_working_copy
+    def import_pdf(self, pdf_path, at):
+        self.set_attributes(at, {'href': "%s" % pdf_path})
+        spread = self.get_spread_object_by_xpath(at)
+
+        # spread_elt is a <Rectangle> that will host the <PDF>.
+        # The <PDF> element get the id of the <Rectangle>.
+        spread_elt = self.get_spread_elem_by_xpath(at)
+        element_id = self.get_element_content_id_by_xpath(at)
+        spread_elt.set("Self", "%s-old" % element_id)
+        x, y = self.get_elem_point_position(spread_elt)
+        pdf_node = etree.fromstring("""<PDF Self="%s" GrayVectorPolicy="IgnoreAll" RGBVectorPolicy="IgnoreAll" CMYKVectorPolicy="IgnoreAll" OverriddenPageItemProps="" LocalDisplaySetting="Default" ImageTypeName="$ID/Adobe Portable Document Format (PDF)" AppliedObjectStyle="ObjectStyle/$ID/[None]" ItemTransform="1 0 0 1 %s %s" ParentInterfaceChangeCount="" TargetInterfaceChangeCount="" LastUpdatedInterfaceChangeCount="" HorizontalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" VerticalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" Visible="true" Name="$ID/">
+        <TextWrapPreference Inverse="false" ApplyToMasterPageOnly="false" TextWrapSide="BothSides" TextWrapMode="None">
+            <Properties>
+                <TextWrapOffset Top="0" Left="0" Bottom="0" Right="0" />
+            </Properties>
+            <ContourOption ContourType="SameAsClipping" IncludeInsideEdges="false" ContourPathName="$ID/" />
+        </TextWrapPreference>
+        <PDFAttribute PageNumber="1" PDFCrop="CropContentVisibleLayers" TransparentBackground="true" />
+        <MetadataPacketPreference>
+        </MetadataPacketPreference>
+        <Link Self="%s" AssetURL="$ID/" AssetID="$ID/" LinkResourceURI="%s" LinkResourceFormat="$ID/Adobe Portable Document Format (PDF)" StoredState="Normal" LinkResourceModified="false" LinkObjectModified="false" ShowInUI="true" CanEmbed="true" CanUnembed="true" CanPackage="true" ImportPolicy="NoAutoImport" ExportPolicy="NoAutoExport" />
+        <ClippingPathSettings ClippingType="None" InvertPath="false" IncludeInsideEdges="false" RestrictToFrame="false" UseHighResolutionImage="true" Threshold="25" Tolerance="2" InsetFrame="0" AppliedPathName="$ID/" Index="-1" />
+        <GraphicLayerOption UpdateLinkOption="KeepOverrides" />
+    </PDF>""" % (element_id, x, y, "%s-link" % element_id, pdf_path))
+
+        spread_elt.append(pdf_node)
+        spread.synchronize()
+        return self
+
+    @use_working_copy
+    def set_attributes(self, xpath, items, element_id=None):
+        element_id = element_id or self.xml_structure.xpath(xpath)[0].get("Self")
+        story = self.get_story_object_by_xpath(xpath)
+        story.set_element_attributes(element_id, items)
+        # Image references must be updated in the page item in Spread or Story.
+        if "href" in items:
+            resource_path = items.get("href")
+            element_content_id = self.get_element_content_id_by_xpath(xpath)
+            spread = self.get_spread_object_by_xpath(xpath)
+            if resource_path == "":
+                story.remove_xml_element_page_items(element_id)
+                if spread:
+                    spread.remove_page_item(element_content_id, synchronize=True)
+            else:
+                story.set_element_resource_path(element_content_id, resource_path)
+                if spread:
+                    spread.set_element_resource_path(element_content_id,
+                                                     resource_path,
+                                                     synchronize=True)
+        story.synchronize()
         return self
 
     def export_as_tree(self):

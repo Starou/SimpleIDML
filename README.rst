@@ -356,6 +356,17 @@ You can as well import XML file into your InDesign® documents. The following ru
 
 Please take a look into the tests for in-depth examples.
 
+Import PDF
+----------
+
+A block can be used as a placeholder for a PDF file:
+
+.. code-block:: python
+
+    >>> with IDMLPackage("my_package.idml") as idml_file:
+    >>>     with idml_file.import_pdf("file:/path/to/file.pdf", at="/Root/modules/module[2]") as f:
+    >>>         f.export_xml()
+
 Use InDesign server SOAP interface to convert a file
 ----------------------------------------------------
 
@@ -436,6 +447,20 @@ in your PATH.
 
 Revisions
 =========
+
+0.92.8
+------
+
+New features
+''''''''''''
+
+- Added ``IDMLPackage.import_pdf()`` method.
+
+
+Bug fixes
+'''''''''
+
+- Fix ``bleedMarks`` in export.jsx.
 
 0.92.7
 ------
