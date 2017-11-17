@@ -67,11 +67,16 @@ def use_dedicated_working_directory(view_func):
         indesign_client_workdir = working_dir
         indesign_server_workdir = server_path_mod.join(indesign_server_workdir, os.path.basename(working_dir))
 
-        response = view_func(src_filename, dst_formats_params, indesign_server_url, indesign_client_workdir,
-                             indesign_server_workdir, indesign_server_path_style, clean_workdir, ftp_params,
-                             logger, logger_extra)
-        if clean_workdir:
-            _rmtree(working_dir, ftp_params)
+        try:
+            response = view_func(src_filename, dst_formats_params, indesign_server_url,
+                                 indesign_client_workdir, indesign_server_workdir,
+                                 indesign_server_path_style, clean_workdir, ftp_params,
+                                 logger, logger_extra)
+        except BaseException, e:
+            raise e
+        finally:
+            if clean_workdir:
+                _rmtree(working_dir, ftp_params)
         return response
     return new_func
 
