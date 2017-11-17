@@ -157,7 +157,7 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
             response = cl.service.RunScript(params)
         except SAXParseException, e:
             response = None
-            logger.error('SAXParseException: %s' % e.getMessage())
+            logger.error('SAXParseException: %s' % e.getMessage(), extra=logger_extra)
         else:
             if response.errorNumber:
                 logger.error("InDesign server was unable to save as %s.\n"
