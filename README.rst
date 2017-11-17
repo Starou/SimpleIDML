@@ -448,6 +448,19 @@ in your PATH.
 Revisions
 =========
 
+0.92.9
+------
+
+Bug fixes
+'''''''''
+
+- Fix working directory cleaning of the SOAP server when an exception is raised.
+  ``indesign.save_as()`` may be backward incompatible since the returned list
+  may contains some ``None`` (instead of raising an exception before returning
+  anything).
+- Give the list of available profiles (joboptions files) on the InDesign Server
+  if the given 'pdfExportPresetName' is not found.
+
 0.92.8
 ------
 
