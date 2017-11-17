@@ -180,9 +180,7 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
         if response:
             response = _read(response_client_copy_filename, ftp_params)
             if clean_workdir:
-                logger.debug('Cleaning workir...')
                 _unlink(response_client_copy_filename, ftp_params)
-                logger.debug('Cleaning workir done!')
 
         return response
 
