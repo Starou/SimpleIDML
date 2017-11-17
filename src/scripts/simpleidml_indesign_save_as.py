@@ -86,6 +86,8 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
         }
 
     def save_as(self, response, dst):
+        if not response:
+            return
         with open(dst.split("|")[0], mode="w+") as fobj:
             fobj.write(response)
 
