@@ -3,6 +3,7 @@
 import glob
 import os
 import shutil
+import sys
 import unittest
 from tempfile import mkdtemp
 from lxml import etree
@@ -10,12 +11,15 @@ from simple_idml.idml import IDMLPackage
 from simple_idml.test import SimpleTestCase
 from simple_idml.utils import etree_dom_to_tree
 
-CURRENT_DIR = os.path.dirname(__file__)
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 XML_DIR = os.path.join(CURRENT_DIR, "XML")
 OUTPUT_DIR = os.path.join(CURRENT_DIR, "outputs", "simpleIDML")
 
 IDPKG_NS = "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"
+
+if sys.version_info > (3,):
+    unicode = str
 
 
 def memory_dump():
@@ -230,7 +234,7 @@ u"""<Root Self="di2">
         # Test a file with a slighly different structure
         idml_filename = os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml")
         with IDMLPackage(idml_filename) as idml_file:
-            self.assertXMLEqual(etree.tostring(idml_file.xml_structure, pretty_print=True),
+            self.assertXMLEqual(etree.tostring(idml_file.xml_structure, pretty_print=True).decode(),
 """<Root Self="di2">
   <page Self="di2ib">
     <title XMLContent="u1b2" Self="di2ibi34"/>
@@ -3570,8 +3574,6 @@ u"""<Root Self="editodi2">
 </Root>
 """)
 
-    @unittest.skipIf(os.environ.get("TRAVIS"),
-                     "This needs to be fixed. Gives some weird results on Travis C.I.")
     def test_add_pages_from_idml(self):
         edito_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-edito.idml")
         courrier_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-courrier-des-lecteurs.idml")
@@ -3606,8 +3608,6 @@ u"""<Root Self="editodi2">
                         'Spreads/Spread_editoubd.xml']
                     ))
 
-    @unittest.skipIf(os.environ.get("TRAVIS"),
-                     "This needs to be fixed. Gives some weird results on Travis C.I.")
     def test_add_pages_from_idml_to_template(self):
         # Now we use an empty document to hold the pages.
         magazineA_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-template.idml")

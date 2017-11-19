@@ -6,7 +6,7 @@ import unittest
 from simple_idml.id_package import ZipInDesignPackage
 from simple_idml.id_package import merge_font_lst
 
-CURRENT_DIR = os.path.dirname(__file__)
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 
 

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import copy
-import new
 import os
 import re
+import types
 from lxml import etree
 from types import MethodType
 
@@ -76,7 +76,7 @@ class Proxy(object):
         target = self._target
         f = getattr(target, aname)
         if isinstance(f, MethodType):
-            return new.instancemethod(f.im_func, self, target.__class__)
+            return types.MethodType(f.im_func, self)
         else:
             return f
 

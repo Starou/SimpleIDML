@@ -2,10 +2,12 @@ import os
 import sys
 import unittest
 
-REGRESSION_TEST_DIRNAME = 'regressiontests'
-REGRESSION_TEST_DIR = os.path.join(os.path.dirname(__file__), REGRESSION_TEST_DIRNAME)
+PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SRC_DIR = os.path.join(PACKAGE_DIR, 'src')
+TESTS_DIR = os.path.join(PACKAGE_DIR, 'tests')
+REGRESSION_TEST_DIR = os.path.join(TESTS_DIR, 'regressiontests')
 
-sys.path.insert(0, os.path.join('..', 'src'))
+sys.path.insert(0, SRC_DIR)
 
 
 def load_suite_tests(only=None):
@@ -19,9 +21,10 @@ def load_suite_tests(only=None):
     for dirpath, dirnames, filenames in os.walk(REGRESSION_TEST_DIR):
         for f in filenames:
             basename, ext = os.path.splitext(f)
+            rel_path = dirpath[len(os.path.dirname(REGRESSION_TEST_DIR)) + 1:]
             if (ext == '.py') and (not only_module or (only_module == basename)):
-                modname = "%s.%s" % ('.'.join(dirpath.split('/')), basename)
-                package = __import__(modname, globals(), locals(), [], -1)
+                modname = '.'.join(rel_path.split('/') + [basename])
+                package = __import__(modname, globals(), locals(), [], 0)
                 mod = sys.modules[modname]
                 if hasattr(mod, 'suite'):
                     suite = mod.suite()
