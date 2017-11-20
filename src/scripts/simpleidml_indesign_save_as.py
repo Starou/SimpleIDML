@@ -65,30 +65,29 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
             self.parser.error("You must provide the source file and the destination file paths as parameters")
 
         src, destinations = self.args[0], self.args[1].split(";")
-
-        def parse_destination_arg(arg):
-            try:
-                dest, params = arg.split("|")
-            except ValueError:
-                dest = arg
-                params = {}
-            else:
-                params = dict([keyval.split("=") for keyval in params.split(",")])
-            return {"fmt": os.path.splitext(dest)[1].replace(".", ""),
-                    "params": params}
-
-        formats = map(parse_destination_arg, destinations)
-
-
+        formats = map(self.parse_destination_arg, destinations)
         responses = indesign.save_as(src, formats, self.options.url, self.options.client_workdir,
                                      self.options.server_workdir, self.options.server_path_style,
                                      not self.options.no_clean_workdir, self.ftp_params)
+        map(self.save_as, responses, destinations)
 
-        def _save_as(response, dst):
-            with open(dst.split("|")[0], mode="w+") as fobj:
-                fobj.write(response)
+    def parse_destination_arg(self, arg):
+        try:
+            dest, params = arg.split("|")
+        except ValueError:
+            dest = arg
+            params = {}
+        else:
+            params = dict([keyval.split("=") for keyval in params.split(",")])
 
-        map(_save_as, responses, destinations)
+        return {
+            "fmt": os.path.splitext(dest)[1].replace(".", ""),
+            "params": params,
+        }
+
+    def save_as(self, response, dst):
+        with open(dst.split("|")[0], mode="w+") as fobj:
+            fobj.write(response)
 
 
 def main():
