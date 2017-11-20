@@ -51,7 +51,7 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
 
     def __init__(self):
         super(InDesignSaveAsCommand, self).__init__()
-        self.parser.add_argument('source', metavar='SOURCE', type=file)
+        self.parser.add_argument('source', metavar='SOURCE', help="path/to/file.indd")
         self.parser.add_argument('destinations', metavar='DESTINATIONS', help="file1|opt1=a,opt2=b;file2|opt1=c")
 
     def parse_options(self):
