@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import locale
-import logging
 import os
 import sys
 from simple_idml.indesign import indesign
@@ -53,18 +52,19 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
             - monochromeBitmapCompression: CCIT3, CCIT4, zip, RLE
             - monochromeBitmapSamplingDPI: [9 to 2400] """
 
-    def execute(self):
-        # Fix encoding first.
+    def parse_options(self):
         encoding = locale.getpreferredencoding()
         for i, a in enumerate(sys.argv):
             sys.argv[i] = unicode(a.decode(encoding))
+        (self.options, self.args) = self.parser.parse_args()
 
-        (options, args) = self.parser.parse_args()
+    def execute(self):
+        super(InDesignSaveAsCommand, self).execute()
 
-        if len(args) != 2:
+        if len(self.args) != 2:
             self.parser.error("You must provide the source file and the destination file paths as parameters")
         else:
-            src, destinations = args[0], args[1].split(";")
+            src, destinations = self.args[0], self.args[1].split(";")
 
             def parse_destination_arg(arg):
                 try:
@@ -79,20 +79,10 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
 
             formats = map(parse_destination_arg, destinations)
 
-            ftp_params = None
-            if options.ftp_url:
-                ftp_params = {
-                    'auth': (options.ftp_url, options.ftp_user, options.ftp_password),
-                    'passive': options.ftp_passive,
-                }
 
-            if options.verbose:
-                logging.basicConfig(level=logging.INFO)
-                logging.getLogger('suds.client').setLevel(logging.DEBUG)
-
-            responses = indesign.save_as(src, formats, options.url, options.client_workdir,
-                                         options.server_workdir, options.server_path_style,
-                                         not options.no_clean_workdir, ftp_params)
+            responses = indesign.save_as(src, formats, self.options.url, self.options.client_workdir,
+                                         self.options.server_workdir, self.options.server_path_style,
+                                         not self.options.no_clean_workdir, self.ftp_params)
 
             def _save_as(response, dst):
                 with open(dst.split("|")[0], mode="w+") as fobj:

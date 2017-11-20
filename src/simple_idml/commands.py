@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from optparse import OptionParser
 
 
@@ -25,3 +26,24 @@ class InDesignSoapCommand(object):
         self.parser.add_option("--ftp-passive", dest="ftp_passive", action="store_true", default=False)
         self.parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                                default=False)
+
+    def execute(self):
+        self.parse_options()
+        self.set_ftp_params()
+        self.set_suds_logging()
+
+    def parse_options(self):
+        (self.options, self.args) = self.parser.parse_args()
+
+    def set_ftp_params(self):
+        self.ftp_params = None
+        if self.options.ftp_url:
+            self.ftp_params = {
+                'auth': (self.options.ftp_url, self.options.ftp_user, self.options.ftp_password),
+                'passive': self.options.ftp_passive,
+            }
+
+    def set_suds_logging(self):
+        if self.options.verbose:
+            logging.basicConfig(level=logging.INFO)
+            logging.getLogger('suds.client').setLevel(logging.DEBUG)
