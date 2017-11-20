@@ -6,7 +6,8 @@ import logging
 
 class InDesignSoapCommand(object):
     def __init__(self):
-        self.parser = argparse.ArgumentParser(description=self.description)
+        self.parser = argparse.ArgumentParser(description=self.description,
+                                             formatter_class=argparse.RawDescriptionHelpFormatter)
         self.parser.add_argument("-u", "--url", default="http://127.0.0.1:8082", help=u"InDesign Server SOAP url")
         self.parser.add_argument("--client-workdir", default="/tmp",
                                  help=("Directory where temporary files are written, as seen by the SOAP client."
