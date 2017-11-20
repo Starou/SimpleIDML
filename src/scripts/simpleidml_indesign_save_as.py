@@ -11,43 +11,45 @@ from simple_idml.commands import InDesignSoapCommand
 class InDesignSaveAsCommand(InDesignSoapCommand):
     description = """SOAP call to a InDesignServer to save a file in (an)other format(s).
 
-        Export PDF parameters
-        '''''''''''''''''''''
+   PDF export parameters
+   '''''''''''''''''''''
 
-        o Boolean parameters just need to be present to be set on:
+   o Boolean parameters just need to be present to be set on:
 
-            - colorBars, optimizePDF, cropMarks, pageInformationMarks,
-                registrationMarks,
+       - colorBars, optimizePDF, cropMarks, pageInformationMarks,
+           registrationMarks
 
+   o String parameters:
 
-        o String parameters:
+       You can call a profile (.joboptions file) with 'pdfExportPresetName':
 
-            You can call a predifined preset (.joboptions file) with
-            pdfExportPresetName:
+       - pdfExportPresetName: [Press Quality], ...
 
-            - pdfExportPresetName: [Press Quality], ...
+       Or manually set following the parameters:
 
-            Or the the following parameters:
+       - acrobatCompatibility: 4, 5, 6, 7 or 8
+       - colorSpace: CMYK, iGry, rCMY, rRGB, cRGB or unFc
+       - colorProfile (output > color > destination) and
+           (output > PDF/X > profile): Generic CMYK Profile, ...
+       - flattenerPresetName: [High resolution print], ...
+       - standartsCompliance: 1A2001, 1A2003, 32002, 32003 or 42010
+       - bleedTop, bleedBottom, bleedInside, bleedOutside: (float value)
+       - pageMarksOffset: [0 to 72]
+       - colorBitmapSampling: subSample, downSample or bicubicDownSample
+       - colorBitmapQuality: minimum, low, medium, high, maximum, 4bits or 8bits
+       - colorBitmapCompression: auto, jpeg, zip, jpeg2000 or autoJpeg2000
+       - colorBitmapSamplingDPI: [9 to 2400]
+       - grayscaleBitmapSampling: subSample, downSample or bicubicDownSample
+       - grayscaleBitmapQuality: minimum, low, medium, high, maximum, 4bits or 8bits
+       - grayscaleBitmapCompression: auto, jpeg, zip, jpeg2000 or autoJpeg2000
+       - grayscaleBitmapSamplingDPI: [9 to 2400]
+       - monochromeBitmapSampling: subSample, downSample or bicubicDownSample
+       - monochromeBitmapCompression: CCIT3, CCIT4, zip, RLE
+       - monochromeBitmapSamplingDPI: [9 to 2400]
 
-            - acrobatCompatibility: 4, 5, 6, 7 or 8
-            - colorSpace: CMYK, iGry, rCMY, rRGB, cRGB or unFc
-            - colorProfile (output > color > destination) and
-                (output > PDF/X > profile): Generic CMYK Profile, ...
-            - flattenerPresetName: [High resolution print], ...
-            - standartsCompliance: 1A2001, 1A2003, 32002, 32003 or 42010
-            - bleedTop, bleedBottom, bleedInside, bleedOutside: (float value)
-            - pageMarksOffset: [0 to 72]
-            - colorBitmapSampling: subSample, downSample or bicubicDownSample
-            - colorBitmapQuality: minimum, low, medium, high, maximum, 4bits or 8bits
-            - colorBitmapCompression: auto, jpeg, zip, jpeg2000 or autoJpeg2000
-            - colorBitmapSamplingDPI: [9 to 2400]
-            - grayscaleBitmapSampling: subSample, downSample or bicubicDownSample
-            - grayscaleBitmapQuality: minimum, low, medium, high, maximum, 4bits or 8bits
-            - grayscaleBitmapCompression: auto, jpeg, zip, jpeg2000 or autoJpeg2000
-            - grayscaleBitmapSamplingDPI: [9 to 2400]
-            - monochromeBitmapSampling: subSample, downSample or bicubicDownSample
-            - monochromeBitmapCompression: CCIT3, CCIT4, zip, RLE
-            - monochromeBitmapSamplingDPI: [9 to 2400] """
+    Example:
+        "path/to/out.pdf|colorBars=1,cropMarks=1,monochromeBitmapCompression=CCIT3"
+       """
 
     def __init__(self):
         super(InDesignSaveAsCommand, self).__init__()
