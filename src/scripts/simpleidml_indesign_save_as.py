@@ -63,32 +63,32 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
 
         if len(self.args) != 2:
             self.parser.error("You must provide the source file and the destination file paths as parameters")
-        else:
-            src, destinations = self.args[0], self.args[1].split(";")
 
-            def parse_destination_arg(arg):
-                try:
-                    dest, params = arg.split("|")
-                except ValueError:
-                    dest = arg
-                    params = {}
-                else:
-                    params = dict([keyval.split("=") for keyval in params.split(",")])
-                return {"fmt": os.path.splitext(dest)[1].replace(".", ""),
-                        "params": params}
+        src, destinations = self.args[0], self.args[1].split(";")
 
-            formats = map(parse_destination_arg, destinations)
+        def parse_destination_arg(arg):
+            try:
+                dest, params = arg.split("|")
+            except ValueError:
+                dest = arg
+                params = {}
+            else:
+                params = dict([keyval.split("=") for keyval in params.split(",")])
+            return {"fmt": os.path.splitext(dest)[1].replace(".", ""),
+                    "params": params}
+
+        formats = map(parse_destination_arg, destinations)
 
 
-            responses = indesign.save_as(src, formats, self.options.url, self.options.client_workdir,
-                                         self.options.server_workdir, self.options.server_path_style,
-                                         not self.options.no_clean_workdir, self.ftp_params)
+        responses = indesign.save_as(src, formats, self.options.url, self.options.client_workdir,
+                                     self.options.server_workdir, self.options.server_path_style,
+                                     not self.options.no_clean_workdir, self.ftp_params)
 
-            def _save_as(response, dst):
-                with open(dst.split("|")[0], mode="w+") as fobj:
-                    fobj.write(response)
+        def _save_as(response, dst):
+            with open(dst.split("|")[0], mode="w+") as fobj:
+                fobj.write(response)
 
-            map(_save_as, responses, destinations)
+        map(_save_as, responses, destinations)
 
 
 def main():
