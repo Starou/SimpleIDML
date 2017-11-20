@@ -9,9 +9,6 @@ from simple_idml.commands import InDesignSoapCommand
 
 
 class InDesignSaveAsCommand(InDesignSoapCommand):
-    usage = ("usage: %prog /path/to/source-file"
-             " \"/path/to/destination-fileA|colorsBars=1,colorSpace=cRGB;/path/to/destination-fileB\"")
-    version = "%prog 0.1"
     description = """SOAP call to a InDesignServer to save a file in (an)other format(s).
 
         Export PDF parameters
@@ -52,23 +49,24 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
             - monochromeBitmapCompression: CCIT3, CCIT4, zip, RLE
             - monochromeBitmapSamplingDPI: [9 to 2400] """
 
+    def __init__(self):
+        super(InDesignSaveAsCommand, self).__init__()
+        self.parser.add_argument('source', metavar='SOURCE', type=file)
+        self.parser.add_argument('destinations', metavar='DESTINATIONS', help="file1|opt1=a,opt2=b;file2|opt1=c")
+
     def parse_options(self):
         encoding = locale.getpreferredencoding()
         for i, a in enumerate(sys.argv):
             sys.argv[i] = unicode(a.decode(encoding))
-        (self.options, self.args) = self.parser.parse_args()
+        self.args = self.parser.parse_args()
 
     def execute(self):
         super(InDesignSaveAsCommand, self).execute()
-
-        if len(self.args) != 2:
-            self.parser.error("You must provide the source file and the destination file paths as parameters")
-
-        src, destinations = self.args[0], self.args[1].split(";")
+        destinations = self.args.destinations.split(";")
         formats = map(self.parse_destination_arg, destinations)
-        responses = indesign.save_as(src, formats, self.options.url, self.options.client_workdir,
-                                     self.options.server_workdir, self.options.server_path_style,
-                                     not self.options.no_clean_workdir, self.ftp_params)
+        responses = indesign.save_as(self.args.source, formats, self.args.url, self.args.client_workdir,
+                                     self.args.server_workdir, self.args.server_path_style,
+                                     not self.args.no_clean_workdir, self.ftp_params)
         map(self.save_as, responses, destinations)
 
     def parse_destination_arg(self, arg):
