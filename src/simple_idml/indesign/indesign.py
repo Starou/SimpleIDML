@@ -16,6 +16,7 @@ from simple_idml import exceptions
 from simple_idml.decorators import simple_decorator
 from suds.client import Client
 from tempfile import mkdtemp
+from xml.sax import SAXParseException
 
 CURRENT_DIR = os.path.abspath(os.path.split(__file__)[0])
 SCRIPTS_DIR = os.path.join(CURRENT_DIR, "scripts")
@@ -67,11 +68,16 @@ def use_dedicated_working_directory(view_func):
         indesign_client_workdir = working_dir
         indesign_server_workdir = server_path_mod.join(indesign_server_workdir, os.path.basename(working_dir))
 
-        response = view_func(src_filename, dst_formats_params, indesign_server_url, indesign_client_workdir,
-                             indesign_server_workdir, indesign_server_path_style, clean_workdir, ftp_params,
-                             logger, logger_extra)
-        if clean_workdir:
-            _rmtree(working_dir, ftp_params)
+        try:
+            response = view_func(src_filename, dst_formats_params, indesign_server_url,
+                                 indesign_client_workdir, indesign_server_workdir,
+                                 indesign_server_path_style, clean_workdir, ftp_params,
+                                 logger, logger_extra)
+        except BaseException, e:
+            raise e
+        finally:
+            if clean_workdir:
+                _rmtree(working_dir, ftp_params)
         return response
     return new_func
 
@@ -147,14 +153,22 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
             params.scriptArgs.append(fmt)
 
         logger.debug('Calling SOAP "RunScript" service... (params: %s)' % params, extra=logger_extra)
-        response = cl.service.RunScript(params)
-        if response.errorNumber:
-            logger.error("InDesign server was unable to save as %s.\n"
-                         "SOAP response: %s\n"
-                         "SOAP RunScript params: %s" % (dst_format, response, params), extra=logger_extra)
-            raise exceptions.InDesignSoapException(params, response)
+        try:
+            response = cl.service.RunScript(params)
+        except SAXParseException, e:
+            response = None
+            logger.error('SAXParseException: %s' % e.getMessage(), extra=logger_extra)
+        else:
+            if response.errorNumber:
+                logger.error("InDesign server was unable to save as %s.\n"
+                             "SOAP response: %s\n"
+                             "SOAP RunScript params: %s" % (dst_format, response, params), extra=logger_extra)
+                raise exceptions.InDesignSoapException(params, response)
 
-        logger.debug('"RunScript" successful! Response: %s' % response, extra=logger_extra)
+            logger.debug('"RunScript" successful! Response: %s' % response, extra=logger_extra)
+        finally:
+            if clean_workdir:
+                _unlink(javascript_client_copy_filename, ftp_params)
 
         if dst_format == 'zip':
             # Zip the tree generated in response_client_copy_filename and
@@ -163,15 +177,10 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
             _zip_dir(response_client_copy_filename, zip_filename, ftp_params)
             response_client_copy_filename = zip_filename
 
-        logger.debug('Reading response...')
-        response = _read(response_client_copy_filename, ftp_params)
-        logger.debug('Reading response done!')
-
-        if clean_workdir:
-            logger.debug('Cleaning workir...')
-            _unlink(response_client_copy_filename, ftp_params)
-            _unlink(javascript_client_copy_filename, ftp_params)
-            logger.debug('Cleaning workir done!')
+        if response:
+            response = _read(response_client_copy_filename, ftp_params)
+            if clean_workdir:
+                _unlink(response_client_copy_filename, ftp_params)
 
         return response
 
@@ -184,8 +193,8 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
 
     cl = Client("%s/service?wsdl" % indesign_server_url)
     cl.set_options(location=indesign_server_url, timeout=90)
-    responses = map(lambda fmt: _save_as(fmt), dst_formats_params)
 
+    responses = map(lambda fmt: _save_as(fmt), dst_formats_params)
     if clean_workdir:
         _unlink(src_client_copy_filename, ftp_params)
 
