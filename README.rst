@@ -451,6 +451,12 @@ Revisions
 0.92.9
 ------
 
+New features
+''''''''''''
+
+- Added ``simpleidml_indesign_profiles.py`` script to list the available joboptions
+  files on the InDesign Server using the SOAP interface.
+
 Bug fixes
 '''''''''
 
