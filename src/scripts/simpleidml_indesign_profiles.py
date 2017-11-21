@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from simple_idml.commands import InDesignSoapCommand
-from simple_idml.indesign import indesign
+from simple_idml.indesign.indesign import ListProfiles
 
 
 class InDesignListProfiles(InDesignSoapCommand):
@@ -10,8 +10,9 @@ class InDesignListProfiles(InDesignSoapCommand):
 
     def execute(self):
         super(InDesignListProfiles, self).execute()
-        indesign.list_profiles(self.args.url, self.args.client_workdir, self.args.server_workdir,
-                               self.args.server_path_style, self.ftp_params)
+        script = ListProfiles(self.args.url, self.args.client_workdir, self.args.server_workdir,
+                              self.args.server_path_style, self.ftp_params)
+        script.execute()
 
     def set_suds_logging(self):
         self.args.verbose = True
