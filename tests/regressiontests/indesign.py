@@ -74,14 +74,16 @@ class InDesignTestCase(unittest.TestCase):
         self.assertTrue(zipfile.is_zipfile(zip_buf))
 
     def test_close_all_documents(self):
-        indesign.close_all_documents("http://url-to-indesign-server:8080",
-                                     CLIENT_WORKDIR, SERVER_WORKDIR,
-                                     indesign_server_path_style="posix")
+        script = indesign.CloseAllDocuments("http://url-to-indesign-server:8080",
+                                            CLIENT_WORKDIR, SERVER_WORKDIR,
+                                            server_path_style="posix")
+        script.execute()
         self.assertTrue(self.runscript_mock.called)
 
-        indesign.close_all_documents("http://url-to-indesign-server:8080",
-                                     CLIENT_WORKDIR, SERVER_WORKDIR,
-                                     indesign_server_path_style="windows")
+        script = indesign.CloseAllDocuments("http://url-to-indesign-server:8080",
+                                            CLIENT_WORKDIR, SERVER_WORKDIR,
+                                            server_path_style="windows")
+        script.execute()
         self.assertTrue(self.runscript_mock.called)
 
 
@@ -114,7 +116,7 @@ class ServiceSelectorMock(ServiceSelector):
             fobj.write("%s, %s, %s" % (script,
                                        os.path.basename(dst_filename),
                                        extra_params))
-        elif script in indesign.JS_CLOSE_ALL_SCRIPT:
+        elif script == indesign.CloseAllDocuments.javascript_basename:
             pass
 
         return SoapResponse()
