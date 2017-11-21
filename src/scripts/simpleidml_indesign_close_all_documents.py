@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from simple_idml.indesign import indesign
 from simple_idml.commands import InDesignSoapCommand
+from simple_idml.indesign.indesign import CloseAllDocuments
 
 
 class InDesignCloseAllDocs(InDesignSoapCommand):
@@ -10,8 +10,9 @@ class InDesignCloseAllDocs(InDesignSoapCommand):
 
     def execute(self):
         super(InDesignCloseAllDocs, self).execute()
-        indesign.close_all_documents(self.args.url, self.args.client_workdir, self.args.server_workdir,
-                                     self.args.server_path_style, self.ftp_params)
+        script = CloseAllDocuments(self.args.url, self.args.client_workdir, self.args.server_workdir,
+                                   self.args.server_path_style, self.ftp_params)
+        script.execute()
 
 
 def main():

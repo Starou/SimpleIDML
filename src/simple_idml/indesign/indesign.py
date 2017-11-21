@@ -24,7 +24,6 @@ SCRIPTS_DIR = os.path.join(CURRENT_DIR, "scripts")
 JS_SAVE_AS_SCRIPT = "save_as.jsx"
 JS_EXPORT_SCRIPT = "export.jsx"
 JS_PACKAGE_SCRIPT = "package_to_print.jsx"
-JS_CLOSE_ALL_SCRIPT = "close_all_documents.jsx"
 JS_SAVE_AS_SCRIPTS = [JS_SAVE_AS_SCRIPT, JS_EXPORT_SCRIPT, JS_PACKAGE_SCRIPT]
 
 
@@ -41,17 +40,14 @@ class InDesignSoapScript(object):
     def execute(self):
         self.copy_script_on_working_directory()
 
-        client = Client("%s/service?wsdl" % self.server_url)
-        client.set_options(location=self.server_url)
+        self.client = Client("%s/service?wsdl" % self.server_url)
+        self.client.set_options(location=self.server_url)
 
-        params = client.factory.create("ns0:RunScriptParameters")
-        params.scriptLanguage = 'javascript'
-        params.scriptFile = self.javascript_server_copy_filename
+        self.params = self.client.factory.create("ns0:RunScriptParameters")
+        self.params.scriptLanguage = 'javascript'
+        self.params.scriptFile = self.javascript_server_copy_filename
 
-        try:
-            client.service.RunScript(params)
-        except SAXParseException:
-            pass
+        self.runscript()
 
     def copy_script_on_working_directory(self):
         javascript_master_filename = os.path.join(SCRIPTS_DIR, self.javascript_basename)
@@ -60,32 +56,22 @@ class InDesignSoapScript(object):
                                                                          self.javascript_basename)
         _copy(javascript_master_filename, javascript_client_copy_filename, self.ftp_params, src_open_mode="r")
 
+    def runscript(self):
+        self.client.service.RunScript(self.params)
+
 
 class ListProfiles(InDesignSoapScript):
     javascript_basename = "list_profiles.jsx"
 
+    def runscript(self):
+        try:
+            self.client.service.RunScript(self.params)
+        except SAXParseException:
+            pass
 
-def close_all_documents(indesign_server_url, indesign_client_workdir, indesign_server_workdir,
-                        indesign_server_path_style="posix", ftp_params=None):
-    server_path_mod = os.path
-    if indesign_server_path_style == "windows":
-        server_path_mod = ntpath
 
-    javascript_basename = JS_CLOSE_ALL_SCRIPT
-    javascript_master_filename = os.path.join(SCRIPTS_DIR, javascript_basename)
-    javascript_client_copy_filename = os.path.join(indesign_client_workdir, javascript_basename)
-    javascript_server_copy_filename = server_path_mod.join(indesign_server_workdir, javascript_basename)
-
-    _copy(javascript_master_filename, javascript_client_copy_filename, ftp_params, src_open_mode="r")
-
-    cl = Client("%s/service?wsdl" % indesign_server_url)
-    cl.set_options(location=indesign_server_url)
-
-    params = cl.factory.create("ns0:RunScriptParameters")
-    params.scriptLanguage = 'javascript'
-    params.scriptFile = javascript_server_copy_filename
-
-    cl.service.RunScript(params)
+class CloseAllDocuments(InDesignSoapScript):
+    javascript_basename = "close_all_documents.jsx"
 
 
 @simple_decorator
