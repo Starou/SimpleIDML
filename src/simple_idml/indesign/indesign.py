@@ -21,11 +21,6 @@ from xml.sax import SAXParseException
 CURRENT_DIR = os.path.abspath(os.path.split(__file__)[0])
 SCRIPTS_DIR = os.path.join(CURRENT_DIR, "scripts")
 
-JS_SAVE_AS_SCRIPT = "save_as.jsx"
-JS_EXPORT_SCRIPT = "export.jsx"
-JS_PACKAGE_SCRIPT = "package_to_print.jsx"
-JS_SAVE_AS_SCRIPTS = [JS_SAVE_AS_SCRIPT, JS_EXPORT_SCRIPT, JS_PACKAGE_SCRIPT]
-
 
 class InDesignSoapScript(object):
     def __init__(self, server_url, client_workdir, server_workdir,
