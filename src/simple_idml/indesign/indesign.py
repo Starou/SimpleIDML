@@ -23,12 +23,19 @@ SCRIPTS_DIR = os.path.join(CURRENT_DIR, "scripts")
 
 
 class InDesignSoapScript(object):
-    def __init__(self, server_url, client_workdir, server_workdir,
-                 server_path_style="posix", ftp_params=None):
+    def __init__(self, server_url, client_workdir, server_workdir, server_path_style="posix",
+                 ftp_params=None, clean_workdir=True, logger=None, logger_extra=None):
         self.server_url = server_url
         self.client_workdir = client_workdir
         self.server_workdir = server_workdir
         self.ftp_params = ftp_params
+        self.clean_workdir = clean_workdir
+
+        if not logger:
+            logger = logging.getLogger('simpleidml.indesign')
+            logger.addHandler(logging.NullHandler())
+        self.logger = logger
+        self.logger_extra = logger_extra or {}
 
         self.server_path_mod = ntpath if server_path_style == "windows" else os.path
 
@@ -53,17 +60,32 @@ class InDesignSoapScript(object):
         self.params.scriptFile = self.javascript_server_copy_filename
 
     def runscript(self):
-        self.client.service.RunScript(self.params)
+        self.logger.debug('Calling SOAP "RunScript" service (params: %s)' % self.params, extra=self.logger_extra)
+        try:
+            response = self.client.service.RunScript(self.params)
+        except SAXParseException, e:
+            response = None
+            self.logger.error('SAXParseException: %s' % e.getMessage(), extra=self.logger_extra)
+        else:
+            if response.errorNumber:
+                self.logger.error("SOAP response: %s\nSOAP RunScript params: %s" % (response, self.params),
+                                  extra=self.logger_extra)
+                raise exceptions.InDesignSoapException(self.params, response)
+
+            self.logger.debug('"RunScript" successful! Response: %s' % response, extra=self.logger_extra)
+        finally:
+            if self.clean_workdir:
+                _unlink(self.javascript_client_copy_filename, self.ftp_params)
+
+        response = self.runscript_extra(response)
+        return response
+
+    def runscript_extra(self, response):
+        return response
 
 
 class ListProfiles(InDesignSoapScript):
     javascript_basename = "list_profiles.jsx"
-
-    def runscript(self):
-        try:
-            self.client.service.RunScript(self.params)
-        except SAXParseException:
-            pass
 
 
 class CloseAllDocuments(InDesignSoapScript):
@@ -73,12 +95,10 @@ class CloseAllDocuments(InDesignSoapScript):
 class SaveAsBase(InDesignSoapScript):
     def __init__(self, src_filename, dst_format, js_params, server_url, client_workdir, server_workdir,
                  server_path_style="posix", ftp_params=None, clean_workdir=True, logger=None, logger_extra=None):
-        super(SaveAsBase, self).__init__(server_url, client_workdir, server_workdir, server_path_style, ftp_params)
+        super(SaveAsBase, self).__init__(server_url, client_workdir, server_workdir, server_path_style,
+                                         ftp_params, clean_workdir, logger, logger_extra)
         self.js_params = js_params
         self.dst_format = dst_format
-        self.clean_workdir = clean_workdir
-        self.logger = logger
-        self.logger_extra = logger_extra
 
         self.src_basename = os.path.basename(src_filename)
         src_rootname = os.path.splitext(self.src_basename)[0]
@@ -113,37 +133,13 @@ class SaveAsBase(InDesignSoapScript):
             extra_params.append(param)
         self.params.scriptArgs.extend(extra_params)
 
-    def runscript(self):
-        self.logger.debug('Calling SOAP "RunScript" service... (params: %s)' % self.params, extra=self.logger_extra)
-        try:
-            response = self.client.service.RunScript(self.params)
-        except SAXParseException, e:
-            response = None
-            self.logger.error('SAXParseException: %s' % e.getMessage(), extra=self.logger_extra)
-        else:
-            if response.errorNumber:
-                self.logger.error("InDesign server was unable to save as %s.\n"
-                                  "SOAP response: %s\n"
-                                  "SOAP RunScript params: %s" % (self.dst_format, response, self.params),
-                                  extra=self.logger_extra)
-                raise exceptions.InDesignSoapException(self.params, response)
-
-            self.logger.debug('"RunScript" successful! Response: %s' % response, extra=self.logger_extra)
-        finally:
-            if self.clean_workdir:
-                _unlink(self.javascript_client_copy_filename, self.ftp_params)
-
-        self.runscript_extra()
-
+    def runscript_extra(self, response):
+        response = super(SaveAsBase, self).runscript_extra(response)
         if response:
             response = _read(self.response_client_copy_filename, self.ftp_params)
             if self.clean_workdir:
                 _unlink(self.response_client_copy_filename, self.ftp_params)
-
         return response
-
-    def runscript_extra(self):
-        pass
 
 
 class SaveAs(SaveAsBase):
@@ -167,12 +163,14 @@ class PackageForPrint(SaveAsBase):
     def set_dst_basename(self, src_rootname):
         self.dst_basename = src_rootname  # A directory
 
-    def runscript_extra(self):
+    def runscript_extra(self, response):
         # Zip the tree generated in response_client_copy_filename and
         # make that variable point on that zip file.
         zip_filename = "%s.zip" % self.response_client_copy_filename
         _zip_dir(self.response_client_copy_filename, zip_filename, self.ftp_params)
         self.response_client_copy_filename = zip_filename
+
+        return super(PackageForPrint, self).runscript_extra(response)
 
 
 @simple_decorator
