@@ -103,11 +103,12 @@ class ServiceSelectorMock(ServiceSelector):
     def RunScript(self, params):
         script = os.path.basename(params['scriptFile'])
         script_args = dict([(p["name"], p["value"]) for p in params['scriptArgs']])
-        if script in indesign.JS_SAVE_AS_SCRIPTS:
+        if script in [indesign.SaveAs.javascript_basename, indesign.Export.javascript_basename,
+                      indesign.PackageForPrint.javascript_basename]:
             script_args.pop("source")
             dst_filename = script_args.pop("destination")
             extra_params = script_args
-            if script == indesign.JS_PACKAGE_SCRIPT:
+            if script == indesign.PackageForPrint.javascript_basename:
                 os.mkdir(dst_filename)  # Create the destination dir.
                 dst_filename = "%s.zip" % dst_filename
 
