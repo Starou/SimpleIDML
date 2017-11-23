@@ -3,10 +3,10 @@ language: python
 python:
   - 2.7
 
-install: 
+install:
   - pip install -q coverage
   - pip install -q coveralls
-  - pip install -q lxml
+  - pip install -q lxml==3.6.4
   - pip install -q mock
   - pip install -q suds
   - pip install .
