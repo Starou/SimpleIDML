@@ -4,7 +4,7 @@ import os
 from simple_idml.idml import IDMLPackage
 
 
-def create_idml_package_from_dir(dir_path, package_path=None):
+def create_idml_package_from_dir(dir_path, package_path):
     if os.path.exists(package_path):
         print "%s already exists." % package_path
         return None
