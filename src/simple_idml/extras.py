@@ -10,9 +10,8 @@ def create_idml_package_from_dir(src_dir, destination):
     if os.path.exists(destination):
         raise IOError("%s already exist." % destination)
 
-    package = IDMLPackage(destination, mode="w")
-
-    for root, dirs, filenames in os.walk(src_dir):
-        for filename in filenames:
-            package.write(os.path.join(root, filename),
-                          os.path.join(root.replace(src_dir, "."), filename))
+    with IDMLPackage(destination, mode="w") as package:
+        for root, dirs, filenames in os.walk(src_dir):
+            for filename in filenames:
+                package.write(os.path.join(root, filename),
+                              os.path.join(root.replace(src_dir, "."), filename))
