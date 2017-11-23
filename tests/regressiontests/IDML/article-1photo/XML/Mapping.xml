@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="10.0">
+	<XMLImportMap Self="di21c" MarkupTag="XMLTag/MyBoldTag" MappedStyle="CharacterStyle/MyBoldStyle" />
+</idPkg:Mapping>
