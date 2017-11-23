@@ -43,7 +43,8 @@ class InDesignSoapScript(object):
         self.javascript_client_copy_filename = os.path.join(self.client_workdir, self.javascript_basename)
         self.javascript_server_copy_filename = self.server_path_mod.join(self.server_workdir,
                                                                          self.javascript_basename)
-        ftp._copy(javascript_master_filename, self.javascript_client_copy_filename, self.ftp_params, src_open_mode="r")
+        ftp.copy(javascript_master_filename, self.javascript_client_copy_filename,
+                 self.ftp_params, src_open_mode="r")
 
     def set_params(self):
         self.params = self.client.factory.create("ns0:RunScriptParameters")
@@ -66,7 +67,7 @@ class InDesignSoapScript(object):
             self.logger.debug('"RunScript" successful! Response: %s' % response, extra=self.logger_extra)
         finally:
             if self.clean_workdir:
-                ftp._unlink(self.javascript_client_copy_filename, self.ftp_params)
+                ftp.unlink(self.javascript_client_copy_filename, self.ftp_params)
 
         response = self.runscript_extra(response)
         return response
@@ -127,9 +128,9 @@ class SaveAsBase(InDesignSoapScript):
     def runscript_extra(self, response):
         response = super(SaveAsBase, self).runscript_extra(response)
         if response:
-            response = ftp._read(self.response_client_copy_filename, self.ftp_params)
+            response = ftp.read(self.response_client_copy_filename, self.ftp_params)
             if self.clean_workdir:
-                ftp._unlink(self.response_client_copy_filename, self.ftp_params)
+                ftp.unlink(self.response_client_copy_filename, self.ftp_params)
         return response
 
 
@@ -158,7 +159,7 @@ class PackageForPrint(SaveAsBase):
         # Zip the tree generated in response_client_copy_filename and
         # make that variable point on that zip file.
         zip_filename = "%s.zip" % self.response_client_copy_filename
-        ftp._zip_dir(self.response_client_copy_filename, zip_filename, self.ftp_params)
+        ftp.zip_dir(self.response_client_copy_filename, zip_filename, self.ftp_params)
         self.response_client_copy_filename = zip_filename
 
         return super(PackageForPrint, self).runscript_extra(response)
@@ -175,7 +176,7 @@ def use_dedicated_working_directory(view_func):
             server_path_mod = ntpath
 
         # Create a unique sub-directory.
-        working_dir = ftp._mkdir_unique(indesign_client_workdir, ftp_params)
+        working_dir = ftp.mkdir_unique(indesign_client_workdir, ftp_params)
 
         # update the *_workdir parameters with the new working dir value.
         indesign_client_workdir = working_dir
@@ -190,7 +191,7 @@ def use_dedicated_working_directory(view_func):
             raise e
         finally:
             if clean_workdir:
-                ftp._rmtree(working_dir, ftp_params)
+                ftp.rmtree(working_dir, ftp_params)
         return response
     return new_func
 
@@ -229,13 +230,13 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
 
     src_basename = os.path.basename(src_filename)
     src_client_copy_filename = os.path.join(indesign_client_workdir, src_basename)
-    ftp._copy(src_filename, src_client_copy_filename, ftp_params)
+    ftp.copy(src_filename, src_client_copy_filename, ftp_params)
 
     cl = Client("%s/service?wsdl" % indesign_server_url)
     cl.set_options(location=indesign_server_url, timeout=90)
 
     responses = map(lambda fmt: _save_as(fmt), dst_formats_params)
     if clean_workdir:
-        ftp._unlink(src_client_copy_filename, ftp_params)
+        ftp.unlink(src_client_copy_filename, ftp_params)
 
     return responses

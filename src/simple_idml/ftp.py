@@ -13,7 +13,7 @@ from io import BytesIO
 from tempfile import mkdtemp
 
 
-def _copy(src_filename, dst_filename, ftp_params=None, src_open_mode="rb"):
+def copy(src_filename, dst_filename, ftp_params=None, src_open_mode="rb"):
     if not ftp_params:
         shutil.copy(src_filename, dst_filename)
         return
@@ -34,7 +34,7 @@ def _copy(src_filename, dst_filename, ftp_params=None, src_open_mode="rb"):
         close_ftp_conn(ftp, ftp_params)
 
 
-def _unlink(filename, ftp_params=None):
+def unlink(filename, ftp_params=None):
     if not ftp_params:
         os.unlink(filename)
         return
@@ -43,7 +43,7 @@ def _unlink(filename, ftp_params=None):
     close_ftp_conn(ftp, ftp_params)
 
 
-def _rmtree(tree, ftp_params=None):
+def rmtree(tree, ftp_params=None):
     if not ftp_params:
         shutil.rmtree(tree)
         return
@@ -52,7 +52,7 @@ def _rmtree(tree, ftp_params=None):
     close_ftp_conn(ftp, ftp_params)
 
 
-def _read(filename, ftp_params=None):
+def read(filename, ftp_params=None):
     response = ""
 
     if not ftp_params:
@@ -69,7 +69,7 @@ def _read(filename, ftp_params=None):
     return response
 
 
-def _zip_dir(dirname, zip_filename, ftp_params=None):
+def zip_dir(dirname, zip_filename, ftp_params=None):
     if ftp_params:
         # Work locally in a temporary directory.
         # and then upload the zip to the ftp.
@@ -88,9 +88,9 @@ def _zip_dir(dirname, zip_filename, ftp_params=None):
         p.wait()
 
         zip_tree(os.path.join(tmp_dirname, dirname), tmp_zip_filename)
-        _copy(tmp_zip_filename, zip_filename, ftp_params)
+        copy(tmp_zip_filename, zip_filename, ftp_params)
         shutil.rmtree(tmp_dirname)
-        _rmtree(dirname, ftp_params)
+        rmtree(dirname, ftp_params)
     else:
         zip_tree(dirname, zip_filename)
         shutil.rmtree(dirname)
@@ -139,7 +139,7 @@ def rmtree_ftp(ftp, path):
         raise e
 
 
-def _mkdir_unique(dir, ftp_params=None):
+def mkdir_unique(dir, ftp_params=None):
     if not ftp_params:
         unique_path = tempfile.mkdtemp(dir=dir)
     else:
