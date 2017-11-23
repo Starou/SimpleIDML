@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="10.0">
+	<Story Self="u1db" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+		<StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection" />
+		<InCopyExportOption IncludeGraphicProxies="true" IncludeAllResources="false" />
+		<XMLElement Self="di3i12" MarkupTag="XMLTag/module" XMLContent="u1db">
+			<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/NormalParagraphStyle">
+				<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]">
+					<XMLElement Self="di3i12i1" MarkupTag="XMLTag/main_picture" XMLContent="u216">
+						<XMLAttribute Self="di3i12i1XMLAttributenhref" Name="href" Value="file:///Users/stan/Dropbox/Projets/Slashdev/SimpleIDML/repos/git/simpleidml/tests/regressiontests/IDML/media/default.jpg" />
+					</XMLElement>
+					<XMLElement Self="di3i12i2" MarkupTag="XMLTag/headline" XMLContent="u188" />
+					<XMLElement Self="di3i12i3" MarkupTag="XMLTag/Story" XMLContent="u19f" />
+				</CharacterStyleRange>
+			</ParagraphStyleRange>
+		</XMLElement>
+	</Story>
+</idPkg:Story>
