@@ -472,6 +472,8 @@ Backward incompatibilities
 
 - ``indesign.close_all_documents()`` has been replace the ``CloseAllDocuments`` class
   and its ``.execute()`` method.
+- Some util functions that wrap the basic file manipulations to manage the case of
+  a ftp access to those files have been moved from indesign.py to a new ftp.py module.
 
 0.92.8
 ------
