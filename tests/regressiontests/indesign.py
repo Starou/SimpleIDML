@@ -74,14 +74,16 @@ class InDesignTestCase(unittest.TestCase):
         self.assertTrue(zipfile.is_zipfile(zip_buf))
 
     def test_close_all_documents(self):
-        indesign.close_all_documents("http://url-to-indesign-server:8080",
-                                     CLIENT_WORKDIR, SERVER_WORKDIR,
-                                     indesign_server_path_style="posix")
+        script = indesign.CloseAllDocuments("http://url-to-indesign-server:8080",
+                                            CLIENT_WORKDIR, SERVER_WORKDIR,
+                                            server_path_style="posix")
+        script.execute()
         self.assertTrue(self.runscript_mock.called)
 
-        indesign.close_all_documents("http://url-to-indesign-server:8080",
-                                     CLIENT_WORKDIR, SERVER_WORKDIR,
-                                     indesign_server_path_style="windows")
+        script = indesign.CloseAllDocuments("http://url-to-indesign-server:8080",
+                                            CLIENT_WORKDIR, SERVER_WORKDIR,
+                                            server_path_style="windows")
+        script.execute()
         self.assertTrue(self.runscript_mock.called)
 
 
@@ -101,11 +103,12 @@ class ServiceSelectorMock(ServiceSelector):
     def RunScript(self, params):
         script = os.path.basename(params['scriptFile'])
         script_args = dict([(p["name"], p["value"]) for p in params['scriptArgs']])
-        if script in indesign.JS_SAVE_AS_SCRIPTS:
+        if script in [indesign.SaveAs.javascript_basename, indesign.Export.javascript_basename,
+                      indesign.PackageForPrint.javascript_basename]:
             script_args.pop("source")
             dst_filename = script_args.pop("destination")
             extra_params = script_args
-            if script == indesign.JS_PACKAGE_SCRIPT:
+            if script == indesign.PackageForPrint.javascript_basename:
                 os.mkdir(dst_filename)  # Create the destination dir.
                 dst_filename = "%s.zip" % dst_filename
 
@@ -114,7 +117,7 @@ class ServiceSelectorMock(ServiceSelector):
             fobj.write("%s, %s, %s" % (script,
                                        os.path.basename(dst_filename),
                                        extra_params))
-        elif script in indesign.JS_CLOSE_ALL_SCRIPT:
+        elif script == indesign.CloseAllDocuments.javascript_basename:
             pass
 
         return SoapResponse()
