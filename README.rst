@@ -47,6 +47,22 @@ Any questions?
 
 https://groups.google.com/forum/#!forum/simpleidml-users
 
+Developers
+----------
+
+.. code-block:: bash
+
+    vagrant up
+    vagrant ssh
+    cd tests
+    python runtests.py
+
+A Python 3 virtualenv is activated at login but you can switch to Python 2.7:
+
+.. code-block:: bash
+
+   source ~/venv_py2/bin/activate
+
 
 What is SimpleIDML?
 ===================

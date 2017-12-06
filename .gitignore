@@ -1,6 +1,8 @@
 *.pyc
 *.swp
+*.log
 \.DS_Store
+\.vagrant
 build
 dist
 MANIFEST
