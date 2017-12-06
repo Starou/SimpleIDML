@@ -39,9 +39,8 @@ Or:
 Dependencies
 ------------
 
-- Python >= 2.6
+- Python 2.7.x
 - lxml >= 2.3
-- unittest2 if Python < 2.7
 - suds (if you want to use the SOAP interface of the InDesign Server.)
 
 Any questions?
