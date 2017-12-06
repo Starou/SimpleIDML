@@ -4,7 +4,7 @@ import glob
 import os
 import shutil
 import unittest
-from tempfile import mkdtemp
+from tempfile import gettempdir, mkdtemp
 from lxml import etree
 from simple_idml.idml import IDMLPackage
 from simple_idml.test import SimpleTestCase
@@ -13,7 +13,7 @@ from simple_idml.utils import etree_dom_to_tree
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 XML_DIR = os.path.join(CURRENT_DIR, "XML")
-OUTPUT_DIR = os.path.join(CURRENT_DIR, "outputs", "simpleIDML")
+OUTPUT_DIR = os.path.join(gettempdir(), "simpleidml_tests", "output")
 
 IDPKG_NS = "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"
 
