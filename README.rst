@@ -36,12 +36,11 @@ Or:
     python setup.py build
     sudo python setup.py install
 
-Dependencies
-------------
+Python support
+--------------
 
-- Python 2.7.x
-- lxml >= 2.3
-- suds (if you want to use the SOAP interface of the InDesign Server.)
+- Python 2: 2.7.x
+- Python 3: 3.5+
 
 Any questions?
 --------------
@@ -446,6 +445,19 @@ in your PATH.
 
 Revisions
 =========
+
+1.0.0
+-----
+
+New features
+''''''''''''
+
+- Added support for Python 3
+
+Backward incompatibilities
+''''''''''''''''''''''''''
+
+- Removed support for Python 2.6
 
 0.92.9
 ------
