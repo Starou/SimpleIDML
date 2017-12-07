@@ -9,7 +9,7 @@ import os
 import shutil
 import unittest
 import zipfile
-from io import StringIO
+from io import BytesIO
 from simple_idml.indesign import indesign
 from suds.client import ServiceSelector
 from urllib.request import OpenerDirector
@@ -72,7 +72,7 @@ class InDesignTestCase(unittest.TestCase):
             "export.jsx, 4-pagesTMP.pdf, {'colorSpace': 'CMYK', 'standartsCompliance': '1A2003', 'format': 'pdf'}",
             "export.jsx, 4-pagesTMP.jpeg, {'format': 'jpeg'}"
         ])
-        zip_buf = StringIO()
+        zip_buf = BytesIO()
         zip_buf.write(responses[2])
         self.assertTrue(zipfile.is_zipfile(zip_buf))
 
