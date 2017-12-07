@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from builtins import str
 import glob
 import os
 import shutil
@@ -210,7 +211,7 @@ class IdmlTestCase(SimpleTestCase):
             ])
 
             # XML Structure.
-            self.assertXMLEqual(unicode(idml_file.xml_structure_pretty()),
+            self.assertXMLEqual(str(idml_file.xml_structure_pretty()),
 u"""<Root Self="di2">
   <article XMLContent="u102" Self="di2i3">
     <Story XMLContent="ue4" Self="di2i3i1">
@@ -692,7 +693,7 @@ u"""<Root Self="di2">
 
         with IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo-with-attributes.idml")) as idml_file:
             xml = idml_file.export_xml()
-            self.assertXMLEqual(unicode(xml),
+            self.assertXMLEqual(str(xml),
 u"""<Root>
   <module>
     <main_picture style="fancy" foo="bar"/>
@@ -708,7 +709,7 @@ u"""<Root>
     def test_export_xml_with_nested_nodes(self):
         with IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_imported-nested-xml.idml")) as idml_file:
             xml = idml_file.export_xml()
-            self.assertXMLEqual(unicode(xml),
+            self.assertXMLEqual(str(xml),
 u"""<Root>
   <module>
     <main_picture href="file:///steve.jpg"/>
@@ -757,7 +758,7 @@ u"""<Root>
                                      "FOOCharacterStyle/$ID/[No character style]")
 
                 # XML Structure.
-                self.assertXMLEqual(unicode(prefixed_f.xml_structure_pretty()),
+                self.assertXMLEqual(str(prefixed_f.xml_structure_pretty()),
 u"""<Root Self="FOOdi2">
   <article XMLContent="FOOu102" Self="FOOdi2i3">
     <Story XMLContent="FOOue4" Self="FOOdi2i3i1">
@@ -1987,7 +1988,7 @@ u"""<Root Self="FOOdi2">
                     ])
 
                     # The XML Structure has integrated the new file.
-                    self.assertXMLEqual(unicode(f.xml_structure_pretty()), """<Root Self="maindi2">
+                    self.assertXMLEqual(str(f.xml_structure_pretty()), """<Root Self="maindi2">
 <article Self="maindi2i3" XMLContent="mainu102">
     <Story Self="maindi2i3i1" XMLContent="mainue4">
       <title Self="maindi2i3i1i1"/>
@@ -3361,7 +3362,7 @@ u"""<Root Self="FOOdi2">
                     ])
 
                     # The XML Structure has integrated the new file.
-                    self.assertXMLEqual(unicode(f.xml_structure_pretty()), """<Root Self="maindi2">
+                    self.assertXMLEqual(str(f.xml_structure_pretty()), """<Root Self="maindi2">
 <article Self="maindi2i3" XMLContent="mainu102">
     <Story Self="maindi2i3i1" XMLContent="mainue4">
       <title Self="maindi2i3i1i1"/>
@@ -3505,7 +3506,7 @@ u"""<Root Self="FOOdi2">
                      os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml")) as idml_file:
             with idml_file.remove_content(under="/Root/module/Story") as f:
-                self.assertXMLEqual(unicode(f.xml_structure_pretty()),
+                self.assertXMLEqual(str(f.xml_structure_pretty()),
 u"""<Root Self="di3">
   <module XMLContent="u10d" Self="di3i4">
     <main_picture XMLContent="udf" Self="di3i4i1"/>
@@ -3546,7 +3547,7 @@ u"""<Root Self="di3">
                     self.assertEqual(len(new_idml.pages), 3)
 
                     # The XML Structure has integrated the new file.
-                    self.assertXMLEqual(unicode(new_idml.xml_structure_pretty()),
+                    self.assertXMLEqual(str(new_idml.xml_structure_pretty()),
 u"""<Root Self="editodi2">
   <page Self="editodi2ib">
     <article Self="editodi2ibif">

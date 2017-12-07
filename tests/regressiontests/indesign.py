@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import glob
 import mock
 import os
 import shutil
 import unittest
 import zipfile
-from cStringIO import StringIO
+from io import StringIO
 from simple_idml.indesign import indesign
 from suds.client import ServiceSelector
-from urllib2 import OpenerDirector
+from urllib.request import OpenerDirector
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
@@ -94,7 +97,7 @@ class OpenerDirectorMock(OpenerDirector):
             return open(os.path.join(SOAP_DIR, 'indesign-service.xml'), "r")
 
 
-class SoapResponse():
+class SoapResponse(object):
     def __init__(self, errorNumber=0):
         self.errorNumber = errorNumber
 
