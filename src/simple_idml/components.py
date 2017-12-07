@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from builtins import map
+from builtins import hex
+from builtins import str
+from builtins import object
 import copy
 import os
 import re
@@ -257,7 +261,7 @@ class Spread(IDMLXMLFile):
         last_page.set_face(face_required)
 
     def clear(self):
-        items = self.node.items()
+        items = list(self.node.items())
         self.node.clear()
         for k, v in items:
             self.node.set(k, v)
@@ -436,7 +440,7 @@ class Story(IDMLXMLFile):
 
     def remove_children(self, element_id, synchronize=False):
         elt = self.get_element_by_id(element_id).element
-        map(lambda c: elt.remove(c), elt.iterchildren())
+        list(map(lambda c: elt.remove(c), elt.iterchildren()))
         if synchronize:
             self.synchronize()
 
@@ -829,7 +833,7 @@ class XMLElement(Proxy):
     """A proxy over the etree.Element to represent XMLElement nodes in Story files. """
     def __repr__(self):
         if self.element is not None:
-            return "%s {%s}" % (repr(self.element), ", ".join(["%s: %s" % (k, v) for k, v in self.element.items()]))
+            return "%s {%s}" % (repr(self.element), ", ".join(["%s: %s" % (k, v) for k, v in list(self.element.items())]))
         else:
             return "XMLElement (no element)"
 
@@ -923,7 +927,7 @@ class XMLElement(Proxy):
         attr_node.set("Value", value)
 
     def set_attributes(self, attributes):
-        for name, value in attributes.items():
+        for name, value in list(attributes.items()):
             self.set_attribute(name, value)
 
     def get_character_style_range(self):

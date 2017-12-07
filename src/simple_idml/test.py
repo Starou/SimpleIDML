@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+from builtins import zip
 import re
 try:
     import unittest2 as unittest
@@ -56,7 +57,7 @@ def compare_xml(want, got):
         return norm_whitespace(child_text(element))
 
     def attrs_dict(element):
-        return dict(element.attributes.items())
+        return dict(list(element.attributes.items()))
 
     def check_element(want_element, got_element):
         if want_element.tagName != got_element.tagName:
