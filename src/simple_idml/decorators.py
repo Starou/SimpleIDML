@@ -36,7 +36,7 @@ def use_working_copy(view_func):
             # Catch any exception to reset working_copy_path.
             try:
                 idml_package = view_func(idml_package, *args, **kwargs)
-            except BaseException, err:
+            except BaseException as err:
                 idml_package.working_copy_path = None
                 raise err
 
