@@ -1,10 +1,16 @@
 import os
+import sys
 from distutils.core import setup
 
 README = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read()
 
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
+
+if sys.version_info.major == 3:
+    suds_package = "suds-py3"
+else:
+    suds_package = "suds"
 
 setup(
     name="SimpleIDML",
@@ -15,7 +21,7 @@ setup(
     description='A library to manipulate Adobe(r) IDML(r) files.',
     long_description=README,
     package_dir={'': 'src'},
-    install_requires=['lxml>=1.3,<3.7', 'mock', 'suds'],
+    install_requires=['lxml>=1.3,<3.7', 'mock', suds_package],
     packages=[
         'simple_idml',
         'simple_idml.indesign',
