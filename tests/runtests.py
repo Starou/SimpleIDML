@@ -21,7 +21,7 @@ def load_suite_tests(only=None):
             basename, ext = os.path.splitext(f)
             if (ext == '.py') and (not only_module or (only_module == basename)):
                 modname = "%s.%s" % ('.'.join(dirpath.split('/')), basename)
-                package = __import__(modname, globals(), locals(), [], -1)
+                package = __import__(modname, globals(), locals(), [], 0)
                 mod = sys.modules[modname]
                 if hasattr(mod, 'suite'):
                     suite = mod.suite()
