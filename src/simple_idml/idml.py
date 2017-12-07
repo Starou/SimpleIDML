@@ -962,7 +962,7 @@ class IDMLPackage(zipfile.ZipFile):
 
     def get_spread_object_by_name(self, name):
         """ - name : 'Spreads/Spread_mainub6.xml' """
-        return filter(lambda s: s.name == name, self.spreads_objects)[0]
+        return next(filter(lambda s: s.name == name, self.spreads_objects))
 
     def get_spread_object_by_xpath(self, xpath):
         elt_id = self.xml_structure.xpath(xpath)[0].get("XMLContent")
