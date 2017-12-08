@@ -390,7 +390,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         def _import_node(source_node, at=None, element_id=None, story=None, ignorecontent_parent_flag=False):
             element_id = element_id or self.xml_structure.xpath(at)[0].get("Self")
-            items = dict(list(source_node.items()))
+            items = dict(source_node.items())
 
             forcecontent = (items.get(FORCECONTENT_TAG) == "true")
             if not ignorecontent_parent_flag or forcecontent:
@@ -410,8 +410,10 @@ class IDMLPackage(zipfile.ZipFile):
                 # we can call a map() on _import_node().
                 # FIXME: what if source_node.text exists ?
                 if destination_node_children_tags == source_node_children_tags:
-                    list(map(lambda s, d: _import_node(s, at=d, ignorecontent_parent_flag=ignorecontent),
-                        source_node_children, [self.xml_structure_tree.getpath(c) for c in destination_node.iterchildren()]))
+                    for s, d in zip(source_node_children, [self.xml_structure_tree.getpath(c) for c in
+                                                           destination_node.iterchildren()]):
+                        _import_node(s, at=d, ignorecontent_parent_flag=ignorecontent)
+
                 # Step-by-step iteration.
                 else:
                     destination_node_child = next(destination_node_children, None)
@@ -422,7 +424,7 @@ class IDMLPackage(zipfile.ZipFile):
                                          ignorecontent_parent_flag=ignorecontent)
                             destination_node_child = next(destination_node_children, None)
                         # Source does not match destination. It is added, but only if the tag is mapped to a style.
-                        elif not ignorecontent and source_child.tag in list(self.style_mapping.character_style_mapping.keys()):
+                        elif not ignorecontent and source_child.tag in self.style_mapping.character_style_mapping.keys():
                             _import_new_node(source_child, at, element_id)
 
                     _move_siblings_content(at, element_id)
@@ -612,7 +614,8 @@ class IDMLPackage(zipfile.ZipFile):
         """Recursively reach the leafs to remove the content. """
         def _remove_content(node):
             if len(node.getchildren()):
-                list(map(_remove_content, node.iterchildren()))
+                for child in node.iterchildren():
+                    _remove_content(child)
             xpath = self.xml_structure_tree.getpath(node)
             element_content_id = self.get_element_content_id_by_xpath(xpath)
 
@@ -629,7 +632,9 @@ class IDMLPackage(zipfile.ZipFile):
             node = self.xml_structure.xpath(under)[0]
         except IndexError:
             raise IndexError(u"Cannot remove content under path '%s'. Are you sure the path exists ?" % under)
-        list(map(_remove_content, node.iterchildren()))
+
+        for child in node.iterchildren():
+            _remove_content(child)
         # `under' node may have a reference to its first children in his story.
         story = self.get_story_object_by_xpath(under)
         story.remove_children(node.get("Self"), synchronize=True)
@@ -770,7 +775,8 @@ class IDMLPackage(zipfile.ZipFile):
             self.apply_translation_to_element(spread_elt_copy, translation)
             spread_dest_elt.append(spread_elt_copy)
 
-        list(map(lambda s: _add_spread_element(spread_dest_elt, s), spread_elts_to_add))
+        for elt in spread_elts_to_add:
+            _add_spread_element(spread_dest_elt, elt)
 
         spread_dest.synchronize()
         self.init_lazy_references()
