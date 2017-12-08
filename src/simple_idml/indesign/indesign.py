@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from builtins import object
 import logging
 import ntpath
 import os
@@ -118,7 +119,7 @@ class SaveAsBase(InDesignSoapScript):
 
         # Extra parameters
         extra_params = []
-        for k, v in self.js_params.items():
+        for k, v in list(self.js_params.items()):
             param = self.client.factory.create("ns0:IDSP-ScriptArg")
             param.name = k
             param.value = v
@@ -235,7 +236,7 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
     cl = Client("%s/service?wsdl" % indesign_server_url)
     cl.set_options(location=indesign_server_url, timeout=90)
 
-    responses = map(lambda fmt: _save_as(fmt), dst_formats_params)
+    responses = [_save_as(fmt) for fmt in dst_formats_params]
     if clean_workdir:
         ftp.unlink(src_client_copy_filename, ftp_params)
 
