@@ -55,7 +55,7 @@ class InDesignSoapScript(object):
         self.logger.debug('Calling SOAP "RunScript" service (params: %s)' % self.params, extra=self.logger_extra)
         try:
             response = self.client.service.RunScript(self.params)
-        except SAXParseException, e:
+        except SAXParseException as e:
             response = None
             self.logger.error('SAXParseException: %s' % e.getMessage(), extra=self.logger_extra)
         else:
@@ -187,7 +187,7 @@ def use_dedicated_working_directory(view_func):
                                  indesign_client_workdir, indesign_server_workdir,
                                  indesign_server_path_style, clean_workdir, ftp_params,
                                  logger, logger_extra)
-        except BaseException, e:
+        except BaseException as e:
             raise e
         finally:
             if clean_workdir:
