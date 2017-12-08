@@ -178,7 +178,7 @@ class IDMLPackage(zipfile.ZipFile):
     @property
     def spreads(self):
         if self._spreads is None:
-            spreads = [elt for elt in self.namelist() if re.match(ur"^Spreads/*", elt)]
+            spreads = [elt for elt in self.namelist() if re.match(u"^Spreads/*", elt)]
             self._spreads = spreads
         return self._spreads
 
@@ -210,7 +210,7 @@ class IDMLPackage(zipfile.ZipFile):
     def stories(self):
         if self._stories is None:
             stories = [elt for elt in self.namelist()
-                       if re.match(ur"^%s/*" % STORIES_DIRNAME, elt)]
+                       if re.match(u"^%s/*" % STORIES_DIRNAME, elt)]
             self._stories = stories
         return self._stories
 
