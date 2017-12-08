@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from builtins import map
 from builtins import hex
 from builtins import str
 from builtins import object
@@ -440,7 +439,8 @@ class Story(IDMLXMLFile):
 
     def remove_children(self, element_id, synchronize=False):
         elt = self.get_element_by_id(element_id).element
-        list(map(lambda c: elt.remove(c), elt.iterchildren()))
+        for child in elt.iterchildren():
+            elt.remove(child)
         if synchronize:
             self.synchronize()
 
@@ -833,7 +833,7 @@ class XMLElement(Proxy):
     """A proxy over the etree.Element to represent XMLElement nodes in Story files. """
     def __repr__(self):
         if self.element is not None:
-            return "%s {%s}" % (repr(self.element), ", ".join(["%s: %s" % (k, v) for k, v in list(self.element.items())]))
+            return "%s {%s}" % (repr(self.element), ", ".join(["%s: %s" % (k, v) for k, v in self.element.items()]))
         else:
             return "XMLElement (no element)"
 
@@ -927,7 +927,7 @@ class XMLElement(Proxy):
         attr_node.set("Value", value)
 
     def set_attributes(self, attributes):
-        for name, value in list(attributes.items()):
+        for name, value in attributes.items():
             self.set_attribute(name, value)
 
     def get_character_style_range(self):
