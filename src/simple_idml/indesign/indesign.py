@@ -119,7 +119,7 @@ class SaveAsBase(InDesignSoapScript):
 
         # Extra parameters
         extra_params = []
-        for k, v in list(self.js_params.items()):
+        for k, v in self.js_params.items():
             param = self.client.factory.create("ns0:IDSP-ScriptArg")
             param.name = k
             param.value = v
