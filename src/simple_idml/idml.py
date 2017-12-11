@@ -545,7 +545,7 @@ class IDMLPackage(zipfile.ZipFile):
         """ Reproduce the action «Export XML» on a XML Element in InDesign® Structure. """
         tree = self.export_as_tree()
         dom = tree_to_etree_dom(tree)
-        return etree.tostring(dom, encoding=encoding, pretty_print=True)
+        return etree.tostring(dom, encoding=encoding, pretty_print=True).decode("utf-8")
 
     @use_working_copy
     def prefix(self, prefix):
