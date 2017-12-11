@@ -405,7 +405,7 @@ class XMLElementTestCase(unittest.TestCase):
         )
 
     def test_attributes(self):
-        dom = etree.fromstring("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        dom = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
                 <Story Self="u10d">
                     <XMLElement Self="di3i4" MarkupTag="XMLTag/module" XMLContent="u10d">
