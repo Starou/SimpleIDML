@@ -219,7 +219,7 @@ class StoryTestCase(unittest.TestCase):
 
         self.assertEqual(story.name, 'Stories/Story_my_story_id.xml')
         self.assertEqual(story.tostring(),
-"""<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+b"""<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
      <Story Self="my_story_id" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
        <StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection"/>

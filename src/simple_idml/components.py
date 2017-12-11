@@ -76,7 +76,14 @@ class IDMLXMLFile(object):
     @property
     def dom(self):
         if self._dom is None:
-            dom = etree.fromstring(self.fobj.read())
+            xml = self.fobj.read()
+            try:
+                dom = etree.fromstring(xml)
+            except ValueError:
+                # Python3: when the fobj come from Story.create()
+                # it is strictly a textfile that cannot be implicitly
+                # read as a bytestring (required by etree.fromstring()).
+                dom = etree.fromstring(xml.encode('utf-8'))
             self._dom = dom
             self._fobj.close()
             self._fobj = None
@@ -339,7 +346,7 @@ class Story(IDMLXMLFile):
         filename = os.path.join(working_copy_path, story_name)
         story._fobj = open(filename, mode="w+")
         story.fobj.write(
-            """<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+            str(u"""<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
    <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
      <Story Self="%(story_id)s" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
        <StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection"/>
@@ -351,7 +358,7 @@ class Story(IDMLXMLFile):
             "story_id": story_id,
             "xml_element_tag": xml_element_tag,
             "xml_element_id": xml_element_id
-        })
+        }))
 
         story.fobj.close()
         story._fobj = None
