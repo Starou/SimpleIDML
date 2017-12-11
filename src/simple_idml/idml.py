@@ -249,7 +249,11 @@ class IDMLPackage(zipfile.ZipFile):
     def import_xml(self, xml, at):
         """ Reproduce the action «Import XML» on a XML Element in InDesign® Structure. """
 
-        source_node = etree.fromstring(xml)
+        # Python 3 strictly require a bytestring.
+        try:
+            source_node = etree.fromstring(xml)
+        except ValueError:
+            source_node = etree.fromstring(xml.encode("utf-8"))
 
         def _set_content(xpath, element_id, content, story=None):
             story = story or self.get_story_object_by_xpath(xpath)
