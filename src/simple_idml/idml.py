@@ -852,7 +852,7 @@ class IDMLPackage(zipfile.ZipFile):
         if not os.path.exists(stories_dirname):
             os.mkdir(stories_dirname)
         for filename in idml_package.stories_for_node(only):
-            story_cp = open(os.path.join(self.working_copy_path, filename), mode="w+")
+            story_cp = open(os.path.join(self.working_copy_path, filename), mode="wb+")
             story_cp.write(idml_package.open(filename, mode="r").read())
             story_cp.close()
 
