@@ -629,10 +629,10 @@ class Style(IDMLXMLFile):
 
 class StyleMapping(IDMLXMLFile):
     name = "XML/Mapping.xml"
-    initial_dom = ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\
+    initial_dom = (str(u"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\
                    <idPkg:Mapping xmlns:idPkg=\"http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging\"\
                    DOMVersion=\"7.5\">\
-                   </idPkg:Mapping>")
+                   </idPkg:Mapping>"))
 
     def __init__(self, idml_package, working_copy_path=None):
         super(StyleMapping, self).__init__(idml_package, working_copy_path)
@@ -654,7 +654,7 @@ class StyleMapping(IDMLXMLFile):
         try:
             super(StyleMapping, self).dom
         except AttributeError:
-            self._dom = etree.fromstring(self.initial_dom)
+            self._dom = etree.fromstring(self.initial_dom.encode("utf-8"))
         return self._dom
 
     @property
