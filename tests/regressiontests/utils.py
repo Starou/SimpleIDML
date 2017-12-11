@@ -139,7 +139,7 @@ class UtilsTestCase(unittest.TestCase):
             ],
         }
         dom = tree_to_etree_dom(tree)
-        self.assertMultiLineEqual(etree.tostring(dom, pretty_print=True),
+        self.assertMultiLineEqual(etree.tostring(dom, pretty_print=True).decode("utf-8"),
 """<Root>
   <module>
     <main_picture href="file:///steve.jpg"/>
