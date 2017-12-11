@@ -116,7 +116,7 @@ class IDMLXMLFile(object):
         self._fobj = None
 
         # Must instanciate with a working_copy to use this.
-        fobj = open(os.path.join(self.working_copy_path, self.name), mode="w+")
+        fobj = open(os.path.join(self.working_copy_path, self.name), mode="wb+")
         fobj.write(self.tostring())
         fobj.close()
 
