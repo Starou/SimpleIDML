@@ -3634,11 +3634,15 @@ u"""<Root Self="editodi2">
                     (prefixed_courrier, 1, "/Root", "/Root/page[1]"),
                     (prefixed_bnotes, 1, "/Root", "/Root/page[1]"),
                 ]
-
                 with prefixed_mag.add_pages_from_idml(packages_to_add) as f:
                     self.assertEqual(len(f.pages), 4)
-                    # FIXME Broken.
-                    #self.assertEqual(f.spreads, ['Spreads/Spread_magub6.xml', 'Spreads/Spread_magub7.xml'])
+                    self.assertEqual(set(f.spreads), set(['Spreads/Spread_magub7.xml',
+                                                          'Spreads/Spread_magub6.xml',
+                                                          'Spreads/Spread_magub8.xml']))
+                    self.assertEqual(set(n.get("src") for n in f.designmap.spread_nodes),
+                                     set(['Spreads/Spread_magub7.xml',
+                                          'Spreads/Spread_magub6.xml',
+                                          'Spreads/Spread_magub8.xml']))
 
 
 def suite():

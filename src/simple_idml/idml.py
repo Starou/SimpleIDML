@@ -50,6 +50,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._graphic = None
         self._spreads = None
         self._spreads_objects = None
+        self._last_spread = None
         self._pages = None
         self._backing_story = None
         self._stories = None
@@ -188,6 +189,13 @@ class IDMLPackage(zipfile.ZipFile):
             spreads_objects = [Spread(self, s, self.working_copy_path) for s in self.spreads]
             self._spreads_objects = spreads_objects
         return self._spreads_objects
+
+    @property
+    def last_spread(self):
+        if self._last_spread is None:
+            src = self.designmap.spread_nodes[-1].get("src")
+            self._last_spread = Spread(self, src, self.working_copy_path)
+        return self._last_spread
 
     @property
     def pages(self):
@@ -878,7 +886,7 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def add_page_from_idml(self, idml_package, page_number, at, only):
-        last_spread = self.spreads_objects[-1]
+        last_spread = self.last_spread
         if last_spread.pages[-1].is_recto:
             last_spread = self.add_new_spread(self.working_copy_path)
 
@@ -932,15 +940,16 @@ class IDMLPackage(zipfile.ZipFile):
     def add_new_spread(self, working_copy_path):
         """Create a new empty Spread in the working copy from the last one. """
 
-        last_spread = self.spreads_objects[-1]
         # TODO : make sure the filename does not exists.
-        new_spread_name = increment_filename(last_spread.name)
+        new_spread_name = increment_filename(self.last_spread.name)
         new_spread_wc_path = os.path.join(working_copy_path, new_spread_name)
         shutil.copy2(
-            os.path.join(working_copy_path, last_spread.name),
+            os.path.join(working_copy_path, self.last_spread.name),
             new_spread_wc_path
         )
+        self._spreads = None
         self._spreads_objects = None
+        self._last_spread = None
 
         new_spread = Spread(self, new_spread_name, working_copy_path)
         new_spread.clear()
