@@ -8,9 +8,7 @@ python:
 install:
   - pip install -q coverage
   - pip install -q coveralls
-  - pip install -q lxml==3.6.4
   - pip install -q mock
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.* ]]; then pip install -q suds; else pip install -q suds-py3; fi
   - pip install .
 
 before_script: cd tests
