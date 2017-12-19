@@ -5,6 +5,7 @@ from builtins import str
 from builtins import hex
 from builtins import map
 from builtins import next
+from builtins import open
 import copy
 import os
 import re
