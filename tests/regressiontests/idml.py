@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from builtins import str
+from builtins import open
 import glob
 import os
 import shutil

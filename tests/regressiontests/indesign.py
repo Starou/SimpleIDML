@@ -3,6 +3,8 @@
 from future import standard_library
 standard_library.install_aliases()
 from builtins import object
+from builtins import open
+from builtins import str
 import glob
 import json
 import mock
@@ -129,10 +131,11 @@ class ServiceSelectorMock(ServiceSelector):
                 dst_filename = "%s.zip" % dst_filename
 
             # Create the file in workdir and write something testable in it.
-            fobj = open(dst_filename, "w+")
-            json.dump({'script': script,
-                       'dst': os.path.basename(dst_filename),
-                       'extra_params': extra_params}, fobj)
+            with open(dst_filename, "w+") as f:
+                json_str = json.dumps({'script': script,
+                                       'dst': os.path.basename(dst_filename),
+                                       'extra_params': extra_params})
+                f.write(str(json_str))
         elif script == indesign.CloseAllDocuments.javascript_basename:
             pass
 
