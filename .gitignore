@@ -10,3 +10,4 @@ src/SimpleIDML.egg-info
 tests/regressiontests/outputs
 tests/.coverage
 tests/.coveralls.yml
+tests/htmlcov
