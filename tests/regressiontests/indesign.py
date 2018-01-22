@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+from builtins import open
+from builtins import str
 import glob
+import json
 import mock
 import os
 import shutil
 import unittest
 import zipfile
-from cStringIO import StringIO
+from io import BytesIO
 from simple_idml.indesign import indesign
 from suds.client import ServiceSelector
-from urllib2 import OpenerDirector
+from urllib.request import OpenerDirector
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
@@ -23,7 +29,12 @@ SERVER_WORKDIR = os.path.join(CURRENT_DIR, "workdir")
 class InDesignTestCase(unittest.TestCase):
     def setUp(self):
         super(InDesignTestCase, self).setUp()
-        self.u2open_patcher = mock.patch('urllib2.OpenerDirector')
+        # although 'future' wraps urllib2 we still need to mock urllib2.
+        import sys
+        if sys.version_info.major == 2:
+            self.u2open_patcher = mock.patch('urllib2.OpenerDirector')
+        else:
+            self.u2open_patcher = mock.patch('urllib.request.OpenerDirector')
         self.u2open_mock = self.u2open_patcher.start()
         self.u2open_mock.side_effect = OpenerDirectorMock
 
@@ -51,7 +62,12 @@ class InDesignTestCase(unittest.TestCase):
                                      indesign_server_path_style="posix")
 
         self.assertTrue(self.runscript_mock.called)
-        self.assertEqual(responses, ['save_as.jsx, 4-pagesTMP.indd, {}'])
+        self.assertEqual(len(responses), 1)
+        self.assertEqual(json.loads(responses[0].decode('utf-8')), {
+            "script": "save_as.jsx",
+            "extra_params": {},
+            "dst": "4-pagesTMP.indd"
+        })
 
         responses = indesign.save_as(os.path.join(IDMLFILES_DIR, "4-pages.idml"),
                                      [{"fmt": "pdf",
@@ -65,11 +81,13 @@ class InDesignTestCase(unittest.TestCase):
                                      CLIENT_WORKDIR, SERVER_WORKDIR,
                                      indesign_server_path_style="posix")
         self.assertTrue(self.runscript_mock.called)
-        self.assertEqual(responses[:2], [
-            "export.jsx, 4-pagesTMP.pdf, {'colorSpace': 'CMYK', 'standartsCompliance': '1A2003', 'format': 'pdf'}",
-            "export.jsx, 4-pagesTMP.jpeg, {'format': 'jpeg'}"
-        ])
-        zip_buf = StringIO()
+        self.assertEqual(len(responses), 3)
+        self.assertEqual(json.loads(responses[0].decode('utf-8')),
+                         {"extra_params": {"colorSpace": "CMYK", "format": "pdf", "standartsCompliance": "1A2003"},
+                          "script": "export.jsx", "dst": "4-pagesTMP.pdf"})
+        self.assertEqual(json.loads(responses[1].decode('utf-8')),
+                         {"dst": "4-pagesTMP.jpeg", "extra_params": {"format": "jpeg"}, "script": "export.jsx"})
+        zip_buf = BytesIO()
         zip_buf.write(responses[2])
         self.assertTrue(zipfile.is_zipfile(zip_buf))
 
@@ -94,7 +112,7 @@ class OpenerDirectorMock(OpenerDirector):
             return open(os.path.join(SOAP_DIR, 'indesign-service.xml'), "r")
 
 
-class SoapResponse():
+class SoapResponse(object):
     def __init__(self, errorNumber=0):
         self.errorNumber = errorNumber
 
@@ -113,10 +131,11 @@ class ServiceSelectorMock(ServiceSelector):
                 dst_filename = "%s.zip" % dst_filename
 
             # Create the file in workdir and write something testable in it.
-            fobj = open(dst_filename, "w+")
-            fobj.write("%s, %s, %s" % (script,
-                                       os.path.basename(dst_filename),
-                                       extra_params))
+            with open(dst_filename, "w+") as f:
+                json_str = json.dumps({'script': script,
+                                       'dst': os.path.basename(dst_filename),
+                                       'extra_params': extra_params})
+                f.write(str(json_str))
         elif script == indesign.CloseAllDocuments.javascript_basename:
             pass
 

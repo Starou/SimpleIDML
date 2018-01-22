@@ -139,7 +139,7 @@ class UtilsTestCase(unittest.TestCase):
             ],
         }
         dom = tree_to_etree_dom(tree)
-        self.assertMultiLineEqual(etree.tostring(dom, pretty_print=True),
+        self.assertMultiLineEqual(etree.tostring(dom, pretty_print=True).decode("utf-8"),
 """<Root>
   <module>
     <main_picture href="file:///steve.jpg"/>
@@ -175,6 +175,36 @@ class UtilsTestCase(unittest.TestCase):
             'tail': None,
             'text': ''
         })
+
+    def test_proxy_class(self):
+        from simple_idml.utils import Proxy
+
+        class Foo(Proxy):
+            a = u"a"
+
+            def __init__(self, obj):
+                super(Foo, self).__init__(target=obj)
+
+            def bark(self):
+                return u"Woof!"
+
+
+        class Bar(object):
+            b = u"b"
+
+            def __init__(self):
+                self.c = u"c"
+
+            def crunch_those_numbers(self, x, y):
+                return x + y
+
+        bar = Bar()
+        foo = Foo(obj=bar)
+        self.assertEqual(foo.a, u"a")
+        self.assertEqual(foo.b, u"b")
+        self.assertEqual(foo.c, u"c")
+        self.assertEqual(foo.bark(), u"Woof!")
+        self.assertEqual(foo.crunch_those_numbers(2, 3), 5)
 
 
 def suite():

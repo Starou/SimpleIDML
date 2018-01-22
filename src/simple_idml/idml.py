@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from builtins import filter
+from builtins import str
+from builtins import hex
+from builtins import map
+from builtins import next
+from builtins import open
 import copy
 import os
 import re
@@ -45,6 +51,7 @@ class IDMLPackage(zipfile.ZipFile):
         self._graphic = None
         self._spreads = None
         self._spreads_objects = None
+        self._last_spread = None
         self._pages = None
         self._backing_story = None
         self._stories = None
@@ -173,7 +180,7 @@ class IDMLPackage(zipfile.ZipFile):
     @property
     def spreads(self):
         if self._spreads is None:
-            spreads = [elt for elt in self.namelist() if re.match(ur"^Spreads/*", elt)]
+            spreads = [elt for elt in self.namelist() if re.match(u"^Spreads/*", elt)]
             self._spreads = spreads
         return self._spreads
 
@@ -183,6 +190,13 @@ class IDMLPackage(zipfile.ZipFile):
             spreads_objects = [Spread(self, s, self.working_copy_path) for s in self.spreads]
             self._spreads_objects = spreads_objects
         return self._spreads_objects
+
+    @property
+    def last_spread(self):
+        if self._last_spread is None:
+            src = self.designmap.spread_nodes[-1].get("src")
+            self._last_spread = Spread(self, src, self.working_copy_path)
+        return self._last_spread
 
     @property
     def pages(self):
@@ -205,7 +219,7 @@ class IDMLPackage(zipfile.ZipFile):
     def stories(self):
         if self._stories is None:
             stories = [elt for elt in self.namelist()
-                       if re.match(ur"^%s/*" % STORIES_DIRNAME, elt)]
+                       if re.match(u"^%s/*" % STORIES_DIRNAME, elt)]
             self._stories = stories
         return self._stories
 
@@ -244,7 +258,11 @@ class IDMLPackage(zipfile.ZipFile):
     def import_xml(self, xml, at):
         """ Reproduce the action «Import XML» on a XML Element in InDesign® Structure. """
 
-        source_node = etree.fromstring(xml)
+        # Python 3 strictly require a bytestring.
+        try:
+            source_node = etree.fromstring(xml)
+        except ValueError:
+            source_node = etree.fromstring(xml.encode("utf-8"))
 
         def _set_content(xpath, element_id, content, story=None):
             story = story or self.get_story_object_by_xpath(xpath)
@@ -405,8 +423,10 @@ class IDMLPackage(zipfile.ZipFile):
                 # we can call a map() on _import_node().
                 # FIXME: what if source_node.text exists ?
                 if destination_node_children_tags == source_node_children_tags:
-                    map(lambda s, d: _import_node(s, at=d, ignorecontent_parent_flag=ignorecontent),
-                        source_node_children, [self.xml_structure_tree.getpath(c) for c in destination_node.iterchildren()])
+                    for s, d in zip(source_node_children, [self.xml_structure_tree.getpath(c) for c in
+                                                           destination_node.iterchildren()]):
+                        _import_node(s, at=d, ignorecontent_parent_flag=ignorecontent)
+
                 # Step-by-step iteration.
                 else:
                     destination_node_child = next(destination_node_children, None)
@@ -527,7 +547,7 @@ class IDMLPackage(zipfile.ZipFile):
             else:
                 # Node without content > `content' is fed with recursive call on childrens.
                 if len(xml_structure_node_children):
-                    content.extend(map(_export_content_as_tree, xml_structure_node_children))
+                    content.extend(list(map(_export_content_as_tree, xml_structure_node_children)))
 
             return tree
 
@@ -538,7 +558,7 @@ class IDMLPackage(zipfile.ZipFile):
         """ Reproduce the action «Export XML» on a XML Element in InDesign® Structure. """
         tree = self.export_as_tree()
         dom = tree_to_etree_dom(tree)
-        return etree.tostring(dom, encoding=encoding, pretty_print=True)
+        return etree.tostring(dom, encoding=encoding, pretty_print=True).decode("utf-8")
 
     @use_working_copy
     def prefix(self, prefix):
@@ -607,7 +627,8 @@ class IDMLPackage(zipfile.ZipFile):
         """Recursively reach the leafs to remove the content. """
         def _remove_content(node):
             if len(node.getchildren()):
-                map(_remove_content, node.iterchildren())
+                for child in node.iterchildren():
+                    _remove_content(child)
             xpath = self.xml_structure_tree.getpath(node)
             element_content_id = self.get_element_content_id_by_xpath(xpath)
 
@@ -624,7 +645,9 @@ class IDMLPackage(zipfile.ZipFile):
             node = self.xml_structure.xpath(under)[0]
         except IndexError:
             raise IndexError(u"Cannot remove content under path '%s'. Are you sure the path exists ?" % under)
-        map(_remove_content, node.iterchildren())
+
+        for child in node.iterchildren():
+            _remove_content(child)
         # `under' node may have a reference to its first children in his story.
         story = self.get_story_object_by_xpath(under)
         story.remove_children(node.get("Self"), synchronize=True)
@@ -765,7 +788,8 @@ class IDMLPackage(zipfile.ZipFile):
             self.apply_translation_to_element(spread_elt_copy, translation)
             spread_dest_elt.append(spread_elt_copy)
 
-        map(lambda s: _add_spread_element(spread_dest_elt, s), spread_elts_to_add)
+        for elt in spread_elts_to_add:
+            _add_spread_element(spread_dest_elt, elt)
 
         spread_dest.synchronize()
         self.init_lazy_references()
@@ -841,7 +865,7 @@ class IDMLPackage(zipfile.ZipFile):
         if not os.path.exists(stories_dirname):
             os.mkdir(stories_dirname)
         for filename in idml_package.stories_for_node(only):
-            story_cp = open(os.path.join(self.working_copy_path, filename), mode="w+")
+            story_cp = open(os.path.join(self.working_copy_path, filename), mode="wb+")
             story_cp.write(idml_package.open(filename, mode="r").read())
             story_cp.close()
 
@@ -863,7 +887,7 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def add_page_from_idml(self, idml_package, page_number, at, only):
-        last_spread = self.spreads_objects[-1]
+        last_spread = self.last_spread
         if last_spread.pages[-1].is_recto:
             last_spread = self.add_new_spread(self.working_copy_path)
 
@@ -917,15 +941,16 @@ class IDMLPackage(zipfile.ZipFile):
     def add_new_spread(self, working_copy_path):
         """Create a new empty Spread in the working copy from the last one. """
 
-        last_spread = self.spreads_objects[-1]
         # TODO : make sure the filename does not exists.
-        new_spread_name = increment_filename(last_spread.name)
+        new_spread_name = increment_filename(self.last_spread.name)
         new_spread_wc_path = os.path.join(working_copy_path, new_spread_name)
         shutil.copy2(
-            os.path.join(working_copy_path, last_spread.name),
+            os.path.join(working_copy_path, self.last_spread.name),
             new_spread_wc_path
         )
+        self._spreads = None
         self._spreads_objects = None
+        self._last_spread = None
 
         new_spread = Spread(self, new_spread_name, working_copy_path)
         new_spread.clear()
@@ -951,7 +976,7 @@ class IDMLPackage(zipfile.ZipFile):
 
     def get_spread_object_by_name(self, name):
         """ - name : 'Spreads/Spread_mainub6.xml' """
-        return filter(lambda s: s.name == name, self.spreads_objects)[0]
+        return next(filter(lambda s: s.name == name, self.spreads_objects))
 
     def get_spread_object_by_xpath(self, xpath):
         elt_id = self.xml_structure.xpath(xpath)[0].get("XMLContent")

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from builtins import str
+from builtins import open
 import glob
 import os
 import shutil
 import unittest
-from tempfile import mkdtemp
+from tempfile import gettempdir, mkdtemp
 from lxml import etree
 from simple_idml.idml import IDMLPackage
 from simple_idml.test import SimpleTestCase
@@ -13,7 +15,7 @@ from simple_idml.utils import etree_dom_to_tree
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 XML_DIR = os.path.join(CURRENT_DIR, "XML")
-OUTPUT_DIR = os.path.join(CURRENT_DIR, "outputs", "simpleIDML")
+OUTPUT_DIR = os.path.join(gettempdir(), "simpleidml_tests", "output")
 
 IDPKG_NS = "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"
 
@@ -199,7 +201,7 @@ class IdmlTestCase(SimpleTestCase):
 
             # Styles mapping.
             self.assertEqual(idml_file.style_mapping.tostring(),
-                             "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n<idPkg:Mapping xmlns:idPkg=\"http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging\" DOMVersion=\"7.5\">                   </idPkg:Mapping>\n")
+                             b"<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n<idPkg:Mapping xmlns:idPkg=\"http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging\" DOMVersion=\"7.5\">                   </idPkg:Mapping>\n")
 
             # Fonts.
             self.assertEqual([font.get("Name") for font in idml_file.font_families], [
@@ -210,7 +212,7 @@ class IdmlTestCase(SimpleTestCase):
             ])
 
             # XML Structure.
-            self.assertXMLEqual(unicode(idml_file.xml_structure_pretty()),
+            self.assertXMLEqual(str(idml_file.xml_structure_pretty().decode("utf-8")),
 u"""<Root Self="di2">
   <article XMLContent="u102" Self="di2i3">
     <Story XMLContent="ue4" Self="di2i3i1">
@@ -230,8 +232,8 @@ u"""<Root Self="di2">
         # Test a file with a slighly different structure
         idml_filename = os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml")
         with IDMLPackage(idml_filename) as idml_file:
-            self.assertXMLEqual(etree.tostring(idml_file.xml_structure, pretty_print=True),
-"""<Root Self="di2">
+            self.assertXMLEqual(etree.tostring(idml_file.xml_structure, pretty_print=True).decode("utf-8"),
+u"""<Root Self="di2">
   <page Self="di2ib">
     <title XMLContent="u1b2" Self="di2ibi34"/>
     <article XMLContent="u1c9" Self="di2ibi33"/>
@@ -692,7 +694,7 @@ u"""<Root Self="di2">
 
         with IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo-with-attributes.idml")) as idml_file:
             xml = idml_file.export_xml()
-            self.assertXMLEqual(unicode(xml),
+            self.assertXMLEqual(str(xml),
 u"""<Root>
   <module>
     <main_picture style="fancy" foo="bar"/>
@@ -708,7 +710,7 @@ u"""<Root>
     def test_export_xml_with_nested_nodes(self):
         with IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_imported-nested-xml.idml")) as idml_file:
             xml = idml_file.export_xml()
-            self.assertXMLEqual(unicode(xml),
+            self.assertXMLEqual(str(xml),
 u"""<Root>
   <module>
     <main_picture href="file:///steve.jpg"/>
@@ -757,7 +759,7 @@ u"""<Root>
                                      "FOOCharacterStyle/$ID/[No character style]")
 
                 # XML Structure.
-                self.assertXMLEqual(unicode(prefixed_f.xml_structure_pretty()),
+                self.assertXMLEqual(str(prefixed_f.xml_structure_pretty().decode("utf-8")),
 u"""<Root Self="FOOdi2">
   <article XMLContent="FOOu102" Self="FOOdi2i3">
     <Story XMLContent="FOOue4" Self="FOOdi2i3i1">
@@ -1987,7 +1989,8 @@ u"""<Root Self="FOOdi2">
                     ])
 
                     # The XML Structure has integrated the new file.
-                    self.assertXMLEqual(unicode(f.xml_structure_pretty()), """<Root Self="maindi2">
+                    self.assertXMLEqual(str(f.xml_structure_pretty().decode("utf-8")),
+u"""<Root Self="maindi2">
 <article Self="maindi2i3" XMLContent="mainu102">
     <Story Self="maindi2i3i1" XMLContent="mainue4">
       <title Self="maindi2i3i1i1"/>
@@ -3361,7 +3364,8 @@ u"""<Root Self="FOOdi2">
                     ])
 
                     # The XML Structure has integrated the new file.
-                    self.assertXMLEqual(unicode(f.xml_structure_pretty()), """<Root Self="maindi2">
+                    self.assertXMLEqual(str(f.xml_structure_pretty().decode("utf-8")),
+u"""<Root Self="maindi2">
 <article Self="maindi2i3" XMLContent="mainu102">
     <Story Self="maindi2i3i1" XMLContent="mainue4">
       <title Self="maindi2i3i1i1"/>
@@ -3505,7 +3509,7 @@ u"""<Root Self="FOOdi2">
                      os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml"))
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml")) as idml_file:
             with idml_file.remove_content(under="/Root/module/Story") as f:
-                self.assertXMLEqual(unicode(f.xml_structure_pretty()),
+                self.assertXMLEqual(str(f.xml_structure_pretty().decode("utf-8")),
 u"""<Root Self="di3">
   <module XMLContent="u10d" Self="di3i4">
     <main_picture XMLContent="udf" Self="di3i4i1"/>
@@ -3546,7 +3550,7 @@ u"""<Root Self="di3">
                     self.assertEqual(len(new_idml.pages), 3)
 
                     # The XML Structure has integrated the new file.
-                    self.assertXMLEqual(unicode(new_idml.xml_structure_pretty()),
+                    self.assertXMLEqual(str(new_idml.xml_structure_pretty().decode("utf-8")),
 u"""<Root Self="editodi2">
   <page Self="editodi2ib">
     <article Self="editodi2ibif">
@@ -3631,11 +3635,15 @@ u"""<Root Self="editodi2">
                     (prefixed_courrier, 1, "/Root", "/Root/page[1]"),
                     (prefixed_bnotes, 1, "/Root", "/Root/page[1]"),
                 ]
-
                 with prefixed_mag.add_pages_from_idml(packages_to_add) as f:
                     self.assertEqual(len(f.pages), 4)
-                    # FIXME Broken.
-                    #self.assertEqual(f.spreads, ['Spreads/Spread_magub6.xml', 'Spreads/Spread_magub7.xml'])
+                    self.assertEqual(set(f.spreads), set(['Spreads/Spread_magub7.xml',
+                                                          'Spreads/Spread_magub6.xml',
+                                                          'Spreads/Spread_magub8.xml']))
+                    self.assertEqual(set(n.get("src") for n in f.designmap.spread_nodes),
+                                     set(['Spreads/Spread_magub7.xml',
+                                          'Spreads/Spread_magub6.xml',
+                                          'Spreads/Spread_magub8.xml']))
 
 
 def suite():

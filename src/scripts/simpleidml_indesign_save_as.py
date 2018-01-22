@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from builtins import str
+from builtins import map
 import locale
 import os
 import sys
@@ -59,7 +61,7 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
     def parse_options(self):
         encoding = locale.getpreferredencoding()
         for i, a in enumerate(sys.argv):
-            sys.argv[i] = unicode(a.decode(encoding))
+            sys.argv[i] = str(a.decode(encoding))
         self.args = self.parser.parse_args()
 
     def execute(self):
@@ -69,7 +71,8 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
         responses = indesign.save_as(self.args.source, formats, self.args.url, self.args.client_workdir,
                                      self.args.server_workdir, self.args.server_path_style,
                                      not self.args.no_clean_workdir, self.ftp_params)
-        map(self.save_as, responses, destinations)
+        for response, destination in zip(responses, destinations):
+            self.save_as(response, destination)
 
     def parse_destination_arg(self, arg):
         try:

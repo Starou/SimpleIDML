@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from builtins import object
 import logging
 import ntpath
 import os
@@ -55,7 +56,7 @@ class InDesignSoapScript(object):
         self.logger.debug('Calling SOAP "RunScript" service (params: %s)' % self.params, extra=self.logger_extra)
         try:
             response = self.client.service.RunScript(self.params)
-        except SAXParseException, e:
+        except SAXParseException as e:
             response = None
             self.logger.error('SAXParseException: %s' % e.getMessage(), extra=self.logger_extra)
         else:
@@ -187,7 +188,7 @@ def use_dedicated_working_directory(view_func):
                                  indesign_client_workdir, indesign_server_workdir,
                                  indesign_server_path_style, clean_workdir, ftp_params,
                                  logger, logger_extra)
-        except BaseException, e:
+        except BaseException as e:
             raise e
         finally:
             if clean_workdir:
@@ -235,7 +236,7 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
     cl = Client("%s/service?wsdl" % indesign_server_url)
     cl.set_options(location=indesign_server_url, timeout=90)
 
-    responses = map(lambda fmt: _save_as(fmt), dst_formats_params)
+    responses = [_save_as(fmt) for fmt in dst_formats_params]
     if clean_workdir:
         ftp.unlink(src_client_copy_filename, ftp_params)
 

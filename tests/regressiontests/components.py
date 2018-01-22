@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from builtins import hex
 import os
 import shutil
 import unittest
@@ -218,7 +219,7 @@ class StoryTestCase(unittest.TestCase):
 
         self.assertEqual(story.name, 'Stories/Story_my_story_id.xml')
         self.assertEqual(story.tostring(),
-"""<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+b"""<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
      <Story Self="my_story_id" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
        <StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection"/>
@@ -371,14 +372,14 @@ class StyleMappingTestCase(unittest.TestCase):
     def test_styles(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), mode="r")
         style_mapping = StyleMapping(idml_file)
-        self.assertEqual([line.strip() for line in style_mapping.tostring().split("\n")], [
-            "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>",
-            '<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="10.0">',
-            '<XMLImportMap Self="did2" MarkupTag="XMLTag/bold" MappedStyle="CharacterStyle/bold"/>',
-            '<XMLImportMap Self="di13f" MarkupTag="XMLTag/italique" MappedStyle="CharacterStyle/italique"/>',
-            '<XMLImportMap Self="di141" MarkupTag="XMLTag/sup" MappedStyle="CharacterStyle/sup"/>',
-            '</idPkg:Mapping>',
-            ''
+        self.assertEqual([line.strip() for line in style_mapping.tostring().split(b"\n")], [
+            b"<?xml version='1.0' encoding='UTF-8' standalone='yes'?>",
+            b'<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="10.0">',
+            b'<XMLImportMap Self="did2" MarkupTag="XMLTag/bold" MappedStyle="CharacterStyle/bold"/>',
+            b'<XMLImportMap Self="di13f" MarkupTag="XMLTag/italique" MappedStyle="CharacterStyle/italique"/>',
+            b'<XMLImportMap Self="di141" MarkupTag="XMLTag/sup" MappedStyle="CharacterStyle/sup"/>',
+            b'</idPkg:Mapping>',
+            b''
         ])
 
         # The XML/Mapping.xml may not be present.
@@ -404,7 +405,7 @@ class XMLElementTestCase(unittest.TestCase):
         )
 
     def test_attributes(self):
-        dom = etree.fromstring("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        dom = etree.fromstring(b"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
                 <Story Self="u10d">
                     <XMLElement Self="di3i4" MarkupTag="XMLTag/module" XMLContent="u10d">
