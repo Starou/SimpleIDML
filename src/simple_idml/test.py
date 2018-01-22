@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
 
+from builtins import zip
 import re
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
 from xml.dom.minidom import parseString, Node
 

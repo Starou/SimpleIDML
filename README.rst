@@ -36,18 +36,32 @@ Or:
     python setup.py build
     sudo python setup.py install
 
-Dependencies
-------------
+Python support
+--------------
 
-- Python >= 2.6
-- lxml >= 2.3
-- unittest2 if Python < 2.7
-- suds (if you want to use the SOAP interface of the InDesign Server.)
+- Python 2: 2.7.x
+- Python 3: 3.5+
 
 Any questions?
 --------------
 
 https://groups.google.com/forum/#!forum/simpleidml-users
+
+Developers
+----------
+
+.. code-block:: bash
+
+    vagrant up
+    vagrant ssh
+    cd tests
+    python runtests.py
+
+A Python 3 virtualenv is activated at login but you can switch to Python 2.7:
+
+.. code-block:: bash
+
+   source ~/venv_py2/bin/activate
 
 
 What is SimpleIDML?
@@ -447,6 +461,19 @@ in your PATH.
 
 Revisions
 =========
+
+1.0.0
+-----
+
+New features
+''''''''''''
+
+- Added support for Python 3
+
+Backward incompatibilities
+''''''''''''''''''''''''''
+
+- Removed support for Python 2.6
 
 0.92.9
 ------

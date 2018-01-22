@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from builtins import hex
+from builtins import str
+from builtins import object
+from builtins import open
 import copy
 import os
 import re
@@ -73,7 +77,14 @@ class IDMLXMLFile(object):
     @property
     def dom(self):
         if self._dom is None:
-            dom = etree.fromstring(self.fobj.read())
+            xml = self.fobj.read()
+            try:
+                dom = etree.fromstring(xml)
+            except ValueError:
+                # Python3: when the fobj come from Story.create()
+                # it is strictly a textfile that cannot be implicitly
+                # read as a bytestring (required by etree.fromstring()).
+                dom = etree.fromstring(xml.encode('utf-8'))
             self._dom = dom
             self._fobj.close()
             self._fobj = None
@@ -106,7 +117,7 @@ class IDMLXMLFile(object):
         self._fobj = None
 
         # Must instanciate with a working_copy to use this.
-        fobj = open(os.path.join(self.working_copy_path, self.name), mode="w+")
+        fobj = open(os.path.join(self.working_copy_path, self.name), mode="wb+")
         fobj.write(self.tostring())
         fobj.close()
 
@@ -257,7 +268,7 @@ class Spread(IDMLXMLFile):
         last_page.set_face(face_required)
 
     def clear(self):
-        items = self.node.items()
+        items = list(self.node.items())
         self.node.clear()
         for k, v in items:
             self.node.set(k, v)
@@ -336,7 +347,7 @@ class Story(IDMLXMLFile):
         filename = os.path.join(working_copy_path, story_name)
         story._fobj = open(filename, mode="w+")
         story.fobj.write(
-            """<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+            str(u"""<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
    <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
      <Story Self="%(story_id)s" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
        <StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection"/>
@@ -348,7 +359,7 @@ class Story(IDMLXMLFile):
             "story_id": story_id,
             "xml_element_tag": xml_element_tag,
             "xml_element_id": xml_element_id
-        })
+        }))
 
         story.fobj.close()
         story._fobj = None
@@ -436,7 +447,8 @@ class Story(IDMLXMLFile):
 
     def remove_children(self, element_id, synchronize=False):
         elt = self.get_element_by_id(element_id).element
-        map(lambda c: elt.remove(c), elt.iterchildren())
+        for child in elt.iterchildren():
+            elt.remove(child)
         if synchronize:
             self.synchronize()
 
@@ -618,10 +630,10 @@ class Style(IDMLXMLFile):
 
 class StyleMapping(IDMLXMLFile):
     name = "XML/Mapping.xml"
-    initial_dom = ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\
+    initial_dom = (str(u"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\
                    <idPkg:Mapping xmlns:idPkg=\"http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging\"\
                    DOMVersion=\"7.5\">\
-                   </idPkg:Mapping>")
+                   </idPkg:Mapping>"))
 
     def __init__(self, idml_package, working_copy_path=None):
         super(StyleMapping, self).__init__(idml_package, working_copy_path)
@@ -643,7 +655,7 @@ class StyleMapping(IDMLXMLFile):
         try:
             super(StyleMapping, self).dom
         except AttributeError:
-            self._dom = etree.fromstring(self.initial_dom)
+            self._dom = etree.fromstring(self.initial_dom.encode("utf-8"))
         return self._dom
 
     @property

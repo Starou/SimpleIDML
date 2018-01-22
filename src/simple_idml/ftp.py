@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+from builtins import open
 import ftplib
 import os
 import shlex
@@ -26,8 +28,8 @@ def copy(src_filename, dst_filename, ftp_params=None, src_open_mode="rb"):
                 ftp.storbinary(command, f)
             else:
                 ftp.storlines(command, f)
-        except BaseException, e:
-            print "Cannot STOR %s" % dst_filename
+        except BaseException as e:
+            print("Cannot STOR %s" % dst_filename)
             close_ftp_conn(ftp, ftp_params)
             raise e
 

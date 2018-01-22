@@ -1,4 +1,5 @@
 import os
+import sys
 from distutils.core import setup
 
 README = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read()
@@ -6,16 +7,21 @@ README = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read()
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
+if sys.version_info.major == 3:
+    suds_package = "suds-py3"
+else:
+    suds_package = "suds"
+
 setup(
     name="SimpleIDML",
-    version="0.92.9",
+    version="1.0.0",
     license='BSD Licence',
     author='Stanislas Guerra',
     author_email='stanislas.guerra@gmail.com',
     description='A library to manipulate Adobe(r) IDML(r) files.',
     long_description=README,
     package_dir={'': 'src'},
-    install_requires=['lxml>=1.3,<3.7', 'mock', 'suds'],
+    install_requires=['future', 'lxml', suds_package],
     packages=[
         'simple_idml',
         'simple_idml.indesign',
@@ -37,8 +43,10 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Multimedia :: Graphics',
         'Topic :: Printing',
         'Topic :: Software Development :: Libraries :: Python Modules',

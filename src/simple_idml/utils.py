@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from builtins import chr
+from builtins import str
+from builtins import object
 import copy
-import new
 import os
 import re
 from lxml import etree
-from types import MethodType
-
 
 rx_numbered = re.compile(r"(.*?)(\d+)")
 rx_xmltag_sibling_id = re.compile(r"(.*?d.*i)(\d+)")
@@ -73,12 +73,7 @@ class Proxy(object):
         self._target = target
 
     def __getattr__(self, aname):
-        target = self._target
-        f = getattr(target, aname)
-        if isinstance(f, MethodType):
-            return new.instancemethod(f.im_func, self, target.__class__)
-        else:
-            return f
+        return getattr(self._target, aname)
 
 
 def tree_to_etree_dom(tree):
