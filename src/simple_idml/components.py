@@ -68,7 +68,7 @@ class IDMLXMLFile(object):
         if self._fobj is None:
             if self.working_copy_path:
                 filename = os.path.join(self.working_copy_path, self.name)
-                fobj = open(filename, mode="r+")
+                fobj = open(filename, mode="rb+")
             else:
                 fobj = self.idml_package.open(self.name, mode="r")
             self._fobj = fobj
