@@ -14,12 +14,16 @@ else:
 
 setup(
     name="SimpleIDML",
-    version="1.0.1",
+    version="1.0.2",
     license='BSD Licence',
     author='Stanislas Guerra',
     author_email='stanislas.guerra@gmail.com',
     description='A library to manipulate Adobe(r) IDML(r) files.',
     long_description=README,
+    project_urls={
+        'Source Code': 'https://github.com/Starou/SimpleIDML',
+        'Issue Tracker': 'https://github.com/Starou/SimpleIDML/issues',
+    },
     package_dir={'': 'src'},
     install_requires=['future', 'lxml', suds_package],
     packages=[
