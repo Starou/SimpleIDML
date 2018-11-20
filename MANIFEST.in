@@ -1,5 +1,2 @@
-include README.rst
-include LICENSE
-include TODO
-include AUTHORS
-recursive-include tests *.py *.json *.txt *.idml
+prune tests/htmlcov
+prune tests/regressiontests/outputs
