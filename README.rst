@@ -462,6 +462,11 @@ in your PATH.
 Revisions
 =========
 
+1.0.3
+-----
+
+- Use setuptools instead of distutils for a better integration with Pypi.
+
 1.0.0
 -----
 
