@@ -18,7 +18,7 @@ else:
 
 setup(
     name="SimpleIDML",
-    version="1.0.3",
+    version="1.0.4",
     license='BSD Licence',
     author='Stanislas Guerra',
     author_email='stanislas.guerra@gmail.com',
