@@ -1,2 +1,9 @@
+include LICENSE
+include AUTHORS
+graft tests
 prune tests/htmlcov
 prune tests/regressiontests/outputs
+exclude tests/.coveralls.yml
+exclude tests/.coverage
+global-exclude *.pyc
+global-exclude .DS_Store

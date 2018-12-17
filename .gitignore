@@ -1,11 +1,8 @@
 *.pyc
-*.swp
 *.log
-\.DS_Store
-\.vagrant
+.vagrant
 build
 dist
-MANIFEST
 src/SimpleIDML.egg-info
 tests/regressiontests/outputs
 tests/.coverage
