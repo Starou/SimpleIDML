@@ -45,7 +45,7 @@ class InDesignSoapScript(object):
         self.javascript_server_copy_filename = self.server_path_mod.join(self.server_workdir,
                                                                          self.javascript_basename)
         ftp.copy(javascript_master_filename, self.javascript_client_copy_filename,
-                 self.ftp_params, src_open_mode="r")
+                 self.ftp_params, src_open_mode="rb")
 
     def set_params(self):
         self.params = self.client.factory.create("ns0:RunScriptParameters")

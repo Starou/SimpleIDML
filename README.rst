@@ -462,6 +462,15 @@ in your PATH.
 Revisions
 =========
 
+1.0.5
+-----
+
+Bug fixes
+'''''''''
+
+- Fixed ``indesign.save_as()`` in Python 3 where the jsx file was opened
+  in text mode instead of binary.
+
 1.0.3
 -----
 
