@@ -26,7 +26,7 @@ def copy(src_filename, dst_filename, ftp_params=None, src_open_mode="rb"):
         try:
             if "b" in src_open_mode:
                 ftp.storbinary(command, f)
-            else:
+            else:  # python2 only. storlines in Python 3 requires binary mode as well.
                 ftp.storlines(command, f)
         except BaseException as e:
             print("Cannot STOR %s" % dst_filename)
