@@ -79,7 +79,7 @@ class IDMLXMLFile(object):
         if self._dom is None:
             xml = self.fobj.read()
             try:
-                dom = etree.fromstring(xml)
+                dom = etree.fromstring(xml, parser=etree.XMLParser(huge_tree=True))
             except ValueError:
                 # Python3: when the fobj come from Story.create()
                 # it is strictly a textfile that cannot be implicitly
