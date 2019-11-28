@@ -403,7 +403,13 @@ class IDMLPackage(zipfile.ZipFile):
             if not ignorecontent_parent_flag or forcecontent:
                 if items:
                     self.set_attributes(at, items, element_id)
-                if not (items.get(SETCONTENT_TAG) == "false"):
+                if items.get(SETCONTENT_TAG) == "delete":
+                    local_story = story or self.get_story_object_by_xpath(at)
+                    local_story.remove_element(element_id, synchronize=True)
+                    spread = self.get_spread_object_by_xpath(at)
+                    content_id = self.xml_structure.xpath(at)[0].get("XMLContent")
+                    spread.remove_page_item(content_id, synchronize=True)
+                elif not (items.get(SETCONTENT_TAG) == "false"):
                     _set_content(at, element_id, source_node.text or "", story)
 
             ignorecontent = (items.get(IGNORECONTENT_TAG) == "true") or (ignorecontent_parent_flag and not forcecontent)
@@ -979,7 +985,7 @@ class IDMLPackage(zipfile.ZipFile):
     def get_spread_object_by_id(self, elt_id):
         """elt_id is the `XMLContent' attribute value in the xml_structure (Stories).
 
-        Spread element matches Story one with the ParentStory or the Self attribute value."""
+        Spread element matches Story's one with the ParentStory or the Self attribute value."""
 
         result = None
         for spread in self.spreads_objects:
