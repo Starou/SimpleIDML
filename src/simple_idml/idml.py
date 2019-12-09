@@ -407,8 +407,9 @@ class IDMLPackage(zipfile.ZipFile):
                     local_story = story or self.get_story_object_by_xpath(at)
                     local_story.remove_element(element_id, synchronize=True)
                     spread = self.get_spread_object_by_xpath(at)
-                    content_id = self.xml_structure.xpath(at)[0].get("XMLContent")
-                    spread.remove_page_item(content_id, synchronize=True)
+                    if spread:
+                        content_id = self.xml_structure.xpath(at)[0].get("XMLContent")
+                        spread.remove_page_item(content_id, synchronize=True)
                 elif not (items.get(SETCONTENT_TAG) == "false"):
                     _set_content(at, element_id, source_node.text or "", story)
 
