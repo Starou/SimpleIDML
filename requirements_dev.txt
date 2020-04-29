@@ -1,8 +1,6 @@
 coverage
-future
 ipdb
 lxml
 mock
 pylint
-suds-py3; python_version >= '3.0'
-suds; python_version < '3.0'
+suds-py3

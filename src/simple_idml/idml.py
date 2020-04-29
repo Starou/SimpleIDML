@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from builtins import filter
-from builtins import str
-from builtins import hex
-from builtins import map
-from builtins import next
-from builtins import open
 import copy
 import os
 import re
@@ -180,7 +174,7 @@ class IDMLPackage(zipfile.ZipFile):
     @property
     def spreads(self):
         if self._spreads is None:
-            spreads = [elt for elt in self.namelist() if re.match(u"^Spreads/*", elt)]
+            spreads = [elt for elt in self.namelist() if re.match("^Spreads/*", elt)]
             self._spreads = spreads
         return self._spreads
 
@@ -219,7 +213,7 @@ class IDMLPackage(zipfile.ZipFile):
     def stories(self):
         if self._stories is None:
             stories = [elt for elt in self.namelist()
-                       if re.match(u"^%s/*" % STORIES_DIRNAME, elt)]
+                       if re.match("^%s/*" % STORIES_DIRNAME, elt)]
             self._stories = stories
         return self._stories
 
@@ -566,7 +560,7 @@ class IDMLPackage(zipfile.ZipFile):
 
         files in ZipFile cannot be renamed or moved so we make a copies of them.
         """
-        if not re.match("^\w+$", prefix):
+        if not re.match(r"^\w+$", prefix):
             raise BaseException("Prefix must be alphanumeric.")
 
         # Change the references inside the file.
@@ -644,7 +638,7 @@ class IDMLPackage(zipfile.ZipFile):
         try:
             node = self.xml_structure.xpath(under)[0]
         except IndexError:
-            raise IndexError(u"Cannot remove content under path '%s'. Are you sure the path exists ?" % under)
+            raise IndexError("Cannot remove content under path '%s'. Are you sure the path exists ?" % under)
 
         for child in node.iterchildren():
             _remove_content(child)

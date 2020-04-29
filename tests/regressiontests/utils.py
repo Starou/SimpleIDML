@@ -180,30 +180,29 @@ class UtilsTestCase(unittest.TestCase):
         from simple_idml.utils import Proxy
 
         class Foo(Proxy):
-            a = u"a"
+            a = "a"
 
             def __init__(self, obj):
                 super(Foo, self).__init__(target=obj)
 
             def bark(self):
-                return u"Woof!"
-
+                return "Woof!"
 
         class Bar(object):
-            b = u"b"
+            b = "b"
 
             def __init__(self):
-                self.c = u"c"
+                self.c = "c"
 
             def crunch_those_numbers(self, x, y):
                 return x + y
 
         bar = Bar()
         foo = Foo(obj=bar)
-        self.assertEqual(foo.a, u"a")
-        self.assertEqual(foo.b, u"b")
-        self.assertEqual(foo.c, u"c")
-        self.assertEqual(foo.bark(), u"Woof!")
+        self.assertEqual(foo.a, "a")
+        self.assertEqual(foo.b, "b")
+        self.assertEqual(foo.c, "c")
+        self.assertEqual(foo.bark(), "Woof!")
         self.assertEqual(foo.crunch_those_numbers(2, 3), 5)
 
 
