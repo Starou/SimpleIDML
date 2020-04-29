@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from builtins import str
-from builtins import open
 import glob
 import os
 import shutil
@@ -52,22 +50,22 @@ class IdmlTestCase(SimpleTestCase):
         with IDMLPackage(idml_filename) as idml_file:
 
             # Spreads.
-            self.assertEqual(idml_file.spreads, [u'Spreads/Spread_ub6.xml',
-                                                 u'Spreads/Spread_ubc.xml',
-                                                 u'Spreads/Spread_uc3.xml'])
+            self.assertEqual(idml_file.spreads, ['Spreads/Spread_ub6.xml',
+                                                 'Spreads/Spread_ubc.xml',
+                                                 'Spreads/Spread_uc3.xml'])
 
             # Stories.
-            self.assertEqual(idml_file.stories, [u'Stories/Story_u139.xml',
-                                                 u'Stories/Story_u11b.xml',
-                                                 u'Stories/Story_u102.xml',
-                                                 u'Stories/Story_ue4.xml'])
+            self.assertEqual(idml_file.stories, ['Stories/Story_u139.xml',
+                                                 'Stories/Story_u11b.xml',
+                                                 'Stories/Story_u102.xml',
+                                                 'Stories/Story_ue4.xml'])
 
             # Stories given a Xpath.
             self.assertEqual(idml_file.stories_for_node("/Root/article[1]"),
-                             [u'Stories/Story_u102.xml',
-                              u'Stories/Story_ue4.xml',
-                              u'Stories/Story_u11b.xml',
-                              u'Stories/Story_u139.xml'])
+                             ['Stories/Story_u102.xml',
+                              'Stories/Story_ue4.xml',
+                              'Stories/Story_u11b.xml',
+                              'Stories/Story_u139.xml'])
 
             # Tags.
             self.assertEqual([etree_dom_to_tree(tag, True) for tag in idml_file.tags], [
@@ -213,7 +211,7 @@ class IdmlTestCase(SimpleTestCase):
 
             # XML Structure.
             self.assertXMLEqual(str(idml_file.xml_structure_pretty().decode("utf-8")),
-u"""<Root Self="di2">
+"""<Root Self="di2">
   <article XMLContent="u102" Self="di2i3">
     <Story XMLContent="ue4" Self="di2i3i1">
       <title Self="di2i3i1i1"/>
@@ -233,7 +231,7 @@ u"""<Root Self="di2">
         idml_filename = os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs.idml")
         with IDMLPackage(idml_filename) as idml_file:
             self.assertXMLEqual(etree.tostring(idml_file.xml_structure, pretty_print=True).decode("utf-8"),
-u"""<Root Self="di2">
+"""<Root Self="di2">
   <page Self="di2ib">
     <title XMLContent="u1b2" Self="di2ibi34"/>
     <article XMLContent="u1c9" Self="di2ibi33"/>
@@ -276,13 +274,13 @@ u"""<Root Self="di2">
         idml_filename = os.path.join(IDMLFILES_DIR, "4-pages.idml")
         with IDMLPackage(idml_filename) as idml_file:
             self.assertEqual(idml_file.contentfile_namelist(), [
-                u'Spreads/Spread_ub6.xml',
-                u'Spreads/Spread_ubc.xml',
-                u'Spreads/Spread_uc3.xml',
-                u'Stories/Story_u139.xml',
-                u'Stories/Story_u11b.xml',
-                u'Stories/Story_u102.xml',
-                u'Stories/Story_ue4.xml',
+                'Spreads/Spread_ub6.xml',
+                'Spreads/Spread_ubc.xml',
+                'Spreads/Spread_uc3.xml',
+                'Stories/Story_u139.xml',
+                'Stories/Story_u11b.xml',
+                'Stories/Story_u102.xml',
+                'Stories/Story_ue4.xml',
             ])
 
     def test_referenced_layers(self):
@@ -632,7 +630,7 @@ u"""<Root Self="di2">
                                                     ' (Seymour Cassel)',
                                                 ],
                                             },
-                                            u' is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark\'s destruction.\u2028            The crew aboard Zissou\'s research vessel ',
+                                            ' is eaten by a creature Zissou describes as a "Jaguar shark." For his next project, Zissou is determined to document the shark\'s destruction.\u2028            The crew aboard Zissou\'s research vessel ',
                                             {
                                                 'tag': 'italique',
                                                 'attrs': {},
@@ -642,7 +640,7 @@ u"""<Root Self="di2">
                                             {
                                                 'tag': 'italique',
                                                 'attrs': {},
-                                                'content': [u'Pelé dos Santos (Seu Jorge)'],
+                                                'content': ['Pelé dos Santos (Seu Jorge)'],
                                             },
                                             ', a safety expert and Brazilian musician who sings David Bowie songs in Portuguese, and Klaus Daimler (Willem Dafoe), the German second-in-command who viewed Zissou and Esteban as father figures'
                                         ],
@@ -695,7 +693,7 @@ u"""<Root Self="di2">
         with IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo-with-attributes.idml")) as idml_file:
             xml = idml_file.export_xml()
             self.assertXMLEqual(str(xml),
-u"""<Root>
+"""<Root>
   <module>
     <main_picture style="fancy" foo="bar"/>
     <headline>THE HEADLINE HERE</headline>
@@ -711,7 +709,7 @@ u"""<Root>
         with IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_imported-nested-xml.idml")) as idml_file:
             xml = idml_file.export_xml()
             self.assertXMLEqual(str(xml),
-u"""<Root>
+"""<Root>
   <module>
     <main_picture href="file:///steve.jpg"/>
     <headline>The Life Aquatic with Steve Zissou</headline>
@@ -760,7 +758,7 @@ u"""<Root>
 
                 # XML Structure.
                 self.assertXMLEqual(str(prefixed_f.xml_structure_pretty().decode("utf-8")),
-u"""<Root Self="FOOdi2">
+"""<Root Self="FOOdi2">
   <article XMLContent="FOOu102" Self="FOOdi2i3">
     <Story XMLContent="FOOue4" Self="FOOdi2i3i1">
       <title Self="FOOdi2i3i1i1"/>
@@ -1990,7 +1988,7 @@ u"""<Root Self="FOOdi2">
 
                     # The XML Structure has integrated the new file.
                     self.assertXMLEqual(str(f.xml_structure_pretty().decode("utf-8")),
-u"""<Root Self="maindi2">
+"""<Root Self="maindi2">
 <article Self="maindi2i3" XMLContent="mainu102">
     <Story Self="maindi2i3i1" XMLContent="mainue4">
       <title Self="maindi2i3i1i1"/>
@@ -3365,7 +3363,7 @@ u"""<Root Self="maindi2">
 
                     # The XML Structure has integrated the new file.
                     self.assertXMLEqual(str(f.xml_structure_pretty().decode("utf-8")),
-u"""<Root Self="maindi2">
+"""<Root Self="maindi2">
 <article Self="maindi2i3" XMLContent="mainu102">
     <Story Self="maindi2i3i1" XMLContent="mainue4">
       <title Self="maindi2i3i1i1"/>
@@ -3510,7 +3508,7 @@ u"""<Root Self="maindi2">
         with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_imported-xml.idml")) as idml_file:
             with idml_file.remove_content(under="/Root/module/Story") as f:
                 self.assertXMLEqual(str(f.xml_structure_pretty().decode("utf-8")),
-u"""<Root Self="di3">
+"""<Root Self="di3">
   <module XMLContent="u10d" Self="di3i4">
     <main_picture XMLContent="udf" Self="di3i4i1"/>
     <headline XMLContent="ue1" Self="di3i4i2"/>
@@ -3551,7 +3549,7 @@ u"""<Root Self="di3">
 
                     # The XML Structure has integrated the new file.
                     self.assertXMLEqual(str(new_idml.xml_structure_pretty().decode("utf-8")),
-u"""<Root Self="editodi2">
+"""<Root Self="editodi2">
   <page Self="editodi2ib">
     <article Self="editodi2ibif">
       <Story XMLContent="editoue4" Self="editodi2ibifi1f">

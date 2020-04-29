@@ -75,7 +75,7 @@ FileLength:34006
 FileModTime:1342371272
 DesignSize:-1
 %EndFont
-                           
+
 """),
 ("output/Document fonts/AdobeFnt13.lst",
 """%!Adobe-FontList 1.13
@@ -149,7 +149,7 @@ DesignSize:-1
 
 """)]
         filename, content = merge_font_lst(font_suitecases)
-        self.assertEqual(content, 
+        self.assertEqual(content,
 """%!Adobe-FontList 1.13
 %Locale:0x409
 
@@ -185,7 +185,7 @@ FileLength:34006
 FileModTime:1342371272
 DesignSize:-1
 %EndFont
-                           
+
 
 %BeginFont
 Handler:DirectoryHandler
@@ -257,7 +257,7 @@ DesignSize:-1
 
     def test_merge_font_lst_1file(self):
         font_suitecases = [
-            (u'21283009/Document fonts/AdobeFnt13.lst',
+            ('21283009/Document fonts/AdobeFnt13.lst',
 """%!Adobe-FontList 1.13
 %Locale:0x409
 
@@ -298,6 +298,7 @@ DesignSize:-1
         ]
         filename, content = merge_font_lst(font_suitecases)
         self.assertEqual(content, '%!Adobe-FontList 1.13\n%Locale:0x409\n\n%BeginFont\nHandler:DirectoryHandler\nFontType:Suitcase\nFontName:AGaramond-Bold\nOutlineFileName:\\AGaramond-Bold.ECR\nResourceID:14571\nMacStyle:0\nFileLength:12909\nFileModTime:1341477750\n%EndFont\n\n%BeginFont\nHandler:DirectoryHandler\nFontType:Type1\nFontName:AGaramond-Bold\nFamilyName:Adobe Garamond\nStyleName:Bold\nMenuName:AGaramond Bold\nStyleBits:2\nWeightClass:700\nWidthClass:5\nAngleClass:0\nFullName:Adobe Garamond Bold\nWritingScript:Roman\nOutlineFileName:\\AGarBol\nDataFormat:POSTResource\nUsesStandardEncoding:yes\nisCFF:no\nFileLength:46237\nFileModTime:1341477750\nDesignSize:-1\n%EndFont\n\n')
+
 
 def suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(ZipInDesignPackageTestCase)

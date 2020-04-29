@@ -1,5 +1,4 @@
 coverage
-future
 ipdb
 lxml
 mock
