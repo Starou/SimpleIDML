@@ -39,7 +39,7 @@ Or:
 Python support
 --------------
 
-- Python 3: 3.5+ (tested on 3.5 and 3.6)
+- Python 3: 3.6+
 
 Any questions?
 --------------
