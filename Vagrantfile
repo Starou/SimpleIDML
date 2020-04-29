@@ -3,7 +3,7 @@
 
 Vagrant.configure(2) do |config|
   config.vm.define "simpleidml", primary: true do |simpleidml|
-    simpleidml.vm.box = "ubuntu/xenial64"
+    simpleidml.vm.box = "ubuntu/bionic64"
     simpleidml.vm.hostname = "simpleidml"
 
     simpleidml.vm.provider "virtualbox" do |vb|
