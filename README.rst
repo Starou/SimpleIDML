@@ -454,6 +454,11 @@ in your PATH.
 Revisions
 =========
 
+1.1.0
+-----
+
+Removed Python 2 support.
+
 1.0.5
 -----
 
