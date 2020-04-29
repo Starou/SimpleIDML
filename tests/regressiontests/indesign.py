@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from future import standard_library
-standard_library.install_aliases()
-from builtins import object
-from builtins import open
-from builtins import str
 import glob
 import json
 import mock
@@ -30,11 +25,7 @@ class InDesignTestCase(unittest.TestCase):
     def setUp(self):
         super(InDesignTestCase, self).setUp()
         # although 'future' wraps urllib2 we still need to mock urllib2.
-        import sys
-        if sys.version_info.major == 2:
-            self.u2open_patcher = mock.patch('urllib2.OpenerDirector')
-        else:
-            self.u2open_patcher = mock.patch('urllib.request.OpenerDirector')
+        self.u2open_patcher = mock.patch('urllib.request.OpenerDirector')
         self.u2open_mock = self.u2open_patcher.start()
         self.u2open_mock.side_effect = OpenerDirectorMock
 

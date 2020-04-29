@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from builtins import hex
 import os
 import shutil
 import unittest
