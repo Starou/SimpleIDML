@@ -39,8 +39,7 @@ Or:
 Python support
 --------------
 
-- Python 2: 2.7.x
-- Python 3: 3.5+
+- Python 3: 3.5+ (tested on 3.5 and 3.6)
 
 Any questions?
 --------------
@@ -56,13 +55,6 @@ Developers
     vagrant ssh
     cd tests
     python runtests.py
-
-A Python 3 virtualenv is activated at login but you can switch to Python 2.7:
-
-.. code-block:: bash
-
-   source ~/venv_py2/bin/activate
-
 
 What is SimpleIDML?
 ===================
