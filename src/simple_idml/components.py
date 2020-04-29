@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from builtins import hex
-from builtins import str
-from builtins import object
-from builtins import open
 import copy
 import os
 import re
@@ -347,19 +343,15 @@ class Story(IDMLXMLFile):
         filename = os.path.join(working_copy_path, story_name)
         story._fobj = open(filename, mode="w+")
         story.fobj.write(
-            str(u"""<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+            f"""<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
    <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
-     <Story Self="%(story_id)s" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+     <Story Self="{story_id}" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
        <StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection"/>
        <InCopyExportOption IncludeGraphicProxies="true" IncludeAllResources="false"/>
-       <XMLElement Self="%(xml_element_id)s" MarkupTag="XMLTag/%(xml_element_tag)s" XMLContent="%(story_id)s" />
+       <XMLElement Self="{xml_element_id}" MarkupTag="XMLTag/{xml_element_tag}" XMLContent="{story_id}" />
      </Story>
 </idPkg:Story>
-""" % {
-            "story_id": story_id,
-            "xml_element_tag": xml_element_tag,
-            "xml_element_id": xml_element_id
-        }))
+""")
 
         story.fobj.close()
         story._fobj = None
@@ -474,7 +466,7 @@ class BackingStory(Story):
 
 class Designmap(IDMLXMLFile):
     name = "designmap.xml"
-    doctype = u'<?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="7.5(142)" ?>'
+    doctype = '<?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="7.5(142)" ?>'
     page_start_attr = "PageStart"
 
     def __init__(self, idml_package, working_copy_path):
@@ -630,10 +622,10 @@ class Style(IDMLXMLFile):
 
 class StyleMapping(IDMLXMLFile):
     name = "XML/Mapping.xml"
-    initial_dom = (str(u"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\
+    initial_dom = ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\
                    <idPkg:Mapping xmlns:idPkg=\"http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging\"\
                    DOMVersion=\"7.5\">\
-                   </idPkg:Mapping>"))
+                   </idPkg:Mapping>")
 
     def __init__(self, idml_package, working_copy_path=None):
         super(StyleMapping, self).__init__(idml_package, working_copy_path)

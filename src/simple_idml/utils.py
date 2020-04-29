@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from builtins import chr
-from builtins import str
-from builtins import object
 import copy
 import os
 import re

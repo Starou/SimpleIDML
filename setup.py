@@ -21,7 +21,7 @@ setup(
         'Issue Tracker': 'https://github.com/Starou/SimpleIDML/issues',
     },
     package_dir={'': 'src'},
-    install_requires=['future', 'lxml', 'suds-py3'],
+    install_requires=['lxml', 'suds-py3'],
     packages=[
         'simple_idml',
         'simple_idml.indesign',
