@@ -899,6 +899,7 @@ class XMLElement(Proxy):
             "DiacriticPosition",
             "Ligatures",
             "OTFContextualAlternate",
+            "BaselineShift",
         ]
 
         for attr in attrs:
