@@ -372,8 +372,13 @@ A block can be used as a placeholder for a PDF file:
 .. code-block:: python
 
     >>> with IDMLPackage("my_package.idml") as idml_file:
-    >>>     with idml_file.import_pdf("file:/path/to/file.pdf", at="/Root/modules/module[2]") as f:
+    >>>     with idml_file.import_pdf("file:/path/to/file.pdf", at="/Root/modules/module[2]", crop="PDFCrop") as f:
     >>>         f.export_xml()
+
+The ``crop`` parameter should be one of the ``PDFCrop_EnumValue`` from the IDML Specification
+(``"CropArt"``, ``"CropPDF"``, ``"CropTrim"``, ``"CropBleed"``, ``"CropMedia"``,
+``"CropContentVisibleLayers"``, ``"CropContentAllLayers"``, ``"CropContent"``).
+It defaults to ``CropContentVisibleLayers````
 
 Use InDesign server SOAP interface to convert a file
 ----------------------------------------------------
@@ -466,6 +471,7 @@ New features
 
 - Add the possiblity to remove elements when importing XML by using the flag
   ``simpleidml-setcontent="delete``.
+- The ``PDFCrop`` attribute is now parametrable when using ``import_pdf()``.
 
 1.0.5
 -----
