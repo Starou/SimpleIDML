@@ -457,7 +457,7 @@ class IDMLPackage(zipfile.ZipFile):
         element_id = self.get_element_content_id_by_xpath(at)
         spread_elt.set("Self", "%s-old" % element_id)
         x, y = self.get_elem_point_position(spread_elt)
-        pdf_node = etree.fromstring("""<PDF Self="%s" GrayVectorPolicy="IgnoreAll" RGBVectorPolicy="IgnoreAll" CMYKVectorPolicy="IgnoreAll" OverriddenPageItemProps="" LocalDisplaySetting="Default" ImageTypeName="$ID/Adobe Portable Document Format (PDF)" AppliedObjectStyle="ObjectStyle/$ID/[None]" ItemTransform="1 0 0 1 %s %s" ParentInterfaceChangeCount="" TargetInterfaceChangeCount="" LastUpdatedInterfaceChangeCount="" HorizontalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" VerticalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" Visible="true" Name="$ID/">
+        pdf_node = etree.fromstring(f"""<PDF Self="{element_id}" GrayVectorPolicy="IgnoreAll" RGBVectorPolicy="IgnoreAll" CMYKVectorPolicy="IgnoreAll" OverriddenPageItemProps="" LocalDisplaySetting="Default" ImageTypeName="$ID/Adobe Portable Document Format (PDF)" AppliedObjectStyle="ObjectStyle/$ID/[None]" ItemTransform="1 0 0 1 {x} {y}" ParentInterfaceChangeCount="" TargetInterfaceChangeCount="" LastUpdatedInterfaceChangeCount="" HorizontalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" VerticalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" Visible="true" Name="$ID/">
         <TextWrapPreference Inverse="false" ApplyToMasterPageOnly="false" TextWrapSide="BothSides" TextWrapMode="None">
             <Properties>
                 <TextWrapOffset Top="0" Left="0" Bottom="0" Right="0" />
@@ -467,10 +467,10 @@ class IDMLPackage(zipfile.ZipFile):
         <PDFAttribute PageNumber="1" PDFCrop="CropContentVisibleLayers" TransparentBackground="true" />
         <MetadataPacketPreference>
         </MetadataPacketPreference>
-        <Link Self="%s" AssetURL="$ID/" AssetID="$ID/" LinkResourceURI="%s" LinkResourceFormat="$ID/Adobe Portable Document Format (PDF)" StoredState="Normal" LinkResourceModified="false" LinkObjectModified="false" ShowInUI="true" CanEmbed="true" CanUnembed="true" CanPackage="true" ImportPolicy="NoAutoImport" ExportPolicy="NoAutoExport" />
+        <Link Self="{element_id}-link" AssetURL="$ID/" AssetID="$ID/" LinkResourceURI="{pdf_path}" LinkResourceFormat="$ID/Adobe Portable Document Format (PDF)" StoredState="Normal" LinkResourceModified="false" LinkObjectModified="false" ShowInUI="true" CanEmbed="true" CanUnembed="true" CanPackage="true" ImportPolicy="NoAutoImport" ExportPolicy="NoAutoExport" />
         <ClippingPathSettings ClippingType="None" InvertPath="false" IncludeInsideEdges="false" RestrictToFrame="false" UseHighResolutionImage="true" Threshold="25" Tolerance="2" InsetFrame="0" AppliedPathName="$ID/" Index="-1" />
         <GraphicLayerOption UpdateLinkOption="KeepOverrides" />
-    </PDF>""" % (element_id, x, y, "%s-link" % element_id, pdf_path))
+    </PDF>""")
 
         spread_elt.append(pdf_node)
         spread.synchronize()
