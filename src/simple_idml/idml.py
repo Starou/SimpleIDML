@@ -403,7 +403,14 @@ class IDMLPackage(zipfile.ZipFile):
             if not ignorecontent_parent_flag or forcecontent:
                 if items:
                     self.set_attributes(at, items, element_id)
-                if not (items.get(SETCONTENT_TAG) == "false"):
+                if items.get(SETCONTENT_TAG) == "delete":
+                    local_story = story or self.get_story_object_by_xpath(at)
+                    local_story.remove_element(element_id, synchronize=True)
+                    spread = self.get_spread_object_by_xpath(at)
+                    if spread:
+                        content_id = self.xml_structure.xpath(at)[0].get("XMLContent")
+                        spread.remove_page_item(content_id, synchronize=True)
+                elif not (items.get(SETCONTENT_TAG) == "false"):
                     _set_content(at, element_id, source_node.text or "", story)
 
             ignorecontent = (items.get(IGNORECONTENT_TAG) == "true") or (ignorecontent_parent_flag and not forcecontent)
@@ -440,7 +447,7 @@ class IDMLPackage(zipfile.ZipFile):
         return self
 
     @use_working_copy
-    def import_pdf(self, pdf_path, at):
+    def import_pdf(self, pdf_path, at, crop="CropContentVisibleLayers"):
         self.set_attributes(at, {'href': "%s" % pdf_path})
         spread = self.get_spread_object_by_xpath(at)
 
@@ -450,20 +457,20 @@ class IDMLPackage(zipfile.ZipFile):
         element_id = self.get_element_content_id_by_xpath(at)
         spread_elt.set("Self", "%s-old" % element_id)
         x, y = self.get_elem_point_position(spread_elt)
-        pdf_node = etree.fromstring("""<PDF Self="%s" GrayVectorPolicy="IgnoreAll" RGBVectorPolicy="IgnoreAll" CMYKVectorPolicy="IgnoreAll" OverriddenPageItemProps="" LocalDisplaySetting="Default" ImageTypeName="$ID/Adobe Portable Document Format (PDF)" AppliedObjectStyle="ObjectStyle/$ID/[None]" ItemTransform="1 0 0 1 %s %s" ParentInterfaceChangeCount="" TargetInterfaceChangeCount="" LastUpdatedInterfaceChangeCount="" HorizontalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" VerticalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" Visible="true" Name="$ID/">
+        pdf_node = etree.fromstring(f"""<PDF Self="{element_id}" GrayVectorPolicy="IgnoreAll" RGBVectorPolicy="IgnoreAll" CMYKVectorPolicy="IgnoreAll" OverriddenPageItemProps="" LocalDisplaySetting="Default" ImageTypeName="$ID/Adobe Portable Document Format (PDF)" AppliedObjectStyle="ObjectStyle/$ID/[None]" ItemTransform="1 0 0 1 {x} {y}" ParentInterfaceChangeCount="" TargetInterfaceChangeCount="" LastUpdatedInterfaceChangeCount="" HorizontalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" VerticalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" Visible="true" Name="$ID/">
         <TextWrapPreference Inverse="false" ApplyToMasterPageOnly="false" TextWrapSide="BothSides" TextWrapMode="None">
             <Properties>
                 <TextWrapOffset Top="0" Left="0" Bottom="0" Right="0" />
             </Properties>
             <ContourOption ContourType="SameAsClipping" IncludeInsideEdges="false" ContourPathName="$ID/" />
         </TextWrapPreference>
-        <PDFAttribute PageNumber="1" PDFCrop="CropContentVisibleLayers" TransparentBackground="true" />
+        <PDFAttribute PageNumber="1" PDFCrop="{crop}" TransparentBackground="true" />
         <MetadataPacketPreference>
         </MetadataPacketPreference>
-        <Link Self="%s" AssetURL="$ID/" AssetID="$ID/" LinkResourceURI="%s" LinkResourceFormat="$ID/Adobe Portable Document Format (PDF)" StoredState="Normal" LinkResourceModified="false" LinkObjectModified="false" ShowInUI="true" CanEmbed="true" CanUnembed="true" CanPackage="true" ImportPolicy="NoAutoImport" ExportPolicy="NoAutoExport" />
+        <Link Self="{element_id}-link" AssetURL="$ID/" AssetID="$ID/" LinkResourceURI="{pdf_path}" LinkResourceFormat="$ID/Adobe Portable Document Format (PDF)" StoredState="Normal" LinkResourceModified="false" LinkObjectModified="false" ShowInUI="true" CanEmbed="true" CanUnembed="true" CanPackage="true" ImportPolicy="NoAutoImport" ExportPolicy="NoAutoExport" />
         <ClippingPathSettings ClippingType="None" InvertPath="false" IncludeInsideEdges="false" RestrictToFrame="false" UseHighResolutionImage="true" Threshold="25" Tolerance="2" InsetFrame="0" AppliedPathName="$ID/" Index="-1" />
         <GraphicLayerOption UpdateLinkOption="KeepOverrides" />
-    </PDF>""" % (element_id, x, y, "%s-link" % element_id, pdf_path))
+    </PDF>""")
 
         spread_elt.append(pdf_node)
         spread.synchronize()
@@ -979,7 +986,7 @@ class IDMLPackage(zipfile.ZipFile):
     def get_spread_object_by_id(self, elt_id):
         """elt_id is the `XMLContent' attribute value in the xml_structure (Stories).
 
-        Spread element matches Story one with the ParentStory or the Self attribute value."""
+        Spread element matches Story's one with the ParentStory or the Self attribute value."""
 
         result = None
         for spread in self.spreads_objects:
