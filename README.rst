@@ -352,6 +352,8 @@ You can as well import XML file into your InDesign® documents. The following ru
   corresponding element into the idml document (but its children will be updated).
 - A node having the attribute ``simpleidml-ignorecontent"true"`` will not update the content of the
   corresponding element into the idml document **and** its children.
+- A node having the attribute ``simpleidml-setcontent="delete"`` will remove the corresponding
+  element into the idml document (Story and Spread elements).
 - In a *ignorecontent* context the content of a child node can be turned on with the
   ``simpleidml-forcecontent="true"`` flag.
 - Images references are passed by the *href* attribute. An empty value will remove the
@@ -370,8 +372,13 @@ A block can be used as a placeholder for a PDF file:
 .. code-block:: python
 
     >>> with IDMLPackage("my_package.idml") as idml_file:
-    >>>     with idml_file.import_pdf("file:/path/to/file.pdf", at="/Root/modules/module[2]") as f:
+    >>>     with idml_file.import_pdf("file:/path/to/file.pdf", at="/Root/modules/module[2]", crop="PDFCrop") as f:
     >>>         f.export_xml()
+
+The ``crop`` parameter should be one of the ``PDFCrop_EnumValue`` from the IDML Specification
+(``"CropArt"``, ``"CropPDF"``, ``"CropTrim"``, ``"CropBleed"``, ``"CropMedia"``,
+``"CropContentVisibleLayers"``, ``"CropContentAllLayers"``, ``"CropContent"``).
+It defaults to ``CropContentVisibleLayers````
 
 Use InDesign server SOAP interface to convert a file
 ----------------------------------------------------
@@ -458,6 +465,13 @@ Revisions
 -----
 
 Removed Python 2 support.
+
+New features
+''''''''''''
+
+- Add the possiblity to remove elements when importing XML by using the flag
+  ``simpleidml-setcontent="delete``.
+- The ``PDFCrop`` attribute is now parametrable when using ``import_pdf()``.
 
 1.0.5
 -----
