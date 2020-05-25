@@ -472,6 +472,7 @@ New features
 - Add the possiblity to remove elements when importing XML by using the flag
   ``simpleidml-setcontent="delete``.
 - The ``PDFCrop`` attribute is now parametrable when using ``import_pdf()``.
+- ``IDMLPackage.add_note(note, author, at=path)`` added.
 
 1.0.5
 -----
