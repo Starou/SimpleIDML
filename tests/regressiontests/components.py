@@ -8,6 +8,7 @@ from lxml import etree
 from simple_idml.components import RECTO, VERSO
 from simple_idml.components import Spread, Story, Style, StyleMapping, XMLElement
 from simple_idml.idml import IDMLPackage
+from simple_idml.test import SimpleTestCase
 from simple_idml.utils import etree_dom_to_tree
 
 CURRENT_DIR = os.path.dirname(__file__)
@@ -194,7 +195,7 @@ class SpreadTestCase(unittest.TestCase):
         self.assertTrue(spread1.has_any_item_on_layer("ua4"))
 
 
-class StoryTestCase(unittest.TestCase):
+class StoryTestCase(SimpleTestCase):
     def test_pages(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
         stories = idml_file.stories
@@ -228,6 +229,50 @@ b"""<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 </idPkg:Story>
 """)
         shutil.rmtree(idml_working_copy)
+
+    def test_add_note(self):
+        import datetime
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
+        path = "/Root/article/Story/title"
+        story = idml_file.get_story_object_by_xpath(path)
+        element_id = idml_file.xml_structure.xpath(path)[0].get("Self")
+        story.add_note(element_id, "This is a note", "Stanislas Guerra",
+                       when=datetime.datetime(2020, 5, 20, 14, 46))
+        self.assertXMLEqual(story.tostring().decode("utf8"),
+                            """<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
+        <Story Self="ue4" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+                <StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection"/>
+                <InCopyExportOption IncludeGraphicProxies="true" IncludeAllResources="false"/>
+                <XMLElement Self="di2i3i1" MarkupTag="XMLTag/Story" XMLContent="ue4">
+                        <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/NormalParagraphStyle" Justification="CenterJustified">
+                                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Bold">
+                                        <Properties>
+                                                <AppliedFont type="string">Vollkorn</AppliedFont>
+                                        </Properties>
+                                        <XMLElement Self="di2i3i1i1" MarkupTag="XMLTag/title">
+                                                <Note Collapsed="false" CreationDate="2020-05-20T14:46:00" ModificationDate="2020-05-20T14:46:00" UserName="Stanislas Guerra">
+                                            <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/[No paragraph style]">
+                                                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]">
+                                                    <Content>This is a note</Content>
+                                                </CharacterStyleRange>
+                                            </ParagraphStyleRange>
+                                        </Note><Content>My Main Article Title</Content>
+                                        </XMLElement>
+                                        <Br/>
+                                </CharacterStyleRange>
+                                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Italic">
+                                        <Properties>
+                                                <AppliedFont type="string">Vollkorn</AppliedFont>
+                                        </Properties>
+                                        <XMLElement Self="di2i3i1i2" MarkupTag="XMLTag/subtitle">
+                                                <Content>And a subtitle</Content>
+                                        </XMLElement>
+                                </CharacterStyleRange>
+                        </ParagraphStyleRange>
+                </XMLElement>
+        </Story>
+</idPkg:Story>""")
 
 
 class PageTestCase(unittest.TestCase):

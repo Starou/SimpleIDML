@@ -913,6 +913,14 @@ class IDMLPackage(zipfile.ZipFile):
         return self
 
     @use_working_copy
+    def add_note(self, note, author, at, when=None):
+        element_id = self.xml_structure.xpath(at)[0].get("Self")
+        story = self.get_story_object_by_xpath(at)
+        story.add_note(element_id, note, author, when)
+        story.synchronize()
+        return self
+
+    @use_working_copy
     def merge_layers(self, with_name=None):
         # Remove all Layer in Designmap but the first.
         self.designmap.merge_layers(with_name)
