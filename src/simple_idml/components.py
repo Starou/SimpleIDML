@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import copy
+import datetime
 import os
 import re
 from decimal import Decimal
@@ -453,6 +454,19 @@ class Story(IDMLXMLFile):
         element = self.get_element_by_id(element_id)
         xml_element = XMLElement(element=element)
         xml_element.add_content(content, parent)
+
+    def add_note(self, element_id, note, author, when=None):
+        element = self.get_element_by_id(element_id)
+        when = when or datetime.datetime.now().replace(microsecond=0)
+        when = when.isoformat()
+        note_node = etree.fromstring(f"""<Note Collapsed="false" CreationDate="{when}" ModificationDate="{when}" UserName="{author}">
+                                            <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/[No paragraph style]">
+                                                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]">
+                                                    <Content>{note}</Content>
+                                                </CharacterStyleRange>
+                                            </ParagraphStyleRange>
+                                        </Note>""")
+        element.insert(0, note_node)
 
 
 class BackingStory(Story):

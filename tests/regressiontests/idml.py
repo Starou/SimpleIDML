@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 import glob
 import os
 import shutil
@@ -3685,6 +3686,40 @@ class IdmlTestCase(SimpleTestCase):
                                      set(['Spreads/Spread_magub7.xml',
                                           'Spreads/Spread_magub6.xml',
                                           'Spreads/Spread_magub8.xml']))
+
+    def test_add_note(self):
+        self.maxDiff = None
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
+                     os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml"))
+        with IDMLPackage(os.path.join(OUTPUT_DIR, "article-1photo_import-xml.idml")) as idml_file:
+            with idml_file.add_note("This is an important message", "Stanislas Guerra", at="/Root/module[1]", when=datetime.datetime(2020, 5, 25, 18, 30)) as f:
+                story = f.get_story_object_by_xpath("/Root/module[1]")
+                self.assertXMLEqual(story.tostring().decode("utf8"),
+                                    """<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="10.0">
+    <Story Self="u10d" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+        <StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection"/>
+        <InCopyExportOption IncludeGraphicProxies="true" IncludeAllResources="false"/>
+        <XMLElement Self="di3i4" MarkupTag="XMLTag/module" XMLContent="u10d">
+            <Note Collapsed="false" CreationDate="2020-05-25T18:30:00" ModificationDate="2020-05-25T18:30:00" UserName="Stanislas Guerra">
+                <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/[No paragraph style]">
+                    <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]">
+                        <Content>This is an important message</Content>
+                    </CharacterStyleRange>
+                </ParagraphStyleRange>
+            </Note>
+            <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/NormalParagraphStyle">
+                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]">
+                    <XMLElement Self="di3i4i1" MarkupTag="XMLTag/main_picture" XMLContent="u14a">
+                        <XMLAttribute Self="di3i4i1XMLAttributenhref" Name="href" Value="file:///Users/stan/Dropbox/Projets/Slashdev/SimpleIDML/repos/git/simpleidml/tests/regressiontests/IDML/media/default.jpg"/>
+                    </XMLElement>
+                    <XMLElement Self="di3i4i2" MarkupTag="XMLTag/headline" XMLContent="ue1"/>
+                    <XMLElement Self="di3i4i3" MarkupTag="XMLTag/Story" XMLContent="uf7"/>
+                </CharacterStyleRange>
+            </ParagraphStyleRange>
+        </XMLElement>
+    </Story>
+</idPkg:Story>""")
 
 
 def suite():
