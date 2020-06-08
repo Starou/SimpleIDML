@@ -403,14 +403,25 @@ class IDMLPackage(zipfile.ZipFile):
             if not ignorecontent_parent_flag or forcecontent:
                 if items:
                     self.set_attributes(at, items, element_id)
-                if items.get(SETCONTENT_TAG) == "delete":
+                content_flags = items.get(SETCONTENT_TAG, "").split(',')
+                if "remove-previous-br" in content_flags:
+                    local_story = story or self.get_story_object_by_xpath(at)
+                    elt = local_story.get_element_by_id(element_id).element
+                    for _elt in reversed(elt.xpath("preceding::*")):
+                        if _elt.tag == "XMLElement":
+                            break
+                        elif _elt.tag == "Br":
+                            _elt.getparent().remove(_elt)
+                            continue
+                    local_story.synchronize()
+                if "delete" in content_flags:
                     local_story = story or self.get_story_object_by_xpath(at)
                     local_story.remove_element(element_id, synchronize=True)
                     spread = self.get_spread_object_by_xpath(at)
                     if spread:
                         content_id = self.xml_structure.xpath(at)[0].get("XMLContent")
                         spread.remove_page_item(content_id, synchronize=True)
-                elif not (items.get(SETCONTENT_TAG) == "false"):
+                elif "false" not in content_flags:
                     _set_content(at, element_id, source_node.text or "", story)
 
             ignorecontent = (items.get(IGNORECONTENT_TAG) == "true") or (ignorecontent_parent_flag and not forcecontent)
