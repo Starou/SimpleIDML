@@ -13,5 +13,7 @@ def create_idml_package_from_dir(src_dir, destination):
     with IDMLPackage(destination, mode="w") as package:
         for root, dirs, filenames in os.walk(src_dir):
             for filename in filenames:
+                if filename in ['.DS_Store']:
+                    continue
                 package.write(os.path.join(root, filename),
                               os.path.join(root.replace(src_dir, "."), filename))
