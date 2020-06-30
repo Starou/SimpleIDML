@@ -354,6 +354,9 @@ You can as well import XML file into your InDesign® documents. The following ru
   corresponding element into the idml document **and** its children.
 - A node having the attribute ``simpleidml-setcontent="delete"`` will remove the corresponding
   element into the idml document (Story and Spread elements).
+- A node having the attribute ``simpleidml-setcontent="remove-previous-br"`` will remove the new-line
+  characters before the element.
+- You can mix several flags using a comma (i.e.: ``simpleidml-setcontent="delete,remove-previous-br"``)
 - In a *ignorecontent* context the content of a child node can be turned on with the
   ``simpleidml-forcecontent="true"`` flag.
 - Images references are passed by the *href* attribute. An empty value will remove the
@@ -460,6 +463,15 @@ in your PATH.
 
 Revisions
 =========
+
+1.1.1
+-----
+
+New features
+''''''''''''
+
+- Add the possiblity to remove new-line characters when importing XML by using the flag
+  ``simpleidml-setcontent="remove-previous-br"``.
 
 1.1.0
 -----
