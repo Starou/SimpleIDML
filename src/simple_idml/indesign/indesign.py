@@ -9,6 +9,7 @@ from simple_idml import ftp
 from simple_idml.decorators import simple_decorator
 from suds.client import Client
 from xml.sax import SAXParseException
+from zipfile import ZipFile
 
 CURRENT_DIR = os.path.abspath(os.path.split(__file__)[0])
 SCRIPTS_DIR = os.path.join(CURRENT_DIR, "scripts")
@@ -241,3 +242,71 @@ def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_clie
         ftp.unlink(src_client_copy_filename, ftp_params)
 
     return responses
+
+
+@use_dedicated_working_directory
+def export_package_as(package_path, formats_options, indesign_server_url,
+                      indesign_client_workdir, indesign_server_workdir,
+                      indesign_server_path_style="posix", clean_workdir=True,
+                      ftp_params=None, logger=None, logger_extra=None):
+    """SOAP call to an InDesign Server to export a zipped package. """
+
+    if not logger:
+        logger = logging.getLogger('simpleidml.indesign')
+        logger.addHandler(logging.NullHandler())
+    logger_extra = logger_extra or {}
+
+    # Search the relative path of the INDD file in the archive before unpacking.
+    src_relpath = None
+    with ZipFile(package_path) as package_zip:
+        for name in package_zip.namelist():
+            if name.startswith('.'):
+                continue
+            if name.endswith('.indd'):
+                src_relpath = name
+                break
+    if not src_relpath:
+        raise BaseException("No INDD file in the archive.")
+
+    ftp.unpack_archive(package_path, ftp_params, indesign_client_workdir)
+
+    # Add the directory that contains the indd to workdir paths.
+    dirname, indd_name = os.path.split(src_relpath)
+    indesign_client_workdir = os.path.join(indesign_client_workdir, dirname)
+    server_path_mod = os.path
+    if indesign_server_path_style == "windows":
+        server_path_mod = ntpath
+    indesign_server_workdir = server_path_mod.join(indesign_server_workdir, dirname)
+
+    # Call the SOAP service.
+    cl = Client("%s/service?wsdl" % indesign_server_url)
+    cl.set_options(location=indesign_server_url, timeout=90)
+    responses = []
+    for format_options in formats_options:
+        response = _save_as(indd_name, format_options, indesign_server_url,
+                            indesign_client_workdir, indesign_server_workdir,
+                            indesign_server_path_style, ftp_params, clean_workdir,
+                            logger, logger_extra)
+        responses.append(response)
+
+    return responses
+
+
+def _save_as(src_filename, format_options, indesign_server_url, indesign_client_workdir,
+             indesign_server_workdir, indesign_server_path_style, ftp_params, clean_workdir,
+             logger, logger_extra):
+    fmt = format_options["fmt"]
+    js_params = format_options.get("params", {})
+
+    if fmt in ('idml', 'pdf', 'jpeg'):
+        klass = Export
+    elif fmt == 'zip':
+        klass = PackageForPrint
+    else:
+        klass = SaveAs
+
+    script = klass(src_filename, fmt, js_params, indesign_server_url, indesign_client_workdir,
+                   indesign_server_workdir, indesign_server_path_style, ftp_params, clean_workdir,
+                   logger, logger_extra)
+
+    return script.execute()
