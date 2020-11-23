@@ -24,18 +24,17 @@ def copy(src_filename, dst_filename, ftp_params=None, src_open_mode="rb"):
 
     with open(src_filename, src_open_mode) as f:
         ftp = get_ftp(ftp_params)
-        command = 'STOR %s' % dst_filename
+        command = f'STOR {dst_filename}'
         try:
             if "b" in src_open_mode:
                 ftp.storbinary(command, f)
             else:  # python2 only. storlines in Python 3 requires binary mode as well.
                 ftp.storlines(command, f)
-        except BaseException as e:
-            print("Cannot STOR %s" % dst_filename)
+        except:
+            print(f'Cannot {command}')
+            raise
+        finally:
             close_ftp_conn(ftp, ftp_params)
-            raise e
-
-        close_ftp_conn(ftp, ftp_params)
 
 
 def unpack_archive(filename, ftp_params=None, extract_dir=None, fmt='zip'):
