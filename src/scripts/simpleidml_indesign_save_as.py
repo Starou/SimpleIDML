@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from builtins import str
 from builtins import map
-import locale
 import os
-import sys
 from simple_idml.indesign import indesign
 from simple_idml.commands import InDesignSoapCommand
 
@@ -58,12 +55,6 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
         self.parser.add_argument('source', metavar='SOURCE', help="path/to/file.indd")
         self.parser.add_argument('destinations', metavar='DESTINATIONS', help="file1|opt1=a,opt2=b;file2|opt1=c")
 
-    def parse_options(self):
-        encoding = locale.getpreferredencoding()
-        for i, a in enumerate(sys.argv):
-            sys.argv[i] = str(a.decode(encoding))
-        self.args = self.parser.parse_args()
-
     def execute(self):
         super(InDesignSaveAsCommand, self).execute()
         destinations = self.args.destinations.split(";")
@@ -91,7 +82,7 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
     def save_as(self, response, dst):
         if not response:
             return
-        with open(dst.split("|")[0], mode="w+") as fobj:
+        with open(dst.split("|")[0], mode="wb+") as fobj:
             fobj.write(response)
 
 
