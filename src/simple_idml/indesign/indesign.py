@@ -199,10 +199,11 @@ def use_dedicated_working_directory(view_func):
 
 
 @use_dedicated_working_directory
-def save_as(src_path, formats_options, indesign_server_url, indesign_client_workdir,
-            indesign_server_workdir, indesign_server_path_style="posix",
-            clean_workdir=True, ftp_params=None, logger=None, logger_extra=None):
-    """SOAP call to an InDesign Server to make one or more conversions. """
+def save_as(src_path, formats_options, indesign_server_url,
+            indesign_client_workdir, indesign_server_workdir,
+            indesign_server_path_style="posix", clean_workdir=True,
+            ftp_params=None, logger=None, logger_extra=None):
+    """SOAP call to an InDesign Server to convert an InDesign file. """
 
     if not logger:
         logger = logging.getLogger('simpleidml.indesign')
@@ -213,16 +214,12 @@ def save_as(src_path, formats_options, indesign_server_url, indesign_client_work
     src_client_copy_filename = os.path.join(indesign_client_workdir, src_name)
     ftp.copy(src_path, src_client_copy_filename, ftp_params)
 
-    cl = Client("%s/service?wsdl" % indesign_server_url)
-    cl.set_options(location=indesign_server_url, timeout=90)
-
-    responses = []
-    for format_options in formats_options:
-        response = _save_as(src_name, format_options, indesign_server_url,
-                            indesign_client_workdir, indesign_server_workdir,
-                            indesign_server_path_style, ftp_params, clean_workdir,
-                            logger, logger_extra)
-        responses.append(response)
+    responses = [
+        _save_as(src_name, format_options, indesign_server_url,
+                 indesign_client_workdir, indesign_server_workdir,
+                 indesign_server_path_style, ftp_params, clean_workdir,
+                 logger, logger_extra) for format_options in formats_options
+    ]
 
     if clean_workdir:
         ftp.unlink(src_client_copy_filename, ftp_params)
@@ -265,17 +262,12 @@ def export_package_as(package_path, formats_options, indesign_server_url,
     indesign_server_workdir = server_path_mod.join(indesign_server_workdir, dirname)
 
     # Call the SOAP service.
-    cl = Client("%s/service?wsdl" % indesign_server_url)
-    cl.set_options(location=indesign_server_url, timeout=90)
-    responses = []
-    for format_options in formats_options:
-        response = _save_as(indd_name, format_options, indesign_server_url,
-                            indesign_client_workdir, indesign_server_workdir,
-                            indesign_server_path_style, ftp_params, clean_workdir,
-                            logger, logger_extra)
-        responses.append(response)
-
-    return responses
+    return [
+        _save_as(indd_name, format_options, indesign_server_url,
+                 indesign_client_workdir, indesign_server_workdir,
+                 indesign_server_path_style, ftp_params, clean_workdir,
+                 logger, logger_extra) for format_options in formats_options
+    ]
 
 
 def _save_as(src_name, format_options, indesign_server_url, indesign_client_workdir,
