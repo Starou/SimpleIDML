@@ -386,17 +386,19 @@ It defaults to ``CropContentVisibleLayers````
 Use InDesign server SOAP interface to convert a file
 ----------------------------------------------------
 
-This require an *InDesign Server* and a directory that it can access in read/write.
-The same directory must be accessible by the client either by the filesystem or by FTP.
-The ``formats`` parameter is a list (of dicts) of formats you want your file to be exported into.
-The supported formats are ``jpeg``, ``idml``, ``pdf``, ``indd`` and ``zip`` (this one
-returning a zipped InDesign package).
+This require an *InDesign Server* and a readable/writable working directory.
+The same directory must be accessible by the client either by the filesystem or
+over FTP.
 
-You can provide exports parameters using the ``params`` key. The list of supported parameters
-can be found with a ``simpleidml_indesign_save_as.py --help`` command.
+The ``formats`` parameter is a list (of dicts) of formats and parameters you want
+your file to be exported into.
+The supported output formats are ``jpeg``, ``idml``, ``pdf``, ``indd`` and
+``zip`` (a zipped InDesign Package).
 
+Export parameters are provided using the ``params`` key. Use
+``simpleidml_indesign_save_as.py --help`` for a list of supported parameters.
 
-Here some snippets:
+The response is a list of binary strings matching ``formats`` provided:
 
 .. code-block:: python
 
@@ -406,14 +408,14 @@ Here some snippets:
                                 "http://url-to-indesign-server:port",
                                 "/path/to/client/workdir",
                                 "/path/to/indesign-server/workdir")[0]
-    with open("my_file.indd", "w+") as f:
+    with open("my_file.indd", "wb+") as f:
         f.write(response)
 
     response = indesign.save_as("/path_to_file.indd", [{"fmt": "idml"}],
                                 "http://url-to-indesign-server:port",
                                 "/path/to/client/workdir",
                                 "/path/to/indesign-server/workdir")[0]
-    with open("my_file.idml", "w+") as f:
+    with open("my_file.idml", "wb+") as f:
         f.write(response)
 
     response = indesign.save_as("/path_to_file.indd", [{
@@ -423,15 +425,9 @@ Here some snippets:
                                 "http://url-to-indesign-server:port",
                                 "/path/to/client/workdir",
                                 "/path/to/indesign-server/workdir")[0]
-    with open("my_file.pdf", "w+") as f:
+    with open("my_file.pdf", "wb+") as f:
         f.write(response)
 
-The response is a list of string because you can pass a list of formats
-and so generate several exports in a row (if performances matter):
-
-.. code-block:: python
-
-    from simple_idml.indesign import indesign
     pdf_response, jpeg_response, zip_response = indesign.save_as(
                                     "/path_to_file.indd",
                                     [{"fmt": "pdf"}, {"fmt": "jpeg"}, {"fmt": "zip"}],
@@ -439,12 +435,13 @@ and so generate several exports in a row (if performances matter):
                                     "/path/to/client/workdir",
                                     "/path/to/indesign-server/workdir")
 
+To convert an InDesign Package, use ``indesign.export_package_as()`` instead.
+
 If the InDesign Server instance runs on a Windows machine, set the
 ``indesign_server_path_style`` parameter to ``"windows"``.
 
 If the client access to the working directory *via* FTP, you must specify that
 in the ``ftp_params`` parameter:
-
 
 .. code-block:: python
 
@@ -457,12 +454,19 @@ in the ``ftp_params`` parameter:
         'polite': False,           # Unilaterally close ftp connection (optional)
     }
 
-A script (``simpleidml_indesign_save_as``) that wraps that function should be installed
-in your PATH.
-
+A script (``simpleidml_indesign_save_as.py``) that wraps these functions is
+installed in your PATH.
 
 Revisions
 =========
+
+1.1.2
+-----
+
+New features
+''''''''''''
+
+- Add ``indesign.export_package_as()`` to convert an InDesign Package.
 
 1.1.1
 -----

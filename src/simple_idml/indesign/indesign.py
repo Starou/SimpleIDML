@@ -9,6 +9,7 @@ from simple_idml import ftp
 from simple_idml.decorators import simple_decorator
 from suds.client import Client
 from xml.sax import SAXParseException
+from zipfile import ZipFile
 
 CURRENT_DIR = os.path.abspath(os.path.split(__file__)[0])
 SCRIPTS_DIR = os.path.join(CURRENT_DIR, "scripts")
@@ -86,15 +87,15 @@ class CloseAllDocuments(InDesignSoapScript):
 
 
 class SaveAsBase(InDesignSoapScript):
-    def __init__(self, src_filename, dst_format, js_params, server_url, client_workdir, server_workdir,
+    def __init__(self, src_name, dst_format, js_params, server_url, client_workdir, server_workdir,
                  server_path_style="posix", ftp_params=None, clean_workdir=True, logger=None, logger_extra=None):
         super(SaveAsBase, self).__init__(server_url, client_workdir, server_workdir, server_path_style,
                                          ftp_params, clean_workdir, logger, logger_extra)
         self.js_params = js_params
         self.dst_format = dst_format
 
-        self.src_basename = os.path.basename(src_filename)
-        src_rootname = os.path.splitext(self.src_basename)[0]
+        self.src_name = src_name
+        src_rootname = os.path.splitext(self.src_name)[0]
         self.set_dst_basename(src_rootname)
 
         self.response_client_copy_filename = os.path.join(self.client_workdir, self.dst_basename)
@@ -105,7 +106,7 @@ class SaveAsBase(InDesignSoapScript):
     def set_params(self):
         super(SaveAsBase, self).set_params()
 
-        src_server_copy_filename = self.server_path_mod.join(self.server_workdir, self.src_basename)
+        src_server_copy_filename = self.server_path_mod.join(self.server_workdir, self.src_name)
         src = self.client.factory.create("ns0:IDSP-ScriptArg")
         src.name = "source"
         src.value = src_server_copy_filename
@@ -168,7 +169,7 @@ class PackageForPrint(SaveAsBase):
 
 @simple_decorator
 def use_dedicated_working_directory(view_func):
-    def new_func(src_filename, dst_formats_params, indesign_server_url, indesign_client_workdir,
+    def new_func(src_path, formats_options, indesign_server_url, indesign_client_workdir,
                  indesign_server_workdir, indesign_server_path_style="posix",
                  clean_workdir=True, ftp_params=None, logger=None, logger_extra=None):
 
@@ -184,7 +185,7 @@ def use_dedicated_working_directory(view_func):
         indesign_server_workdir = server_path_mod.join(indesign_server_workdir, os.path.basename(working_dir))
 
         try:
-            response = view_func(src_filename, dst_formats_params, indesign_server_url,
+            response = view_func(src_path, formats_options, indesign_server_url,
                                  indesign_client_workdir, indesign_server_workdir,
                                  indesign_server_path_style, clean_workdir, ftp_params,
                                  logger, logger_extra)
@@ -198,46 +199,92 @@ def use_dedicated_working_directory(view_func):
 
 
 @use_dedicated_working_directory
-def save_as(src_filename, dst_formats_params, indesign_server_url, indesign_client_workdir,
-            indesign_server_workdir, indesign_server_path_style="posix",
-            clean_workdir=True, ftp_params=None, logger=None, logger_extra=None):
-    """SOAP call to an InDesign Server to make one or more conversions. """
+def save_as(src_path, formats_options, indesign_server_url,
+            indesign_client_workdir, indesign_server_workdir,
+            indesign_server_path_style="posix", clean_workdir=True,
+            ftp_params=None, logger=None, logger_extra=None):
+    """SOAP call to an InDesign Server to convert an InDesign file. """
 
     if not logger:
         logger = logging.getLogger('simpleidml.indesign')
         logger.addHandler(logging.NullHandler())
     logger_extra = logger_extra or {}
 
-    def _save_as(dst_format_params):
-        """
-        o *_client_copy_filename : path/to/file as seen by the SOAP client.
-        o *_server_copy_filename : localized/path/to/file as seen by the InDesign Server.
-        """
-        dst_format = dst_format_params["fmt"]
-        js_params = dst_format_params.get("params", {})
+    src_name = os.path.basename(src_path)
+    src_client_copy_filename = os.path.join(indesign_client_workdir, src_name)
+    ftp.copy(src_path, src_client_copy_filename, ftp_params)
 
-        if dst_format in ('idml', 'pdf', 'jpeg'):
-            klass = Export
-        elif dst_format == 'zip':
-            klass = PackageForPrint
-        else:
-            klass = SaveAs
+    responses = [
+        _save_as(src_name, format_options, indesign_server_url,
+                 indesign_client_workdir, indesign_server_workdir,
+                 indesign_server_path_style, ftp_params, clean_workdir,
+                 logger, logger_extra) for format_options in formats_options
+    ]
 
-        script = klass(src_filename, dst_format, js_params, indesign_server_url, indesign_client_workdir,
-                       indesign_server_workdir, indesign_server_path_style, ftp_params, clean_workdir,
-                       logger, logger_extra)
-
-        return script.execute()
-
-    src_basename = os.path.basename(src_filename)
-    src_client_copy_filename = os.path.join(indesign_client_workdir, src_basename)
-    ftp.copy(src_filename, src_client_copy_filename, ftp_params)
-
-    cl = Client("%s/service?wsdl" % indesign_server_url)
-    cl.set_options(location=indesign_server_url, timeout=90)
-
-    responses = [_save_as(fmt) for fmt in dst_formats_params]
     if clean_workdir:
         ftp.unlink(src_client_copy_filename, ftp_params)
 
     return responses
+
+
+@use_dedicated_working_directory
+def export_package_as(package_path, formats_options, indesign_server_url,
+                      indesign_client_workdir, indesign_server_workdir,
+                      indesign_server_path_style="posix", clean_workdir=True,
+                      ftp_params=None, logger=None, logger_extra=None):
+    """SOAP call to an InDesign Server to export a zipped package. """
+
+    if not logger:
+        logger = logging.getLogger('simpleidml.indesign')
+        logger.addHandler(logging.NullHandler())
+    logger_extra = logger_extra or {}
+
+    # Search the relative path of the INDD file in the archive before unpacking.
+    src_relpath = None
+    with ZipFile(package_path) as package_zip:
+        for name in package_zip.namelist():
+            if name.startswith('.'):
+                continue
+            if name.endswith('.indd'):
+                src_relpath = name
+                break
+    if not src_relpath:
+        raise BaseException("No INDD file in the archive.")
+
+    ftp.unpack_archive(package_path, ftp_params, indesign_client_workdir)
+
+    # Add the directory that contains the indd to workdir paths.
+    dirname, indd_name = os.path.split(src_relpath)
+    indesign_client_workdir = os.path.join(indesign_client_workdir, dirname)
+    server_path_mod = os.path
+    if indesign_server_path_style == "windows":
+        server_path_mod = ntpath
+    indesign_server_workdir = server_path_mod.join(indesign_server_workdir, dirname)
+
+    # Call the SOAP service.
+    return [
+        _save_as(indd_name, format_options, indesign_server_url,
+                 indesign_client_workdir, indesign_server_workdir,
+                 indesign_server_path_style, ftp_params, clean_workdir,
+                 logger, logger_extra) for format_options in formats_options
+    ]
+
+
+def _save_as(src_name, format_options, indesign_server_url, indesign_client_workdir,
+             indesign_server_workdir, indesign_server_path_style, ftp_params, clean_workdir,
+             logger, logger_extra):
+    fmt = format_options["fmt"]
+    js_params = format_options.get("params", {})
+
+    if fmt in ('idml', 'pdf', 'jpeg'):
+        klass = Export
+    elif fmt == 'zip':
+        klass = PackageForPrint
+    else:
+        klass = SaveAs
+
+    script = klass(src_name, fmt, js_params, indesign_server_url, indesign_client_workdir,
+                   indesign_server_workdir, indesign_server_path_style, ftp_params, clean_workdir,
+                   logger, logger_extra)
+
+    return script.execute()

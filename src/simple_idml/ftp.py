@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""A Wrapper over ftplib and filesystem operations. """
+
 import ftplib
 import os
 import shlex
@@ -10,7 +12,9 @@ import tempfile
 import uuid
 import zipfile
 from io import BytesIO
+from pathlib import Path
 from tempfile import mkdtemp
+from zipfile import ZipFile
 
 
 def copy(src_filename, dst_filename, ftp_params=None, src_open_mode="rb"):
@@ -20,18 +24,50 @@ def copy(src_filename, dst_filename, ftp_params=None, src_open_mode="rb"):
 
     with open(src_filename, src_open_mode) as f:
         ftp = get_ftp(ftp_params)
-        command = 'STOR %s' % dst_filename
+        command = f'STOR {dst_filename}'
         try:
             if "b" in src_open_mode:
                 ftp.storbinary(command, f)
             else:  # python2 only. storlines in Python 3 requires binary mode as well.
                 ftp.storlines(command, f)
-        except BaseException as e:
-            print("Cannot STOR %s" % dst_filename)
+        except:
+            print(f'Cannot {command}')
+            raise
+        finally:
             close_ftp_conn(ftp, ftp_params)
-            raise e
 
-        close_ftp_conn(ftp, ftp_params)
+
+def unpack_archive(filename, ftp_params=None, extract_dir=None, fmt='zip'):
+    if not ftp_params:
+        shutil.unpack_archive(filename, extract_dir, fmt)
+        return
+    dirs_created = []
+    with ZipFile(filename) as archive:
+        for info in archive.infolist():
+            path = Path(info.filename)
+            if info.is_dir() or path.name.startswith('.'):
+                continue
+
+            rootdir = extract_dir
+            for part in path.parent.parts:
+                rootdir = os.path.join(rootdir, part)
+                if rootdir in dirs_created:
+                    continue
+                ftp = get_ftp(ftp_params)
+                ftp.mkd(rootdir)
+                dirs_created.append(rootdir)
+                close_ftp_conn(ftp, ftp_params)
+
+            with archive.open(info) as fobj:
+                ftp = get_ftp(ftp_params)
+                command = f'STOR {extract_dir}/{info.filename}'
+                try:
+                    ftp.storbinary(command, fobj)
+                except:
+                    print(f'Cannot {command}')
+                    raise
+                finally:
+                    close_ftp_conn(ftp, ftp_params)
 
 
 def unlink(filename, ftp_params=None):

@@ -8,7 +8,7 @@ from simple_idml.commands import InDesignSoapCommand
 
 
 class InDesignSaveAsCommand(InDesignSoapCommand):
-    description = """SOAP call to a InDesignServer to save a file in (an)other format(s).
+    description = """SOAP call to an InDesign Server to save a file in other formats.
 
    PDF export parameters
    '''''''''''''''''''''
@@ -52,16 +52,20 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
 
     def __init__(self):
         super(InDesignSaveAsCommand, self).__init__()
-        self.parser.add_argument('source', metavar='SOURCE', help="path/to/file.indd")
+        self.parser.add_argument('source', metavar='SOURCE', help="path/to/file.{indd|zip}")
         self.parser.add_argument('destinations', metavar='DESTINATIONS', help="file1|opt1=a,opt2=b;file2|opt1=c")
 
     def execute(self):
         super(InDesignSaveAsCommand, self).execute()
         destinations = self.args.destinations.split(";")
         formats = map(self.parse_destination_arg, destinations)
-        responses = indesign.save_as(self.args.source, formats, self.args.url, self.args.client_workdir,
-                                     self.args.server_workdir, self.args.server_path_style,
-                                     not self.args.no_clean_workdir, self.ftp_params)
+        if os.path.splitext(self.args.source)[1] == ".zip":
+            func = indesign.export_package_as
+        else:
+            func = indesign.save_as
+        responses = func(self.args.source, formats, self.args.url, self.args.client_workdir,
+                         self.args.server_workdir, self.args.server_path_style,
+                         not self.args.no_clean_workdir, self.ftp_params)
         for response, destination in zip(responses, destinations):
             self.save_as(response, destination)
 

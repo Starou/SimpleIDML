@@ -82,6 +82,27 @@ class InDesignTestCase(unittest.TestCase):
         zip_buf.write(responses[2])
         self.assertTrue(zipfile.is_zipfile(zip_buf))
 
+    def test_export_package_as(self):
+        responses = indesign.export_package_as(os.path.join(IDMLFILES_DIR, "package-pirate.zip"),
+                                               [{"fmt": "pdf",
+                                                 "params": {
+                                                     "colorSpace": "CMYK",
+                                                     "standartsCompliance": "1A2003",
+                                                 }}],
+                                               "http://url-to-indesign-server:8080",
+                                               CLIENT_WORKDIR, SERVER_WORKDIR,
+                                               indesign_server_path_style="posix")
+
+        self.assertTrue(self.runscript_mock.called)
+        self.assertEqual(len(responses), 1)
+        self.assertEqual(json.loads(responses[0].decode('utf-8')), {
+            'dst': '4-pages-2TMP.pdf',
+            'extra_params': {'colorSpace': 'CMYK',
+                             'format': 'pdf',
+                             'standartsCompliance': '1A2003'},
+            'script': 'export.jsx'
+        })
+
     def test_close_all_documents(self):
         script = indesign.CloseAllDocuments("http://url-to-indesign-server:8080",
                                             CLIENT_WORKDIR, SERVER_WORKDIR,
