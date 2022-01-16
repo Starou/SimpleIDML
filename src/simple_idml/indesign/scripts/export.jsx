@@ -144,7 +144,7 @@ try {
                 try{
                     ignoreSpreadOverrides = false;
                 }
-                catch(e){}
+                catch(e){ alert("Warning: cannot set ignoreSpreadOverrides option. Error was: " + e)}
                 includeBookmarks = true;
                 includeHyperlinks = true;
                 includeICCProfiles = true;
@@ -157,14 +157,20 @@ try {
                 //
                 //Bitmap compression/sampling/quality options.
                 colorBitmapCompression = _colorBitmapCompression;
-                colorBitmapQuality = _colorBitmapQuality;
+                try{
+                    colorBitmapQuality = _colorBitmapQuality;
+                }
+                catch(e){alert("Warning: cannot set colorBitmapQuality option. Error was: " + e)}
                 colorBitmapSampling = _colorBitmapSampling;
                 if (colorBitmapSampling != Sampling.NONE) {
                     colorBitmapSamplingDPI = _colorBitmapSamplingDPI;
                     thresholdToCompressColor = colorBitmapSamplingDPI * 1.5;
                 }
                 grayscaleBitmapCompression = _grayscaleBitmapCompression;
-                grayscaleBitmapQuality = _grayscaleBitmapQuality;
+                try {
+                    grayscaleBitmapQuality = _grayscaleBitmapQuality;
+                }
+                catch(e) {alert("Warning: cannot set grayscaleBitmapQuality option. Error was: " + e)}
                 grayscaleBitmapSampling = _grayscaleBitmapSampling;
                 if (grayscaleBitmapSampling != Sampling.NONE) {
                     grayscaleBitmapSamplingDPI = _grayscaleBitmapSamplingDPI;
@@ -204,24 +210,44 @@ try {
                 omitEPS = false;
                 omitPDF = false;
                 pageInformationMarks = _pageInformationMarks;
-                pageMarksOffset = _pageMarksOffset;
-                pdfMarkType = MarkTypes.DEFAULT_VALUE;
+                try{
+                    pageMarksOffset = _pageMarksOffset;
+                }
+                catch(e) {alert("Warning: cannot set pageMarksOffset option. Error was: " + e)}
+                try{
+                    pdfMarkType = MarkTypes.DEFAULT_VALUE;
+                }
+                catch(e) { alert("Warning: cannot set pdfMarkType option. Error was: " + e)}
                 printerMarkWeight = PDFMarkWeight.p125pt;
                 registrationMarks = _registrationMarks;
                 try {
                     simulateOverprint = false;
                 }
-                catch(e){}
+                catch(e) { alert("Warning: cannot set simulateOverprint option. Error was: " + e)}
                 //Set viewPDF to true to open the PDF in Acrobat or Adobe Reader.
-                viewPDF = false;
+                try {
+                    viewPDF = false;
+                }
+                catch(e) { alert("Warning: cannot set viewPDF option. Error was: " + e)}
                 //
                 // Output
                 pdfColorSpace = _colorSpace;
-                pdfDestinationProfile = _colorProfile;
-                pdfXProfile = _colorProfile;
+                try {
+                    pdfDestinationProfile = _colorProfile;
+                }
+                catch(e) { alert("Warning: cannot set pdfDestinationProfile option. Error was: " + e)}
+                
+                try {
+                    pdfXProfile = _colorProfile;
+                }
+                catch(e) { alert("Warning: cannot set pdfXProfile option. Error was: " + e)}
+                
                 //
                 // Advanced
-                appliedFlattenerPreset = app.flattenerPresets.itemByName(_flattenerPresetName);
+                try{
+                    appliedFlattenerPreset = app.flattenerPresets.itemByName(_flattenerPresetName);
+                }
+                catch(e) { alert("Warning: cannot set appliedFlattenerPreset option. Error was: " + e)}
             }
             myDocument.exportFile(ExportFormat.pdfType, new File(dst_filename));
         }
