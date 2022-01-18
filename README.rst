@@ -460,6 +460,12 @@ installed in your PATH.
 Revisions
 =========
 
+1.1.3
+-----
+
+- Catch and log exceptions to the InDesign Server when setting options in
+  export.jsx. Thanks to @kylehodgson for the contribution.
+
 1.1.2
 -----
 
