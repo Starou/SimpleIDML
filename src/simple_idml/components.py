@@ -7,7 +7,7 @@ import re
 from decimal import Decimal
 from lxml import etree
 from simple_idml import IdPkgNS, BACKINGSTORY
-from simple_idml.utils import increment_xmltag_id, prefix_content_filename
+from simple_idml.utils import increment_xmltag_id, prefix_content_filename, deepcopy_element_as
 from simple_idml.utils import Proxy
 
 RECTO = "recto"
@@ -16,7 +16,7 @@ VERSO = "verso"
 rx_node_name_from_xml_name = re.compile(r"[\w]+/[\w]+_([\w]+)\.xml")
 
 
-class IDMLXMLFile(object):
+class IDMLXMLFile():
     """Abstract class for various XML files found in IDML Packages. """
     name = None
     doctype = None
@@ -57,8 +57,7 @@ class IDMLXMLFile(object):
         self._dom = None
 
     def __repr__(self):
-        return "<%s object %s at %s>" % (self.__class__.__name__,
-                                         self.name, hex(id(self)))
+        return f"<{self.__class__.__name__} object {self.name} at {hex(id(self))}>"
 
     @property
     def fobj(self):
@@ -94,22 +93,22 @@ class IDMLXMLFile(object):
                   "pretty_print": True}
 
         if etree.LXML_VERSION < (2, 3):
-            s = etree.tostring(self.dom, **kwargs)
+            strn = etree.tostring(self.dom, **kwargs)
             if self.doctype:
-                lines = s.splitlines()
+                lines = strn.splitlines()
                 lines.insert(1, self.doctype)
-                s = "\n".join(line.decode("utf-8") for line in lines)
-                s += "\n"
-                s = s.encode("utf-8")
+                strn = "\n".join(line.decode("utf-8") for line in lines)
+                strn += "\n"
+                strn = strn.encode("utf-8")
         else:
             kwargs["doctype"] = self.doctype
-            s = etree.tostring(self.dom, **kwargs)
-        return s
+            strn = etree.tostring(self.dom, **kwargs)
+        return strn
 
     def synchronize(self):
         # Explicit initialization of dom from self._fobj before reset
         # because in tostring() we get the dom from this file if None.
-        self.dom
+        self.dom  # pylint: disable=pointless-statement
         self.fobj.close()
         self._fobj = None
 
@@ -119,7 +118,7 @@ class IDMLXMLFile(object):
         fobj.close()
 
     def get_element_by_id(self, value, tag="XMLElement", attr="Self"):
-        elem = self.dom.xpath("//%s[@%s='%s']" % (tag, attr, value))
+        elem = self.dom.xpath(f"//{tag}[@{attr}='{value}']")
         # etree FutureWarning when trying to simply do: elem = len(elem) and elem[0] or None
         if len(elem):
             elem = elem[0]
@@ -143,7 +142,7 @@ class IDMLXMLFile(object):
                 continue
             for attr in self.prefixable_attrs:
                 if elt.get(attr):
-                    elt.set(attr, "%s%s" % (prefix, elt.get(attr)))
+                    elt.set(attr, f"{prefix}{elt.get(attr)}")
 
         # <idPkg:Spread src="Spreads/Spread_ub6.xml"/>
         # <idPkg:Story src="Stories/Story_u139.xml"/>
@@ -156,8 +155,7 @@ class IDMLXMLFile(object):
         # StoryList="ue4 u102 u11b u139 u9c"...>
         elt = self.dom.xpath("/Document")
         if elt and elt[0].get("StoryList"):
-            elt[0].set("StoryList", " ".join(["%s%s" % (prefix, s)
-                                              for s in elt[0].get("StoryList").split(" ")]))
+            elt[0].set("StoryList", " ".join([f"{prefix}{s}" for s in elt[0].get("StoryList").split(" ")]))
 
     def set_element_resource_path(self, element_id, resource_path, synchronize=False):
         """ For Spread and Story subclasses only (this comment is a call for a Mixin). """
@@ -178,15 +176,15 @@ class IDMLXMLFile(object):
             elt.attrib.pop("NoTextMarker")
         if elt.get("XMLContent"):
             elt.attrib.pop("XMLContent")
-        for c in elt.iterchildren():
-            elt.remove(c)
+        for child in elt.iterchildren():
+            elt.remove(child)
         if synchronize:
             self.synchronize()
 
 
 class MasterSpread(IDMLXMLFile):
     def __init__(self, idml_package, name, working_copy_path=None):
-        super(MasterSpread, self).__init__(idml_package, working_copy_path)
+        super().__init__(idml_package, working_copy_path)
         self.name = name
 
 
@@ -217,7 +215,7 @@ class Spread(IDMLXMLFile):
     """
 
     def __init__(self, idml_package, name, working_copy_path=None):
-        super(Spread, self).__init__(idml_package, working_copy_path)
+        super().__init__(idml_package, working_copy_path)
         self.name = name
         self._pages = None
         self._node = None
@@ -267,8 +265,8 @@ class Spread(IDMLXMLFile):
     def clear(self):
         items = list(self.node.items())
         self.node.clear()
-        for k, v in items:
-            self.node.set(k, v)
+        for k, value in items:
+            self.node.set(k, value)
 
         self._pages = None
 
@@ -283,13 +281,13 @@ class Spread(IDMLXMLFile):
 
     def has_any_item_on_layer(self, layer_id):
         # The page Guide are not page items.
-        return bool(len(self.node.xpath(".//*[not(self::Guide)][@ItemLayer='%s']" % layer_id)))
+        return bool(len(self.node.xpath(f".//*[not(self::Guide)][@ItemLayer='{layer_id}']")))
 
     def has_any_guide_on_layer(self, layer_id):
-        return bool(len(self.node.xpath(".//Guide[@ItemLayer='%s']" % layer_id)))
+        return bool(len(self.node.xpath(f".//Guide[@ItemLayer='{layer_id}']")))
 
     def remove_guides_on_layer(self, layer_id, synchronize=False):
-        for guide in self.node.xpath(".//Guide[@ItemLayer='%s']" % layer_id):
+        for guide in self.node.xpath(f".//Guide[@ItemLayer='{layer_id}']"):
             guide.getparent().remove(guide)
         if synchronize:
             self.synchronize()
@@ -304,7 +302,6 @@ class Spread(IDMLXMLFile):
             self.synchronize()
 
     def rectangle_to_textframe(self, rectangle):
-        from simple_idml.utils import deepcopy_element_as
         textframe = deepcopy_element_as(rectangle, "TextFrame")
         textframe.set("ContentType", "TextType")
         textframe.set("PreviousTextFrame", "n")
@@ -326,7 +323,7 @@ STORIES_DIRNAME = "Stories"
 
 class Story(IDMLXMLFile):
     def __init__(self, idml_package, name, working_copy_path=None):
-        super(Story, self).__init__(idml_package, working_copy_path)
+        super().__init__(idml_package, working_copy_path)
         self.name = name
         self.node_name = "Story"
         self._node = None
@@ -336,7 +333,7 @@ class Story(IDMLXMLFile):
         dirname = os.path.join(working_copy_path, STORIES_DIRNAME)
         if not os.path.exists(dirname):
             os.mkdir(dirname)
-        story_name = "%s/Story_%s.xml" % (STORIES_DIRNAME, story_id)
+        story_name = f"{STORIES_DIRNAME}/Story_{story_id}.xml"
         story = Story(idml_package, story_name, working_copy_path)
 
         # Difficult to do it in .fobj() because we don't always need
@@ -398,8 +395,8 @@ class Story(IDMLXMLFile):
         # We remove all `CharacterStyleRange' containers except the first.
         # FIXME: This should handle ./ParagraphStyleRange/CharacterStyleRange too.
         children = element.xpath("./CharacterStyleRange")[1:]
-        for c in children:
-            element.remove(c)
+        for child in children:
+            element.remove(child)
         for content_node in self.get_element_content_nodes(element):
             content_node.text = ""
 
@@ -419,12 +416,12 @@ class Story(IDMLXMLFile):
                               "./Content"))
 
     def set_element_id(self, element):
-        ref_element = [e for e in element.itersiblings(tag="XMLElement", preceding=True)]
+        ref_element = list(element.itersiblings(tag="XMLElement", preceding=True))
         if ref_element:
             ref_element = ref_element[0]
             position = "sibling"
         else:
-            ref_element = [e for e in element.iterancestors(tag="XMLElement")]
+            ref_element = list(element.iterancestors(tag="XMLElement"))
             if ref_element:
                 ref_element = ref_element[0]
             else:
@@ -471,7 +468,7 @@ class Story(IDMLXMLFile):
 
 class BackingStory(Story):
     def __init__(self, idml_package, name=BACKINGSTORY, working_copy_path=None):
-        super(BackingStory, self).__init__(idml_package, name, working_copy_path)
+        super().__init__(idml_package, name, working_copy_path)
         self.node_name = "XmlStory"
 
     def get_root(self):
@@ -484,7 +481,7 @@ class Designmap(IDMLXMLFile):
     page_start_attr = "PageStart"
 
     def __init__(self, idml_package, working_copy_path):
-        super(Designmap, self).__init__(idml_package, working_copy_path)
+        super().__init__(idml_package, working_copy_path)
         self._spread_nodes = None
         self._style_mapping_node = None
         self._section_node = None
@@ -555,12 +552,12 @@ class Designmap(IDMLXMLFile):
         self.prefix_page_start(prefix)
 
     def prefix_active_layer(self, prefix):
-        self.active_layer = "%s%s" % (prefix, self.active_layer)
+        self.active_layer = f"{prefix}{self.active_layer}"
 
     def prefix_page_start(self, prefix):
         section_node = self.section_node
         current_page_start = section_node.get(self.page_start_attr)
-        section_node.set(self.page_start_attr, "%s%s" % (prefix, current_page_start))
+        section_node.set(self.page_start_attr, f"{prefix}{current_page_start}")
 
     def add_stories(self, stories):
         # Add stories in StoryList.
@@ -571,10 +568,10 @@ class Designmap(IDMLXMLFile):
         # Add <idPkg:Story src="Stories/Story_[name].xml"/> elements.
         for story in stories:
             elt.append(etree.Element("{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Story",
-                                     src="Stories/Story_%s.xml" % story))
+                                     src=f"Stories/Story_{story}.xml"))
 
     def add_layer_nodes(self, layer_nodes):
-        current_layers_ids = [l.get("Self") for l in self.layer_nodes]
+        current_layers_ids = [layer.get("Self") for layer in self.layer_nodes]
         for layer in reversed(layer_nodes):
             # If a similar layer is already present, we do not add it.
             if layer.get("Self") not in current_layers_ids:
@@ -595,35 +592,32 @@ class Designmap(IDMLXMLFile):
 
     def suffix_layers(self, suffix):
         for layer in self.layer_nodes:
-            layer.set("Name", "%s%s" % (layer.get("Name"), suffix))
+            layer.set("Name", f"{layer.get('Name')}{suffix}")
 
     def merge_layers(self, with_name=None):
         layer_0 = self.layer_nodes.pop(0)
         if with_name:
             layer_0.set("Name", with_name)
-        for l in self.layer_nodes:
-            l.getparent().remove(l)
+        for layer in self.layer_nodes:
+            layer.getparent().remove(layer)
         self._layer_nodes = None
         self.active_layer = layer_0.get("Self")
         self.synchronize()
 
     def get_layer_id_by_name(self, layer_name):
-        layer_node = self.dom.xpath(".//Layer[@Name='%s']" % layer_name)[0]
+        layer_node = self.dom.xpath(f".//Layer[@Name='{layer_name}']")[0]
         return layer_node.get("Self")
 
     def get_active_layer_name(self):
-        layer_node = self.dom.xpath(".//Layer[@Self='%s']" % self.active_layer)[0]
+        layer_node = self.dom.xpath(f".//Layer[@Self='{self.active_layer}']")[0]
         return layer_node.get("Name")
 
 
 class Style(IDMLXMLFile):
     name = "Resources/Styles.xml"
 
-    def __init__(self, idml_package, working_copy_path=None):
-        super(Style, self).__init__(idml_package, working_copy_path)
-
     def get_style_node_by_name(self, style_name):
-        return self.dom.xpath(".//CharacterStyle[@Self='%s']" % style_name)[0]
+        return self.dom.xpath(f".//CharacterStyle[@Self='{style_name}']")[0]
 
     def style_groups(self):
         """ Groups are `RootCharacterStyleGroup', `RootParagraphStyleGroup' etc. """
@@ -642,14 +636,14 @@ class StyleMapping(IDMLXMLFile):
                    </idPkg:Mapping>")
 
     def __init__(self, idml_package, working_copy_path=None):
-        super(StyleMapping, self).__init__(idml_package, working_copy_path)
+        super().__init__(idml_package, working_copy_path)
         self._character_style_mapping = None
 
     @property
     def fobj(self):
         """Overriden because it may not exists in the package. """
         try:
-            super(StyleMapping, self).fobj
+            super().fobj
         except (KeyError, IOError):
             if self.working_copy_path:
                 self._initialize_fobj()
@@ -659,7 +653,7 @@ class StyleMapping(IDMLXMLFile):
     def dom(self):
         """Overriden because it may not exists in the package. """
         try:
-            super(StyleMapping, self).dom
+            super().dom
         except AttributeError:
             self._dom = etree.fromstring(self.initial_dom.encode("utf-8"))
         return self._dom
@@ -683,8 +677,8 @@ class StyleMapping(IDMLXMLFile):
         self._fobj = fobj
 
     def iter_stylenode(self):
-        for n in self.dom.xpath("//XMLImportMap"):
-            yield n
+        for node in self.dom.xpath("//XMLImportMap"):
+            yield node
 
     def add_stylenode(self, node):
         self.dom.append(copy.deepcopy(node))
@@ -719,7 +713,7 @@ class Fonts(IDMLXMLFile):
         return self.dom.xpath("/idPkg:Fonts", namespaces={'idPkg': IdPkgNS})[0]
 
 
-class Page(object):
+class Page():
     """
         Coordinate system
         -----------------
@@ -765,8 +759,7 @@ class Page(object):
     def face(self):
         if self.is_recto:
             return RECTO
-        else:
-            return VERSO
+        return VERSO
 
     @property
     def geometric_bounds(self):
@@ -821,26 +814,25 @@ class Page(object):
     def set_face(self, face):
         if self.face == face:
             return
-        else:
-            item_transform = self.item_transform
-            item_transform_x_origin = item_transform[4]
+        item_transform = self.item_transform
+        item_transform_x_origin = item_transform[4]
 
-            if face == RECTO:
-                item_transform[4] = Decimal("0")
-            elif face == VERSO:
-                item_transform[4] = - self.geometric_bounds[3]
+        if face == RECTO:
+            item_transform[4] = Decimal("0")
+        elif face == VERSO:
+            item_transform[4] = - self.geometric_bounds[3]
 
-            item_transform_x = item_transform[4] - item_transform_x_origin
-            self.item_transform = item_transform
+        item_transform_x = item_transform[4] - item_transform_x_origin
+        self.item_transform = item_transform
 
-            # All page items are moved according to item_transform_x.
-            for item in self.page_items:
-                item_transform = [Decimal(c) for c in item.get("ItemTransform").split(" ")]
-                item_transform[4] = item_transform[4] + item_transform_x
-                item.set("ItemTransform", " ".join([str(v) for v in item_transform]))
+        # All page items are moved according to item_transform_x.
+        for item in self.page_items:
+            item_transform = [Decimal(c) for c in item.get("ItemTransform").split(" ")]
+            item_transform[4] = item_transform[4] + item_transform_x
+            item.set("ItemTransform", " ".join([str(v) for v in item_transform]))
 
-            self._is_recto = None
-            self._coordinates = None
+        self._is_recto = None
+        self._coordinates = None
 
 
 class XMLElement(Proxy):
@@ -848,15 +840,14 @@ class XMLElement(Proxy):
     def __repr__(self):
         if self.element is not None:
             return "%s {%s}" % (repr(self.element), ", ".join(["%s: %s" % (k, v) for k, v in self.element.items()]))
-        else:
-            return "XMLElement (no element)"
+        return "XMLElement (no element)"
 
     def __init__(self, element=None, tag=None):
         if element is not None:
             self.element = element
         else:
-            self.element = etree.Element("XMLElement", MarkupTag="XMLTag/%s" % tag)
-        super(XMLElement, self).__init__(target=self.element)
+            self.element = etree.Element("XMLElement", MarkupTag=f"XMLTag/{tag}")
+        super().__init__(target=self.element)
 
     def add_content(self, content, parent=None, style_range_node=None):
         content_element = etree.Element("Content")
@@ -913,7 +904,7 @@ class XMLElement(Proxy):
                 style_range_node.set(attr, style_node.get(attr))
 
         for attr in ("Leading", "AppliedFont"):
-            path = "Properties/%s" % attr
+            path = f"Properties/{attr}"
             attr_node = style_node.find(path)
             if attr_node is not None:
                 properties_node.append(copy.deepcopy(attr_node))
@@ -921,23 +912,20 @@ class XMLElement(Proxy):
 
     def get_attribute(self, name):
         attr_node = self._get_attribute_node(name)
-        return (attr_node is not None and
-                attr_node.get("Value") or None)
+        return attr_node.get("Value") if attr_node is not None else None
 
     def _get_attribute_node(self, name):
-        attr_node = self.xpath("./XMLAttribute[@Name='%s']" % name)
+        attr_node = self.xpath(f"./XMLAttribute[@Name='{name}']")
         if len(attr_node):
             return attr_node[0]
 
     def get_attributes(self):
-        return dict([(node.get("Name"), node.get("Value"))
-                     for node in self.xpath("./XMLAttribute")])
+        return {node.get("Name"): node.get("Value") for node in self.xpath("./XMLAttribute")}
 
     def set_attribute(self, name, value):
         attr_node = self._get_attribute_node(name)
         if attr_node is None:
-            attr_node = etree.Element("XMLAttribute", Name=name,
-                                      Self="%sXMLAttributen%s" % (self.get("Self"), name))
+            attr_node = etree.Element("XMLAttribute", Name=name, Self=f"{self.get('Self')}XMLAttributen{name}")
             self.append(attr_node)
         attr_node.set("Value", value)
 
