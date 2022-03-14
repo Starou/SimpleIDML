@@ -2,9 +2,6 @@
 SimpleIDML
 ==========
 
-.. image:: https://coveralls.io/repos/Starou/SimpleIDML/badge.png
-  :target: https://coveralls.io/r/Starou/SimpleIDML
-
 .. image:: https://img.shields.io/pypi/v/simpleidml.svg
   :target: https://pypi.python.org/pypi/SimpleIDML
 
