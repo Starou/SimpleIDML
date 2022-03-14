@@ -6,6 +6,7 @@ coverage-report: coverage
 
 coverage: clean
 	@coverage run --rcfile=coveragerc -a runtests.py
+	@coverage lcov
 
 clean:
 	@if [ -f .coverage ]; then rm .coverage; fi;

@@ -3,7 +3,6 @@ import sys
 import unittest
 
 REGRESSION_TEST_DIRNAME = 'regressiontests'
-REGRESSION_TEST_DIR = os.path.join(os.path.dirname(__file__), REGRESSION_TEST_DIRNAME)
 
 sys.path.insert(0, os.path.join('..', 'src'))
 
@@ -16,7 +15,7 @@ def load_suite_tests(only=None):
         only_test_case = args[1:] and args[1] or None
         only_function = args[2:] and args[2] or None
     suites = []
-    for dirpath, dirnames, filenames in os.walk(REGRESSION_TEST_DIR):
+    for dirpath, dirnames, filenames in os.walk(REGRESSION_TEST_DIRNAME):
         for f in filenames:
             basename, ext = os.path.splitext(f)
             if (ext == '.py') and (not only_module or (only_module == basename)):
