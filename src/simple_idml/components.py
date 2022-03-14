@@ -113,9 +113,8 @@ class IDMLXMLFile():
         self._fobj = None
 
         # Must instanciate with a working_copy to use this.
-        fobj = open(os.path.join(self.working_copy_path, self.name), mode="wb+")
-        fobj.write(self.tostring())
-        fobj.close()
+        with open(os.path.join(self.working_copy_path, self.name), mode="wb+") as fobj:
+            fobj.write(self.tostring())
 
     def get_element_by_id(self, value, tag="XMLElement", attr="Self"):
         elem = self.dom.xpath(f"//{tag}[@{attr}='{value}']")
