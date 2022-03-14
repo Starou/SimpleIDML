@@ -28,10 +28,7 @@ class IDMLPackage(zipfile.ZipFile):
         self.init_lazy_references()
 
     def __repr__(self):
-        return "<idml.IDMLPackage instance of '%s' at %s>" % (
-            os.path.basename(self.filename),
-            hex(id(self))
-        )
+        return f"<idml.IDMLPackage instance of '{os.path.basename(self.filename)}' at {hex(id(self))}>"
 
     def init_lazy_references(self):
         self._xml_structure = None
@@ -55,17 +52,16 @@ class IDMLPackage(zipfile.ZipFile):
     def namelist(self):
         if not self.working_copy_path:
             return zipfile.ZipFile.namelist(self)
-        else:
-            namelist = []
-            for root, dirs, filenames in os.walk(self.working_copy_path):
-                rel_root = root.replace(self.working_copy_path, "")[1:]
-                for filename in filenames:
-                    namelist.append("%(rel_root)s%(sep)s%(filename)s" % {
-                        'rel_root': rel_root,
-                        'sep': rel_root and "/" or "",
-                        'filename': filename
-                    })
-            return namelist
+        namelist = []
+        for root, dirs, filenames in os.walk(self.working_copy_path):
+            rel_root = root.replace(self.working_copy_path, "")[1:]
+            for filename in filenames:
+                namelist.append("%(rel_root)s%(sep)s%(filename)s" % {
+                    'rel_root': rel_root,
+                    'sep': rel_root and "/" or "",
+                    'filename': filename
+                })
+        return namelist
 
     def contentfile_namelist(self):
         """Namelist filtered on Spreads and Stories. """
@@ -95,7 +91,7 @@ class IDMLPackage(zipfile.ZipFile):
                     destination_node.append(new_destination_node)
                     if elt.get("XMLContent"):
                         xml_content_value = elt.get("XMLContent")
-                        story_name = "Stories/Story_%s.xml" % xml_content_value
+                        story_name = f"Stories/Story_{xml_content_value}.xml"
                         story = Story(self, name=story_name)
                         try:
                             new_source_node = story.get_element_by_id(elt.get("Self"))
@@ -108,7 +104,7 @@ class IDMLPackage(zipfile.ZipFile):
                         append_childs(elt, new_destination_node)
 
             append_childs(source_node, structure)
-            self._xml_structure = structure
+            self._xml_structure = structure  # pylint: disable=attribute-defined-outside-init
         return self._xml_structure
 
     def xml_structure_pretty(self):
@@ -125,35 +121,35 @@ class IDMLPackage(zipfile.ZipFile):
     def designmap(self):
         if self._designmap is None:
             designmap = Designmap(self, working_copy_path=self.working_copy_path)
-            self._designmap = designmap
+            self._designmap = designmap  # pylint: disable=attribute-defined-outside-init
         return self._designmap
 
     @property
     def tags(self):
         if self._tags is None:
             tags = [copy.deepcopy(elt) for elt in Tags(self).tags()]
-            self._tags = tags
+            self._tags = tags  # pylint: disable=attribute-defined-outside-init
         return self._tags
 
     @property
     def font_families(self):
         if self._font_families is None:
             font_families = [copy.deepcopy(elt) for elt in Fonts(self).fonts()]
-            self._font_families = font_families
+            self._font_families = font_families  # pylint: disable=attribute-defined-outside-init
         return self._font_families
 
     @property
     def style_groups(self):
         if self._style_groups is None:
             style_groups = [copy.deepcopy(elt) for elt in Style(self).style_groups()]
-            self._style_groups = style_groups
+            self._style_groups = style_groups  # pylint: disable=attribute-defined-outside-init
         return self._style_groups
 
     @property
     def style(self):
         if self._style is None:
             style = Style(self, self.working_copy_path)
-            self._style = style
+            self._style = style  # pylint: disable=attribute-defined-outside-init
         return self._style
 
     @property
@@ -161,35 +157,35 @@ class IDMLPackage(zipfile.ZipFile):
         """The style mapping file may not be present in the archive and is created in that case. """
         if self._style_mapping is None:
             style_mapping = StyleMapping(self, self.working_copy_path)
-            self._style_mapping = style_mapping
+            self._style_mapping = style_mapping  # pylint: disable=attribute-defined-outside-init
         return self._style_mapping
 
     @property
     def graphic(self):
         if self._graphic is None:
             graphic = Graphic(self, self.working_copy_path)
-            self._graphic = graphic
+            self._graphic = graphic  # pylint: disable=attribute-defined-outside-init
         return self._graphic
 
     @property
     def spreads(self):
         if self._spreads is None:
             spreads = [elt for elt in self.namelist() if re.match("^Spreads/*", elt)]
-            self._spreads = spreads
+            self._spreads = spreads  # pylint: disable=attribute-defined-outside-init
         return self._spreads
 
     @property
     def spreads_objects(self):
         if self._spreads_objects is None:
             spreads_objects = [Spread(self, s, self.working_copy_path) for s in self.spreads]
-            self._spreads_objects = spreads_objects
+            self._spreads_objects = spreads_objects  # pylint: disable=attribute-defined-outside-init
         return self._spreads_objects
 
     @property
     def last_spread(self):
         if self._last_spread is None:
             src = self.designmap.spread_nodes[-1].get("src")
-            self._last_spread = Spread(self, src, self.working_copy_path)
+            self._last_spread = Spread(self, src, self.working_copy_path)  # pylint: disable=attribute-defined-outside-init
         return self._last_spread
 
     @property
@@ -198,7 +194,7 @@ class IDMLPackage(zipfile.ZipFile):
             pages = []
             for spread in self.spreads_objects:
                 pages += spread.pages
-            self._pages = pages
+            self._pages = pages  # pylint: disable=attribute-defined-outside-init
         return self._pages
 
     @property
@@ -206,19 +202,19 @@ class IDMLPackage(zipfile.ZipFile):
         """The style mapping file may not be present in the archive and is created in that case. """
         if self._backing_story is None:
             backing_story = BackingStory(self, working_copy_path=self.working_copy_path)
-            self._backing_story = backing_story
+            self._backing_story = backing_story  # pylint: disable=attribute-defined-outside-init
         return self._backing_story
 
     @property
     def stories(self):
         if self._stories is None:
             stories = [elt for elt in self.namelist()
-                       if re.match("^%s/*" % STORIES_DIRNAME, elt)]
-            self._stories = stories
+                       if re.match(f"^{STORIES_DIRNAME}/*", elt)]
+            self._stories = stories  # pylint: disable=attribute-defined-outside-init
         return self._stories
 
     def stories_for_node(self, node_path):
-        return ["%s/Story_%s.xml" % (STORIES_DIRNAME, child.get("XMLContent"))
+        return [f"{STORIES_DIRNAME}/Story_{child.get('XMLContent')}.xml"
                 for child in self.xml_structure.xpath(node_path)[0].iter()
                 if child.get("XMLContent") in self.story_ids]
 
@@ -226,7 +222,7 @@ class IDMLPackage(zipfile.ZipFile):
     def story_ids(self):
         """ extract  `ID' from `Stories/Story_ID.xml'. """
         if self._story_ids is None:
-            self._story_ids = self._get_story_ids_for_stories(self.stories)
+            self._story_ids = self._get_story_ids_for_stories(self.stories)  # pylint: disable=attribute-defined-outside-init
         return self._story_ids
 
     def story_ids_for_node(self, node_path):
@@ -245,7 +241,7 @@ class IDMLPackage(zipfile.ZipFile):
                 for spread in self.spreads_objects:
                     if spread.has_any_item_on_layer(layer_id):
                         referenced_layers.append(layer_id)
-            self._referenced_layers = referenced_layers
+            self._referenced_layers = referenced_layers  # pylint: disable=attribute-defined-outside-init
         return self._referenced_layers
 
     @use_working_copy
@@ -274,7 +270,7 @@ class IDMLPackage(zipfile.ZipFile):
                     else:
                         style_range_node.set(attr, style_to_apply_node.get(attr))
             # TODO
-            #for attr in ("Leading", "AppliedFont"):
+            # for attr in ("Leading", "AppliedFont"):
             #    path = "Properties/%s" % attr
             #    source_attr_node = source_style_node.find(path)
             #    attr_node = (style_node is not None and style_node.find(path) is not None)
@@ -309,7 +305,7 @@ class IDMLPackage(zipfile.ZipFile):
              o root_style_node
             """
             nested_styles = []
-            while(xml_structure_node is not None):
+            while xml_structure_node is not None :
                 style_name = self.style_mapping.character_style_mapping.get(xml_structure_node.tag)
                 if style_name:
                     style_node = self.style.get_style_node_by_name(style_name)
@@ -339,9 +335,9 @@ class IDMLPackage(zipfile.ZipFile):
                     style_range_node.set(attr, parent_style_node.get(attr))
 
             for attr in ("Leading", "AppliedFont"):
-                path = "Properties/%s" % attr
+                path = f"Properties/{attr}"
                 parent_attr_node = parent_style_node.find(path)
-                attr_node = (applied_style_node is not None and applied_style_node.find(path) is not None) or None
+                attr_node = applied_style_node.find(path) is not None if applied_style_node is not None else None
                 if attr_node is None and parent_attr_node is not None:
                     properties_element.append(copy.deepcopy(parent_attr_node))
 
@@ -357,7 +353,7 @@ class IDMLPackage(zipfile.ZipFile):
 
             first_content_node = content_nodes[0]
             last_content_node = content_nodes[-1]
-            siblings = [s for s in first_content_node.itersiblings()]
+            siblings = list(first_content_node.itersiblings())
             if not len(siblings):
                 return
 
@@ -366,7 +362,7 @@ class IDMLPackage(zipfile.ZipFile):
             story.synchronize()
 
         def _import_new_node(source_node, at=None, element_id=None, story=None):
-            xml_structure_parent_node = self.xml_structure.find("*//*[@Self='%s']" % element_id)
+            xml_structure_parent_node = self.xml_structure.find(f"*//*[@Self='{element_id}']")
             xml_structure_new_node = etree.Element(source_node.tag)
             # We cannot force the self._xml_structure reset by setting it at None.
             xml_structure_parent_node.append(xml_structure_new_node)
@@ -386,7 +382,7 @@ class IDMLPackage(zipfile.ZipFile):
             source_node_children = source_node.getchildren()
             if len(source_node_children):
                 story.synchronize()
-                for j, source_node_child in enumerate(source_node_children):
+                for source_node_child in source_node_children:
                     _import_new_node(source_node_child,
                                      element_id=new_xml_element.get("Self"),
                                      story=story)
@@ -410,7 +406,7 @@ class IDMLPackage(zipfile.ZipFile):
                     for _elt in reversed(elt.xpath("preceding::*")):
                         if _elt.tag == "XMLElement":
                             break
-                        elif _elt.tag == "Br":
+                        if _elt.tag == "Br":
                             _elt.getparent().remove(_elt)
                             continue
                     local_story.synchronize()
@@ -442,7 +438,7 @@ class IDMLPackage(zipfile.ZipFile):
                 # Step-by-step iteration.
                 else:
                     destination_node_child = next(destination_node_children, None)
-                    for i, source_child in enumerate(source_node_children):
+                    for source_child in source_node_children:
                         # Source and destination match.
                         if destination_node_child is not None and source_child.tag == destination_node_child.tag:
                             _import_node(source_child, at=self.xml_structure_tree.getpath(destination_node_child),
@@ -459,14 +455,14 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def import_pdf(self, pdf_path, at, crop="CropContentVisibleLayers"):
-        self.set_attributes(at, {'href': "%s" % pdf_path})
+        self.set_attributes(at, {'href': pdf_path})
         spread = self.get_spread_object_by_xpath(at)
 
         # spread_elt is a <Rectangle> that will host the <PDF>.
         # The <PDF> element get the id of the <Rectangle>.
         spread_elt = self.get_spread_elem_by_xpath(at)
         element_id = self.get_element_content_id_by_xpath(at)
-        spread_elt.set("Self", "%s-old" % element_id)
+        spread_elt.set("Self", f"{element_id}-old")
         x, y = self.get_elem_point_position(spread_elt)
         pdf_node = etree.fromstring(f"""<PDF Self="{element_id}" GrayVectorPolicy="IgnoreAll" RGBVectorPolicy="IgnoreAll" CMYKVectorPolicy="IgnoreAll" OverriddenPageItemProps="" LocalDisplaySetting="Default" ImageTypeName="$ID/Adobe Portable Document Format (PDF)" AppliedObjectStyle="ObjectStyle/$ID/[None]" ItemTransform="1 0 0 1 {x} {y}" ParentInterfaceChangeCount="" TargetInterfaceChangeCount="" LastUpdatedInterfaceChangeCount="" HorizontalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" VerticalLayoutConstraints="FlexibleDimension FixedDimension FlexibleDimension" Visible="true" Name="$ID/">
         <TextWrapPreference Inverse="false" ApplyToMasterPageOnly="false" TextWrapSide="BothSides" TextWrapMode="None">
@@ -620,18 +616,18 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def insert_idml(self, idml_package, at, only):
-        t = self._get_item_translation_for_insert(idml_package, at, only)
+        trans = self._get_item_translation_for_insert(idml_package, at, only)
         self.remove_content(at)
         self._add_font_families_from_idml(idml_package)
         self._add_styles_from_idml(idml_package)
         self._add_mapped_styles_from_idml(idml_package)
         self._add_graphics_from_idml(idml_package)
         self._add_tags_from_idml(idml_package)
-        self._add_spread_elements_from_idml(idml_package, at, only, t)
+        self._add_spread_elements_from_idml(idml_package, at, only, trans)
         self._add_stories_from_idml(idml_package, at, only)
         self._add_layers_from_idml(idml_package, at, only)
         self.remove_orphan_layers()
-        self._xml_structure = None
+        self._xml_structure = None  # pylint: disable=attribute-defined-outside-init
         return self
 
     @use_working_copy
@@ -655,8 +651,9 @@ class IDMLPackage(zipfile.ZipFile):
 
         try:
             node = self.xml_structure.xpath(under)[0]
-        except IndexError:
-            raise IndexError("Cannot remove content under path '%s'. Are you sure the path exists ?" % under)
+        except IndexError as exc:
+            raise IndexError(f"Cannot remove content under path '{under}'."
+                             " Are you sure the path exists?") from exc
 
         for child in node.iterchildren():
             _remove_content(child)
@@ -737,7 +734,7 @@ class IDMLPackage(zipfile.ZipFile):
         tags.working_copy_path = self.working_copy_path
         tags_root_elt = tags.get_root()
         for tag in idml_package.tags:
-            if not tags_root_elt.xpath("//XMLTag[@Self='%s']" % (tag.get("Self"))):
+            if not tags_root_elt.xpath(f"//XMLTag[@Self='{tag.get('Self')}']"):
                 tags_root_elt.append(copy.deepcopy(tag))
         tags.synchronize()
 
@@ -877,9 +874,8 @@ class IDMLPackage(zipfile.ZipFile):
         if not os.path.exists(stories_dirname):
             os.mkdir(stories_dirname)
         for filename in idml_package.stories_for_node(only):
-            story_cp = open(os.path.join(self.working_copy_path, filename), mode="wb+")
-            story_cp.write(idml_package.open(filename, mode="r").read())
-            story_cp.close()
+            with open(os.path.join(self.working_copy_path, filename), mode="wb+") as story_cp:
+                story_cp.write(idml_package.open(filename, mode="r").read())
 
         # Update designmap.xml.
         self.designmap.add_stories(idml_package.story_ids_for_node(only))
@@ -948,7 +944,7 @@ class IDMLPackage(zipfile.ZipFile):
         page_item = spread.get_element_by_id(xml_content_ref, tag="*", attr="Self")
 
         page_item.set("ParentStory", xml_content_ref)
-        page_item.set("Self", "%sToNode" % xml_content_ref)
+        page_item.set("Self", f"{xml_content_ref}ToNode")
 
         # To be a node, a Rectangle must be converted into a TextFrame.
         # There is not simple way to change the tag of a XMLElement so
@@ -968,9 +964,9 @@ class IDMLPackage(zipfile.ZipFile):
             os.path.join(working_copy_path, self.last_spread.name),
             new_spread_wc_path
         )
-        self._spreads = None
-        self._spreads_objects = None
-        self._last_spread = None
+        self._spreads = None  # pylint: disable=attribute-defined-outside-init
+        self._spreads_objects = None  # pylint: disable=attribute-defined-outside-init
+        self._last_spread = None  # pylint: disable=attribute-defined-outside-init
 
         new_spread = Spread(self, new_spread_name, working_copy_path)
         new_spread.clear()
@@ -989,7 +985,7 @@ class IDMLPackage(zipfile.ZipFile):
         for spread_object in self.spreads_objects:
             spread_elements.extend(spread_object.dom.xpath(
                 ".//*%(excluded_tags)s[@ItemLayer='%(layer_id)s']" % {
-                    'excluded_tags': "".join(["[not(self::%s)]" % e for e in excluded_tags]),
+                    'excluded_tags': "".join([f"[not(self::{e})]" for e in excluded_tags]),
                     'layer_id': layer_id}))
 
         return spread_elements
@@ -1038,7 +1034,7 @@ class IDMLPackage(zipfile.ZipFile):
 
     def get_spread_by_xpath(self, xpath):
         spread = self.get_spread_object_by_xpath(xpath)
-        return spread and spread.name or None
+        return spread.name if spread else None
 
     def get_layer_id_by_name(self, layer_name):
         return self.designmap.get_layer_id_by_name(layer_name)
@@ -1061,12 +1057,10 @@ class IDMLPackage(zipfile.ZipFile):
             ref = xml_element.get("XMLContent")
             if ref:
                 return ref
-            else:
-                parent = xml_element.getparent()
-                if parent is not None:
-                    return get_story_name(xml_element.getparent())
-                else:
-                    return BACKINGSTORY
+            parent = xml_element.getparent()
+            if parent is not None:
+                return get_story_name(xml_element.getparent())
+            return BACKINGSTORY
 
         story_name = get_story_name(xml_element)
 
@@ -1079,13 +1073,13 @@ class IDMLPackage(zipfile.ZipFile):
             if story_name == BACKINGSTORY:
                 story = BackingStory(self)
             else:
-                story = Story(self, "%s/Story_%s.xml" % (STORIES_DIRNAME, story_name))
+                story = Story(self, f"{STORIES_DIRNAME}/Story_{story_name}.xml")
         story.working_copy_path = self.working_copy_path
         return story
 
     def get_story_by_xpath(self, xpath):
         story = self.get_story_object_by_xpath(xpath)
-        return story and story.name or None
+        return story.name if story else None
 
     def get_element_content_id_by_xpath(self, xpath):
         return self.xml_structure.xpath(xpath)[0].get("XMLContent")
