@@ -1,23 +1,32 @@
 # -*- coding: utf-8 -*-
 
-from builtins import object
 import logging
 import ntpath
 import os
+
+from xml.sax import SAXParseException
+from zipfile import ZipFile
+
+from suds.client import Client
+
 from simple_idml import exceptions
 from simple_idml import ftp
 from simple_idml.decorators import simple_decorator
-from suds.client import Client
-from xml.sax import SAXParseException
-from zipfile import ZipFile
 
 CURRENT_DIR = os.path.abspath(os.path.split(__file__)[0])
 SCRIPTS_DIR = os.path.join(CURRENT_DIR, "scripts")
 
 
 class InDesignSoapScript(object):
+    javascript_basename = None
+
     def __init__(self, server_url, client_workdir, server_workdir, server_path_style="posix",
                  ftp_params=None, clean_workdir=True, logger=None, logger_extra=None):
+        self.client = None
+        self.javascript_client_copy_filename = None
+        self.javascript_server_copy_filename = None
+        self.params = None
+
         self.server_url = server_url
         self.client_workdir = client_workdir
         self.server_workdir = server_workdir
@@ -35,7 +44,7 @@ class InDesignSoapScript(object):
     def execute(self):
         self.copy_script_on_working_directory()
 
-        self.client = Client("%s/service?wsdl" % self.server_url)
+        self.client = Client(f"{self.server_url}/service?wsdl")
         self.client.set_options(location=self.server_url)
         self.set_params()
         return self.runscript()
@@ -54,19 +63,19 @@ class InDesignSoapScript(object):
         self.params.scriptFile = self.javascript_server_copy_filename
 
     def runscript(self):
-        self.logger.debug('Calling SOAP "RunScript" service (params: %s)' % self.params, extra=self.logger_extra)
+        self.logger.debug('Calling SOAP "RunScript" service (params: %s)', self.params, extra=self.logger_extra)
         try:
             response = self.client.service.RunScript(self.params)
-        except SAXParseException as e:
+        except SAXParseException as exc:
             response = None
-            self.logger.error('SAXParseException: %s' % e.getMessage(), extra=self.logger_extra)
+            self.logger.error('SAXParseException: %s', exc.getMessage(), extra=self.logger_extra)
         else:
             if response.errorNumber:
-                self.logger.error("SOAP response: %s\nSOAP RunScript params: %s" % (response, self.params),
+                self.logger.error("SOAP response: %s\nSOAP RunScript params: %s", response, self.params,
                                   extra=self.logger_extra)
                 raise exceptions.InDesignSoapException(self.params, response)
 
-            self.logger.debug('"RunScript" successful! Response: %s' % response, extra=self.logger_extra)
+            self.logger.debug('"RunScript" successful! Response: %s', response, extra=self.logger_extra)
         finally:
             if self.clean_workdir:
                 ftp.unlink(self.javascript_client_copy_filename, self.ftp_params)
@@ -89,8 +98,8 @@ class CloseAllDocuments(InDesignSoapScript):
 class SaveAsBase(InDesignSoapScript):
     def __init__(self, src_name, dst_format, js_params, server_url, client_workdir, server_workdir,
                  server_path_style="posix", ftp_params=None, clean_workdir=True, logger=None, logger_extra=None):
-        super(SaveAsBase, self).__init__(server_url, client_workdir, server_workdir, server_path_style,
-                                         ftp_params, clean_workdir, logger, logger_extra)
+        super().__init__(server_url, client_workdir, server_workdir, server_path_style,
+                         ftp_params, clean_workdir, logger, logger_extra)
         self.js_params = js_params
         self.dst_format = dst_format
 
@@ -101,10 +110,10 @@ class SaveAsBase(InDesignSoapScript):
         self.response_client_copy_filename = os.path.join(self.client_workdir, self.dst_basename)
 
     def set_dst_basename(self, src_rootname):
-        self.dst_basename = "%sTMP.%s" % (src_rootname, self.dst_format)
+        self.dst_basename = f"{src_rootname}TMP.{self.dst_format}"
 
     def set_params(self):
-        super(SaveAsBase, self).set_params()
+        super().set_params()
 
         src_server_copy_filename = self.server_path_mod.join(self.server_workdir, self.src_name)
         src = self.client.factory.create("ns0:IDSP-ScriptArg")
@@ -120,15 +129,15 @@ class SaveAsBase(InDesignSoapScript):
 
         # Extra parameters
         extra_params = []
-        for k, v in self.js_params.items():
+        for k, value in self.js_params.items():
             param = self.client.factory.create("ns0:IDSP-ScriptArg")
             param.name = k
-            param.value = v
+            param.value = value
             extra_params.append(param)
         self.params.scriptArgs.extend(extra_params)
 
     def runscript_extra(self, response):
-        response = super(SaveAsBase, self).runscript_extra(response)
+        response = super().runscript_extra(response)
         if response:
             response = ftp.read(self.response_client_copy_filename, self.ftp_params)
             if self.clean_workdir:
@@ -144,7 +153,7 @@ class Export(SaveAsBase):
     javascript_basename = "export.jsx"
 
     def set_params(self):
-        super(Export, self).set_params()
+        super().set_params()
         fmt = self.client.factory.create("ns0:IDSP-ScriptArg")
         fmt.name = "format"
         fmt.value = self.dst_format
@@ -160,11 +169,11 @@ class PackageForPrint(SaveAsBase):
     def runscript_extra(self, response):
         # Zip the tree generated in response_client_copy_filename and
         # make that variable point on that zip file.
-        zip_filename = "%s.zip" % self.response_client_copy_filename
+        zip_filename = f"{self.response_client_copy_filename}.zip"
         ftp.zip_dir(self.response_client_copy_filename, zip_filename, self.ftp_params)
         self.response_client_copy_filename = zip_filename
 
-        return super(PackageForPrint, self).runscript_extra(response)
+        return super().runscript_extra(response)
 
 
 @simple_decorator
@@ -189,8 +198,8 @@ def use_dedicated_working_directory(view_func):
                                  indesign_client_workdir, indesign_server_workdir,
                                  indesign_server_path_style, clean_workdir, ftp_params,
                                  logger, logger_extra)
-        except BaseException as e:
-            raise e
+        except BaseException as exc:
+            raise exc
         finally:
             if clean_workdir:
                 ftp.rmtree(working_dir, ftp_params)
