@@ -40,9 +40,9 @@ def use_working_copy(view_func):
                 idml_package.working_copy_path = None
                 raise err
 
-        from simple_idml.idml import IDMLPackage
+        from simple_idml.idml import IDMLPackage  # pylint: disable=import-outside-toplevel
         # Create a new archive from the extracted one.
-        tmp_package = IDMLPackage("%s.idml" % tmp_filename, mode="w")
+        tmp_package = IDMLPackage(f"{tmp_filename}.idml", mode="w")
         for root, dirs, filenames in os.walk(tmp_filename):
             for filename in filenames:
                 filename = os.path.join(root, filename)
