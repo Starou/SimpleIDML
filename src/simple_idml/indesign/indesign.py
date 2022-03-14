@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from builtins import object
+import ftplib
 import logging
 import ntpath
 import os
@@ -130,7 +131,16 @@ class SaveAsBase(InDesignSoapScript):
     def runscript_extra(self, response):
         response = super(SaveAsBase, self).runscript_extra(response)
         if response:
-            response = ftp.read(self.response_client_copy_filename, self.ftp_params)
+            try:
+                response = ftp.read(self.response_client_copy_filename, self.ftp_params)
+            # the joboptions may specify a multi-files export, in that case we have a directory.
+            except ftplib.error_perm:
+                dirname = os.path.splitext(self.response_client_copy_filename)[0]
+                filenames = ftp.listdir(dirname, self.ftp_params)
+                response = []
+                for filename in filenames:
+                    response.append(ftp.read(os.path.join(dirname, filename), self.ftp_params))
+
             if self.clean_workdir:
                 ftp.unlink(self.response_client_copy_filename, self.ftp_params)
         return response

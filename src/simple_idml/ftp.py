@@ -105,6 +105,20 @@ def read(filename, ftp_params=None):
     return response
 
 
+def listdir(dirname, ftp_params=None):
+    response = ""
+
+    if not ftp_params:
+        # TODO
+        pass
+    else:
+        ftp = get_ftp(ftp_params)
+        ftp.cwd(dirname)
+        response = ftp.nlst()
+
+    return response
+
+
 def zip_dir(dirname, zip_filename, ftp_params=None):
     if ftp_params:
         # Work locally in a temporary directory.

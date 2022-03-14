@@ -86,8 +86,19 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
     def save_as(self, response, dst):
         if not response:
             return
-        with open(dst.split("|")[0], mode="wb+") as fobj:
-            fobj.write(response)
+        destination = dst.split("|")[0]
+
+        # The response can be a list of files.
+        if isinstance(response, list):
+            dirname, basename = os.path.split(destination)
+            root, ext = os.path.splitext(basename)
+            os.makedirs(dirname, exist_ok=True)
+            for i, binary in enumerate(response):
+                with open(f"{dirname}/{root}_{i+1}{ext}", mode="wb+") as fobj:
+                    fobj.write(binary)
+        else:
+            with open(destination, mode="wb+") as fobj:
+                fobj.write(response)
 
 
 def main():
