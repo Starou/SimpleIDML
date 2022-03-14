@@ -16,9 +16,9 @@ SimpleIDML
     :target: https://pypi.python.org/pypi/SimpleIDML/
     :alt: License
 
-.. image:: https://travis-ci.org/Starou/SimpleIDML.svg
-    :target: https://travis-ci.org/Starou/SimpleIDML
-    :alt: Travis C.I.
+.. image:: https://coveralls.io/repos/github/Starou/SimpleIDML/badge.svg?branch=master
+    :target: https://coveralls.io/github/Starou/SimpleIDML?branch=master
+
 
 Installation
 ============
