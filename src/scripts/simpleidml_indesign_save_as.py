@@ -48,6 +48,14 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
 
     Example:
         "path/to/out.pdf|colorBars=1,cropMarks=1,monochromeBitmapCompression=CCIT3"
+
+    If your joboptions specify distinct files as output, use a destination argument
+    of the form:
+
+        "foo/foo.pdf|pdfExportPresetName=FOGRA_39_MULI_PAGES"
+
+    Resulting foo_1.pdf, foo_2.pdf, etc. will be placed in a `foo' directory.
+
        """
 
     def __init__(self):
