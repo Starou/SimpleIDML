@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from builtins import map
 import os
 from simple_idml.indesign import indesign
 from simple_idml.commands import InDesignSoapCommand
@@ -51,12 +50,12 @@ class InDesignSaveAsCommand(InDesignSoapCommand):
        """
 
     def __init__(self):
-        super(InDesignSaveAsCommand, self).__init__()
+        super().__init__()
         self.parser.add_argument('source', metavar='SOURCE', help="path/to/file.{indd|zip}")
         self.parser.add_argument('destinations', metavar='DESTINATIONS', help="file1|opt1=a,opt2=b;file2|opt1=c")
 
     def execute(self):
-        super(InDesignSaveAsCommand, self).execute()
+        super().execute()
         destinations = self.args.destinations.split(";")
         formats = map(self.parse_destination_arg, destinations)
         if os.path.splitext(self.args.source)[1] == ".zip":
