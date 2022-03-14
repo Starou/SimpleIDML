@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from builtins import object
 import argparse
 import logging
 
 
-class InDesignSoapCommand(object):
+class InDesignSoapCommand():
+    description = ""
+
     def __init__(self):
         self.parser = argparse.ArgumentParser(description=self.description,
-                                             formatter_class=argparse.RawDescriptionHelpFormatter)
-        self.parser.add_argument("-u", "--url", default="http://127.0.0.1:8082", help=u"InDesign Server SOAP url")
+                                              formatter_class=argparse.RawDescriptionHelpFormatter)
+        self.parser.add_argument("-u", "--url", default="http://127.0.0.1:8082", help="InDesign Server SOAP url")
         self.parser.add_argument("--client-workdir", default="/tmp",
                                  help=("Directory where temporary files are written, as seen by the SOAP client."
-                                     " This could be a FTP path."))
+                                       " This could be a FTP path."))
         self.parser.add_argument("--server-workdir", default="/tmp",
                                  help="Directory where temporary files are written, as seen by the InDesign server.")
         self.parser.add_argument("--server-path-style", default="posix",
@@ -26,6 +27,9 @@ class InDesignSoapCommand(object):
         self.parser.add_argument("--ftp-passive", action="store_true", default=False)
         self.parser.add_argument("-v", "--verbose", action="store_true", default=False)
 
+        self.ftp_params = None
+        self.args = None
+
     def execute(self):
         self.parse_options()
         self.set_ftp_params()
@@ -35,7 +39,6 @@ class InDesignSoapCommand(object):
         self.args = self.parser.parse_args()
 
     def set_ftp_params(self):
-        self.ftp_params = None
         if self.args.ftp_url:
             self.ftp_params = {
                 'auth': (self.args.ftp_url, self.args.ftp_user, self.args.ftp_password),
