@@ -457,6 +457,11 @@ installed in your PATH.
 Revisions
 =========
 
+1.1.4
+-----
+
+- PyLint refactorisation.
+
 1.1.3
 -----
 
