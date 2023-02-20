@@ -457,6 +457,12 @@ installed in your PATH.
 Revisions
 =========
 
+1.1.5
+-----
+
+- Add a ``page_number`` parameter to ``IDMLPackage.import_pdf()`` so that you
+  can choose which page from the PDF file to display.
+
 1.1.4
 -----
 
