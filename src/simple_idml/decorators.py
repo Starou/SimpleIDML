@@ -54,7 +54,7 @@ def use_working_copy(view_func):
         new_filename = idml_package.filename
         idml_package.close()
         os.unlink(idml_package.filename)
-        os.rename(tmp_package.filename, new_filename)
+        shutil.move(tmp_package.filename, new_filename)
         shutil.rmtree(tmp_filename)
         idml_package.working_copy_path = None
 
