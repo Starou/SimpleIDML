@@ -454,7 +454,7 @@ class IDMLPackage(zipfile.ZipFile):
         return self
 
     @use_working_copy
-    def import_pdf(self, pdf_path, at, crop="CropContentVisibleLayers"):
+    def import_pdf(self, pdf_path, at, crop="CropContentVisibleLayers", page_number=1):
         self.set_attributes(at, {'href': pdf_path})
         spread = self.get_spread_object_by_xpath(at)
 
@@ -471,7 +471,7 @@ class IDMLPackage(zipfile.ZipFile):
             </Properties>
             <ContourOption ContourType="SameAsClipping" IncludeInsideEdges="false" ContourPathName="$ID/" />
         </TextWrapPreference>
-        <PDFAttribute PageNumber="1" PDFCrop="{crop}" TransparentBackground="true" />
+        <PDFAttribute PageNumber="{page_number}" PDFCrop="{crop}" TransparentBackground="true" />
         <MetadataPacketPreference>
         </MetadataPacketPreference>
         <Link Self="{element_id}-link" AssetURL="$ID/" AssetID="$ID/" LinkResourceURI="{pdf_path}" LinkResourceFormat="$ID/Adobe Portable Document Format (PDF)" StoredState="Normal" LinkResourceModified="false" LinkObjectModified="false" ShowInUI="true" CanEmbed="true" CanUnembed="true" CanPackage="true" ImportPolicy="NoAutoImport" ExportPolicy="NoAutoExport" />
