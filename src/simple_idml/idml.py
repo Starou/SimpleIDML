@@ -782,6 +782,8 @@ class IDMLPackage(zipfile.ZipFile):
                                                                        excluded_tags=["Guide"])
 
         # Then add the tagged elements that may be on others layers.
+        all_elts_to_add = [elt for lst in [elt.findall('*') for elt in spread_elts_to_add]
+                           for elt in lst] + spread_elts_to_add
         for node in only_node.iter():
             if node.get("XMLContent") is None:
                 continue
@@ -789,7 +791,7 @@ class IDMLPackage(zipfile.ZipFile):
             # Image and EPS element are included in a Rectangle.
             if spread_elt.tag in ["Image", "EPS"]:
                 spread_elt = spread_elt.getparent()
-            if spread_elt not in spread_elts_to_add:
+            if spread_elt not in all_elts_to_add:
                 spread_elts_to_add.append(spread_elt)
 
         def _add_spread_element(spread_dest_elt, spread_elt):
