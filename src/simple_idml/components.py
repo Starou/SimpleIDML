@@ -48,6 +48,8 @@ class IDMLXMLFile():
         "FillColor",
         "StrokeColor",
         "ItemLayer",
+        "NextTextFrame",
+        "PreviousTextFrame",
     )
 
     def __init__(self, idml_package, working_copy_path=None):
@@ -141,6 +143,8 @@ class IDMLXMLFile():
                 continue
             for attr in self.prefixable_attrs:
                 if elt.get(attr):
+                    if attr in ['NextTextFrame', 'PreviousTextFrame'] and elt.get(attr) == 'n':
+                        continue
                     elt.set(attr, f"{prefix}{elt.get(attr)}")
 
         # <idPkg:Spread src="Spreads/Spread_ub6.xml"/>
