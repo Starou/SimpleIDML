@@ -56,11 +56,11 @@ Developers
 What is SimpleIDML?
 ===================
 
-SimpleIDML is a Python library to manipulate Adobe® InDesign® IDML file. The main purpose being
+SimpleIDML is a Python library to manipulate Adobe® InDesign® IDML files. The main purpose being
 the ability to compose IDML files together and produce complex documents from simple pieces and
 to separate the data from the structure.
 
-The philosophy behind SimpleIDML is to keep separated the content and the structure and to use XML
+The philosophy behind SimpleIDML is to keep the content and structure separated and to use XML
 files to feed your documents by using the XML Structure in InDesign.
 Keeping this isolation is important to ease the debugging and to keep track of what is going on.
 
@@ -95,7 +95,7 @@ Architecture
 These applications are web-applications. The communication is done by web-services feeding a task
 queue (RabbitMQ/Celery).
 
-The performances are quite good. Composing a document require a fraction of a second.
+The performances are quite good. Composing a document requires a fraction of a second.
 
 What are IDML files?
 ====================
@@ -103,8 +103,8 @@ What are IDML files?
 IDML (*InDesign Markup Language*) files are a Zip archives (Adobe calls them packages) storing
 essentially XML files. Adobe made a descent job because those files can completely express the
 content of the native (binary) documents.
-This is a small revolution in the print world when it comes to automatically process files in both
-ways from templates and database (Round-trip) without using proprietary server-edition of
+This is a small revolution in the print world when it comes to automatically processing files both
+from templates and database (Round-trip) without using the proprietary server-edition of
 Publishing Software.
 
 What does SimpleIDML do?
@@ -166,7 +166,7 @@ having the same structure).
 Build package
 -------------
 
-There is a convenient script to create a IDML package from a flat directory called
+There is a convenient script to create an IDML package from a flat directory called
 *simpleidml_create_package_from_dir.py* which should be in your PATH.
 
 
@@ -178,7 +178,7 @@ Compose document
 
 
 For example, the following is bad because ``my_doc`` initial instance reference is lost and
-the associated file cannot be properly closed. This may rise an exception on Windows platform
+the associated file cannot be properly closed. This may raise an exception on Windows platform
 if you try to ``os.unlink()`` an unclosed file.
 
 .. code-block:: python
@@ -199,8 +199,8 @@ Instead, use:
 Insert elements
 '''''''''''''''
 
-Using the XML Structure you can ask SimpleIDML to insert into a document at a XML tag the content
-of another XML tag from another document. The tag paths are expressed using XPath_ syntax.
+Using the XML Structure, SimpleIDML can insert the content of an XML tag from one document into an
+XML tag of another document. The tag paths are expressed using XPath_ syntax.
 Note that you should always make a copy of your idml files before altering them with
 ``shutil.copy2(src, dst)`` for instance and prefix your document before using ``insert_idml()``
 to avoid reference collisions.
@@ -343,11 +343,11 @@ Exporting as XML:
         </module>
     </Root>
 
-You can as well import XML file into your InDesign® documents. The following rules applies:
+You can also import XML files into your InDesign® documents. The following rules applies:
 
 - A node having the attribute ``simpleidml-setcontent="false"`` will not update the content of the
   corresponding element into the idml document (but its children will be updated).
-- A node having the attribute ``simpleidml-ignorecontent"true"`` will not update the content of the
+- A node having the attribute ``simpleidml-ignorecontent="true"`` will not update the content of the
   corresponding element into the idml document **and** its children.
 - A node having the attribute ``simpleidml-setcontent="delete"`` will remove the corresponding
   element into the idml document (Story and Spread elements).
@@ -356,10 +356,10 @@ You can as well import XML file into your InDesign® documents. The following ru
 - You can mix several flags using a comma (i.e.: ``simpleidml-setcontent="delete,remove-previous-br"``)
 - In a *ignorecontent* context the content of a child node can be turned on with the
   ``simpleidml-forcecontent="true"`` flag.
-- Images references are passed by the *href* attribute. An empty value will remove the
+- Image references are passed by the *href* attribute. An empty value will remove the
   corresponding page items into the document.
-- Nested tag will be created if they are mapped with a *character-style*.
-- The style applied to the newly created tag is a combinaison of the parent character-styles and
+- A nested tag will be created if they are mapped with a *character-style*.
+- The style applied to the newly created tag is a combination of the parent character-style and
   the mapped one.
 
 Please take a look into the tests for in-depth examples.
@@ -434,10 +434,10 @@ The response is a list of binary strings matching ``formats`` provided:
 
 To convert an InDesign Package, use ``indesign.export_package_as()`` instead.
 
-If the InDesign Server instance runs on a Windows machine, set the
+If the InDesign Server instance is running on a Windows machine, set the
 ``indesign_server_path_style`` parameter to ``"windows"``.
 
-If the client access to the working directory *via* FTP, you must specify that
+If the client accesses the working directory *via* FTP, you must specify that
 in the ``ftp_params`` parameter:
 
 .. code-block:: python
