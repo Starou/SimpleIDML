@@ -455,7 +455,7 @@ class IDMLPackage(zipfile.ZipFile):
 
     @use_working_copy
     def import_pdf(self, pdf_path, at, crop="CropContentVisibleLayers", page_number=1):
-        self.set_attributes(at, {'href': pdf_path})
+        self.set_attributes(at, {'href': f'{pdf_path}'})
         spread = self.get_spread_object_by_xpath(at)
 
         # spread_elt is a <Rectangle> that will host the <PDF>.
