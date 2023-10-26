@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-VERSION = "1.1.5"
+VERSION = "1.1.6"
 IdPkgNS = "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging"
 BACKINGSTORY = "XML/BackingStory.xml"
 
