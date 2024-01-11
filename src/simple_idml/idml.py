@@ -358,7 +358,10 @@ class IDMLPackage(zipfile.ZipFile):
                 return
 
             for sibling in siblings:
-                last_content_node.addnext(sibling)
+                try:
+                    last_content_node.addnext(sibling)
+                except ValueError:  # "cannot add ancestor as sibling, please break cycle first"
+                    pass
             story.synchronize()
 
         def _import_new_node(source_node, at=None, element_id=None, story=None):
