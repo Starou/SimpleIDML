@@ -51,6 +51,10 @@ class IDMLXMLFile():
         "NextTextFrame",
         "PreviousTextFrame",
     )
+    prefixable_content_tags = (
+        'ParagraphShadingColor',
+        'ParagraphBorderColor',
+    )
 
     def __init__(self, idml_package, working_copy_path=None):
         self.idml_package = idml_package
@@ -141,6 +145,8 @@ class IDMLXMLFile():
         for elt in self.dom.iter():
             if elt.tag in self.excluded_tags_for_prefix:
                 continue
+            if elt.tag in self.prefixable_content_tags and elt.text:
+                elt.text = f"{prefix}{elt.text}"
             for attr in self.prefixable_attrs:
                 if elt.get(attr):
                     if attr in ['NextTextFrame', 'PreviousTextFrame'] and elt.get(attr) == 'n':
@@ -900,13 +906,15 @@ class XMLElement(Proxy):
             "Ligatures",
             "OTFContextualAlternate",
             "BaselineShift",
+            "ParagraphShadingColor",
+            "ParagraphBorderColor",
         ]
 
         for attr in attrs:
             if style_node.get(attr) is not None:
                 style_range_node.set(attr, style_node.get(attr))
 
-        for attr in ("Leading", "AppliedFont"):
+        for attr in ("Leading", "AppliedFont", "ParagraphShadingColor", "ParagraphBorderColor"):
             path = f"Properties/{attr}"
             attr_node = style_node.find(path)
             if attr_node is not None:

@@ -457,6 +457,11 @@ installed in your PATH.
 Revisions
 =========
 
+1.1.7
+-----
+
+- Manage border color in styles when composing documents.
+
 1.1.5
 -----
 

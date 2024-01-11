@@ -334,7 +334,7 @@ class IDMLPackage(zipfile.ZipFile):
                 if parent_style_node.get(attr) is not None and (applied_style_node is None or not applied_style_node.get(attr)):
                     style_range_node.set(attr, parent_style_node.get(attr))
 
-            for attr in ("Leading", "AppliedFont"):
+            for attr in ("Leading", "AppliedFont", "ParagraphShadingColor", "ParagraphBorderColor"):
                 path = f"Properties/{attr}"
                 parent_attr_node = parent_style_node.find(path)
                 attr_node = applied_style_node.find(path) is not None if applied_style_node is not None else None
