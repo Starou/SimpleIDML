@@ -358,7 +358,7 @@ You can also import XML files into your InDesign® documents. The following rule
   ``simpleidml-forcecontent="true"`` flag.
 - Image references are passed by the *href* attribute. An empty value will remove the
   corresponding page items into the document.
-- A nested tag will be created if they are mapped with a *character-style*.
+- A nested tag will be created if mapped with a *character-style*.
 - The style applied to the newly created tag is a combination of the parent character-style and
   the mapped one.
 
