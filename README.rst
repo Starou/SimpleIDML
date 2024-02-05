@@ -457,6 +457,11 @@ installed in your PATH.
 Revisions
 =========
 
+1.1.8
+-----
+
+- Bugfix (issue #73).
+
 1.1.7
 -----
 

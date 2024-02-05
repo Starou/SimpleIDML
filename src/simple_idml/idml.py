@@ -342,7 +342,8 @@ class IDMLPackage(zipfile.ZipFile):
                     properties_element.append(copy.deepcopy(parent_attr_node))
 
         def _move_siblings_content(at, element_id):
-            """ When new XML elements are inserted, the siblings of the initial <content> (<BR> etc) are
+            """ When new XML elements are inserted, the siblings of the initial <content>
+                (<br> only to avoid moving newly created elements) are
                 repositionned after the last <content> created.
             """
             story = self.get_story_object_by_xpath(at)
@@ -353,12 +354,15 @@ class IDMLPackage(zipfile.ZipFile):
 
             first_content_node = content_nodes[0]
             last_content_node = content_nodes[-1]
-            siblings = list(first_content_node.itersiblings())
+            siblings = list(first_content_node.itersiblings(['br', 'Br', 'BR']))
             if not len(siblings):
                 return
 
             for sibling in siblings:
-                last_content_node.addnext(sibling)
+                try:
+                    last_content_node.addnext(sibling)
+                except ValueError:  # "cannot add ancestor as sibling, please break cycle first"
+                    pass
             story.synchronize()
 
         def _import_new_node(source_node, at=None, element_id=None, story=None):
