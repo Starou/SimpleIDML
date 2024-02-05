@@ -456,12 +456,12 @@ class IDMLPackage(zipfile.ZipFile):
 
                     _move_siblings_content(at, element_id)
 
-        self._clean_destination(source_node, at)
+        self._clear_destination(source_node, at)
         self.init_lazy_references()
         _import_node(source_node, at)
         return self
 
-    def _clean_destination(self, source_node, at):
+    def _clear_destination(self, source_node, at):
         """ Remove content marked for removal before importing XML. """
 
         element_id = self.xml_structure.xpath(at)[0].get("Self")
@@ -483,14 +483,14 @@ class IDMLPackage(zipfile.ZipFile):
             if destination_node_children_tags == source_node_children_tags:
                 for s, d in zip(source_node_children,
                                 [self.xml_structure_tree.getpath(c) for c in destination_node_children]):
-                    self._clean_destination(s, at=d)
+                    self._clear_destination(s, at=d)
 
             # Step-by-step iteration.
             else:
                 destination_node_child = next(destination_node_children, None)
                 for source_child in source_node_children:
                     if destination_node_child is not None and source_child.tag == destination_node_child.tag:
-                        self._clean_destination(source_child,
+                        self._clear_destination(source_child,
                                                 at=self.xml_structure_tree.getpath(destination_node_child))
                         destination_node_child = next(destination_node_children, None)
 
