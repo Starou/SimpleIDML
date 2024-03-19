@@ -1,0 +1,22 @@
+<dossier template="PR_206001.idml" reference="PR_206001_EN" standalone="1" support="PLF" parution="206" cahier="publi_redac">
+  <module>
+    <annonce simpleidml-setcontent="false">
+      <accroche simpleidml-setcontent="false">
+        <titre>Pyramid Cabinet</titre>
+        <sous_titre>Where people met goods</sous_titre>
+      </accroche>
+      <article simpleidml-setcontent="false">
+        <question simpleidml-setcontent="clear"><black>Guerra S.</black> Tell us about the history and added value of your agency</question>
+        <reponse simpleidml-setcontent="clear"><bold>Henri D.</bold> Our cabinet has been established by my great-great-grand father in the 90's.</reponse><br />
+        <question simpleidml-setcontent="clear">Which areas do you cover?</question>
+        <reponse simpleidml-setcontent="clear"><bold>H.D.</bold> South east of France.</reponse>
+      </article>
+      <article simpleidml-setcontent="false">
+        <question>Any tactical advantage over your pairs?</question>
+        <reponse simpleidml-setcontent="clear">Our dedication is top-tier.</reponse>
+      </article>
+      <exergue>« Please, contact us! »</exergue>
+      <nom>Henri Dupond</nom>
+    </annonce>
+  </module>
+</dossier>

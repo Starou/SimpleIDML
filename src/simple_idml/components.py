@@ -444,9 +444,12 @@ class Story(IDMLXMLFile):
         if synchronize:
             self.synchronize()
 
-    def remove_children(self, element_id, synchronize=False):
+    def remove_children(self, element_id, keep_style=False, synchronize=False):
         elt = self.get_element_by_id(element_id).element
-        for child in elt.iterchildren():
+
+        for i, child in enumerate(elt.iterchildren()):
+            if i == 0 and keep_style and child.tag in ['ParagraphStyleRange', 'CharacterStyleRange']:
+                continue
             elt.remove(child)
         if synchronize:
             self.synchronize()
