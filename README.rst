@@ -351,6 +351,8 @@ You can also import XML files into your InDesign® documents. The following rule
   corresponding element into the idml document **and** its children.
 - A node having the attribute ``simpleidml-setcontent="delete"`` will remove the corresponding
   element into the idml document (Story and Spread elements).
+- A node having the attribute ``simpleidml-setcontent="clear"`` will clear the text in the
+  element.
 - A node having the attribute ``simpleidml-setcontent="remove-previous-br"`` will remove the new-line
   characters before the element.
 - You can mix several flags using a comma (i.e.: ``simpleidml-setcontent="delete,remove-previous-br"``)
@@ -456,6 +458,11 @@ installed in your PATH.
 
 Revisions
 =========
+
+1.2.0
+-----
+
+- Add flag ``simpleidml-setcontent="clear"`` to import XML.
 
 1.1.8
 -----

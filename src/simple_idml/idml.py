@@ -92,11 +92,13 @@ class IDMLPackage(zipfile.ZipFile):
                     if elt.get("XMLContent"):
                         xml_content_value = elt.get("XMLContent")
                         story_name = f"Stories/Story_{xml_content_value}.xml"
-                        story = Story(self, name=story_name)
+                        story = Story(self, name=story_name, working_copy_path=self.working_copy_path)
                         try:
                             new_source_node = story.get_element_by_id(elt.get("Self"))
-                        # The story does not exists.
+                        # The story does not exists (i.e. for an image).
                         except KeyError:
+                            continue
+                        except FileNotFoundError:
                             continue
                         else:
                             append_childs(new_source_node, new_destination_node)
@@ -454,8 +456,43 @@ class IDMLPackage(zipfile.ZipFile):
 
                     _move_siblings_content(at, element_id)
 
+        self._clear_destination(source_node, at)
+        self.init_lazy_references()
         _import_node(source_node, at)
         return self
+
+    def _clear_destination(self, source_node, at):
+        """ Remove content marked for removal before importing XML. """
+
+        element_id = self.xml_structure.xpath(at)[0].get("Self")
+        items = dict(source_node.items())
+
+        content_flags = items.get(SETCONTENT_TAG, "").split(',')
+        if "clear" in content_flags:
+            story = self.get_story_object_by_xpath(at)
+            story.remove_children(element_id, keep_style=True, synchronize=True)
+            self._xml_structure.xpath(at)[0].clear()
+
+        source_node_children = source_node.getchildren()
+        if len(source_node_children):
+            source_node_children_tags = [n.tag for n in source_node_children]
+            destination_node = self.xml_structure.xpath(at)[0]
+            destination_node_children = destination_node.iterchildren()
+            destination_node_children_tags = [n.tag for n in destination_node.iterchildren()]
+
+            if destination_node_children_tags == source_node_children_tags:
+                for s, d in zip(source_node_children,
+                                [self.xml_structure_tree.getpath(c) for c in destination_node_children]):
+                    self._clear_destination(s, at=d)
+
+            # Step-by-step iteration.
+            else:
+                destination_node_child = next(destination_node_children, None)
+                for source_child in source_node_children:
+                    if destination_node_child is not None and source_child.tag == destination_node_child.tag:
+                        self._clear_destination(source_child,
+                                                at=self.xml_structure_tree.getpath(destination_node_child))
+                        destination_node_child = next(destination_node_children, None)
 
     @use_working_copy
     def import_pdf(self, pdf_path, at, crop="CropContentVisibleLayers", page_number=1):

@@ -622,6 +622,33 @@ class IdmlTestCase(SimpleTestCase):
 </Root>
 """)
 
+    def test_import_xml_clear_content(self):
+        """Example of an article to be translated using an existing composition. """
+        shutil.copy2(os.path.join(IDMLFILES_DIR, "interview.idml"),
+                     os.path.join(OUTPUT_DIR, "interview_origin.idml"))
+        with IDMLPackage(os.path.join(OUTPUT_DIR, "interview_origin.idml")) as idml_file,\
+            open(os.path.join(XML_DIR, "interview_en.xml"), "r") as xml_file:
+            with idml_file.import_xml(xml_file.read(), at="/Root/dossier") as f:
+                xml = f.export_xml()
+                self.assertXMLEqual(xml,
+"""<Root>
+  <dossier template="PR_206001.idml" reference="PR_206001_EN" support="PLF" parution="206" cahier="publi_redac" standalone="1">
+    <module>
+      <annonce simpleidml-setcontent="false">
+        <accroche simpleidml-setcontent="false"><titre>Pyramid Cabinet</titre> <sous_titre>Where people met goods</sous_titre></accroche>
+        <article simpleidml-setcontent="false"><question simpleidml-setcontent="clear"><black>Guerra S.</black> Tell us about the history and added value of your agency</question><reponse simpleidml-setcontent="clear"><bold>Henri D.</bold> Our cabinet has been established by my great-great-grand father in the 90's.</reponse>&#8232;&#8232;<question simpleidml-setcontent="clear">Which areas do you cover?</question><reponse simpleidml-setcontent="clear"><bold>H.D.</bold> South east of France.</reponse></article>
+        <article simpleidml-setcontent="false">
+          <question>Any tactical advantage over your pairs?</question>
+          <reponse simpleidml-setcontent="clear">Our dedication is top-tier.</reponse>
+        </article>
+        <exergue>&#171; Please, contact us! &#187;</exergue>
+        <nom>Henri Dupond</nom>
+      </annonce>
+    </module>
+  </dossier>
+</Root>
+""")
+
     def test_import_pdf(self):
         shutil.copy2(os.path.join(IDMLFILES_DIR, "page-9modules.idml"),
                      os.path.join(OUTPUT_DIR, "page-9modules.idml"))
