@@ -8,8 +8,8 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst'), encoding='utf-8
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
-    name="SimpleIDML",
-    version="1.2.0",
+    name="simpleidml",
+    version="1.3.0",
     license='BSD Licence',
     author='Stanislas Guerra',
     author_email='stanislas.guerra@gmail.com',
@@ -44,9 +44,7 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.11',
         'Topic :: Multimedia :: Graphics',
         'Topic :: Printing',
         'Topic :: Software Development :: Libraries :: Python Modules',
