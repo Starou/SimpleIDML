@@ -24,7 +24,7 @@ Use ``pip``:
 
 .. code-block:: bash
 
-    pip install SimpleIDML
+    pip install simpleidml
 
 Or:
 
@@ -36,7 +36,7 @@ Or:
 Python support
 --------------
 
-- Python 3: 3.6+
+- Python 3: 3.9+
 
 Any questions?
 --------------
