@@ -885,6 +885,11 @@ class IdmlTestCase(SimpleTestCase):
                 # Layer(s)
                 self.assertEqual(prefixed_f.get_active_layer_name(), "Layer 1")
 
+                # Graphic.xml
+                with prefixed_f.open("Resources/Graphic.xml") as f:
+                    graphic = etree.fromstring(f.read())
+                    self.assertEqual(graphic.xpath('Gradient/GradientStop')[0].get('StopColor'), 'FOOColor/u81')
+
         # Prefixing a file with a Style / XML tag mapping.
         shutil.copy2(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"),
                      os.path.join(OUTPUT_DIR, "article-1photo_import-xml-prefixed.idml"))

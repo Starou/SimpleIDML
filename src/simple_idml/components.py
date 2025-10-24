@@ -47,6 +47,7 @@ class IDMLXMLFile():
         "NextStyle",
         "FillColor",
         "StrokeColor",
+        "StopColor",
         "ItemLayer",
         "NextTextFrame",
         "PreviousTextFrame",
