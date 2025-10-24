@@ -459,6 +459,11 @@ installed in your PATH.
 Revisions
 =========
 
+1.3.2
+-----
+
+- Fix Gradient Color lost when prefixing document.
+
 1.2.0
 -----
 
